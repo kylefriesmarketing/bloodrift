@@ -1,0 +1,26 @@
+{
+  "character": "zenith",
+  "note": "P4 content — carried in data, ignored by engine v1. Affixes are effect-DSL rules.",
+  "items": [
+    {
+      "id": "coronal_weave",
+      "name": "Coronal Weave",
+      "slot": "body",
+      "rarity": "epic",
+      "affixes": [
+        { "trigger": "round_won", "action": "adjust_state", "target": "debt", "delta": -10 }
+      ],
+      "flavor": "Shed 1 Debt per round won."
+    },
+    {
+      "id": "mourning_cape",
+      "name": "Mourning Cape",
+      "slot": "relic",
+      "rarity": "riftforged",
+      "affixes": [
+        { "trigger": "on_apply_bleed", "condition": "self.debt >= 100", "action": "apply_debuff", "debuff": "bleed_no_timeout" }
+      ],
+      "flavor": "At max Solar Debt, Bleeding you inflict never times out — but your own wounds don't visually close between rounds."
+    }
+  ]
+}

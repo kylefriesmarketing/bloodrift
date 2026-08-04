@@ -1,0 +1,61 @@
+# BLOODRIFT — DECISIONS LOG
+
+Per BUILD_PLAN §5 rule 3: any session that deviates from the three design docs writes the
+deviation HERE, so the docs stay truthful for the next agent. Newest first.
+
+---
+
+## 2026-08-04 — Bootstrap session (Fable 5): stack + P1 conventions
+
+**D-001 · Phase A stack = vanilla ES modules (JS + JSDoc) + Canvas 2D, not TypeScript + PixiJS.**
+Why: zero build step matches the serve→GitHub Pages pipeline every shipped game in this
+workspace uses; the *same* engine modules run headless under node for the determinism
+harness (no transpile in CI); removes toolchain risk from session one. What is preserved
+untouched from the plan: strict sim/render separation, fixed-timestep 60Hz integer-math sim,
+JSON data + schema gate, the effect DSL, "characters are content, not code."
+Migration path: schemas are language-agnostic; PixiJS/TS can arrive with the art pass (P2+).
+Reversing this is itself a DECISIONS entry.
+
+**D-002 · Input conventions.** EX ("Bloodletting") = hold **Block** while completing a
+special's input (costs 1 pint). Flare (ZENITH) = hold **Rift** while completing the input.
+Overdrive = **Throw+Rift** with 3 pints. Transfusion breaker = **Block+Throw** during ground
+hitstun (2 pints). Wakeup roll = hold **Block** during knockdown (1 pint). Delayed wakeup =
+hold **Down**.
+
+**D-003 · Frame data authoring.** `hitstun`/`blockstun` are authored explicitly per move;
+`onHit`/`onBlock` in data are the *nominal* advantage assuming first-active-frame contact.
+The lint enforces `onHit == hitstun - (active-1 + recovery)` (same for block), so the listed
+numbers are always true while meaty contact still improves real advantage. `startup` = frames
+before the first active frame (earliest contact = frame startup+1).
+
+**D-004 · GRAFT ships without Harvest at P1** (per BUILD_PLAN §6 P1 note). Borrowed Hands is
+simplified to: Rift tap = Power/Finesse set toggle (data-driven stat mods), Rift hold =
+Meat Wall stance, graft-limb health = one armor pool (armored moves and Meat Wall consume it;
+Meat Wall absorbs projectiles to heal it). This is one of the six sanctioned custom
+subsystems from BUILD_PLAN §4.3.
+
+**D-005 · Limb trauma accrues on HIT only** at P1 (no trauma through block). Thresholds and
+bleed drip live in `data/balance/core.json`. Wound state 3 applies Bleeding; chip clamps at
+1 HP; only bleed drip can finish a round past that clamp (Bleed-out), per GDD §5.3.
+
+**D-006 · Persistence deferred to P4.** Solar Debt and the graft pool run **match-scoped**
+(gauges live, in-match effects live); nothing writes cross-match state yet. `rpg_hook.state`
+in character.json is the container persistence will hydrate.
+
+**D-007 · Arena interactables deferred** (GDD §3 lists 2–4 per arena). Arena data carries an
+empty `interactables` array so the schema is ready; engine ignores it at P1.
+
+**D-008 · Sunders/finishers are STAGED as data, not playable.** `sunders.json` /
+`finishers.json` in each character folder carry the roster doc's triggers and cinematic
+descriptions with `"cinematic": "TODO"` so P3 is a pure engine milestone, not a data hunt.
+
+**D-009 · Round flow details** the GDD leaves open: meter and limb trauma persist across
+rounds; HP refills; Bleeding cleanses at round end (GDD-stated); blood pools persist all
+match (GDD-stated). Timer KO = higher remaining HP wins the round; exact tie = both take a
+round pip (double KO rule: if that decides the match both ways, the round replays... v1:
+tie awards BOTH, match can end 2-2 → sudden-death round with 1 HP... simplified: tie awards
+the round to NEITHER and replays. Lint-tested? No — noted here, revisit in playtest).
+
+**D-010 · CPU opponent lives inside the sim** as an optional per-seat controller (pure
+function of sim state + its own seeded LCG stream), so CPU matches replay and hash-verify
+exactly like human matches.

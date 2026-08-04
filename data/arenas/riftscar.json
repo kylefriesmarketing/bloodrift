@@ -1,0 +1,18 @@
+{
+  "id": "riftscar",
+  "name": "The Rift-Scar",
+  "width": 1760,
+  "scarX": 880,
+  "poolAmp": 1500,
+  "spawn": { "p1": 620, "p2": 1140 },
+  "interactables": [],
+  "look": {
+    "sky": "#0b0a10",
+    "ground": "#181419",
+    "groundEdge": "#241d22",
+    "bands": ["#141019", "#100d14", "#0d0b10"],
+    "scarGlow": "#ff2135",
+    "grain": 0.06,
+    "note": "the wound itself; blood migrates fast here, all pool effects amplified — neutral finals stage"
+  }
+}

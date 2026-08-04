@@ -1,0 +1,68 @@
+{
+  "id": "graft",
+  "name": "GRAFT",
+  "title": "The Amalgam",
+  "faction": "court",
+  "archetype": "grappler",
+  "difficulty": 2,
+  "stats": {
+    "hp": 1150,
+    "walkF": 2600,
+    "walkB": 2300,
+    "dashF": { "speed": 6200, "dur": 14, "tail": 6 },
+    "dashB": { "speed": 6800, "dur": 16, "tail": 4 },
+    "jumpVy": -11800,
+    "gravity": 700,
+    "prejump": 5,
+    "weight": 5,
+    "width": 112,
+    "height": 300,
+    "crouchHeight": 200
+  },
+  "rift_button": {
+    "mechanic": "graft_sets",
+    "config": {
+      "poolMax": 150,
+      "poolStart": 150,
+      "absorbHeal": 30,
+      "armorDamagePermille": 250,
+      "power": { "dmgPermille": 1150, "walkPermille": 900 },
+      "finesse": { "walkPermille": 1120, "throwStartupMinus": 2, "longArmExtend": 60 }
+    }
+  },
+  "rpg_hook": {
+    "id": "harvest",
+    "persistent": true,
+    "state": { "stolen": [] },
+    "effects": [
+      {
+        "trigger": "on_execution",
+        "action": "grant_resource",
+        "resource": "harvest.stolen_move",
+        "amount": 1,
+        "note": "P4/P5 — one stolen special per unique character executed; 2 loadout slots; 14 thefts = The Complete Man. Inert until Harvest ships (DECISIONS D-004)."
+      }
+    ]
+  },
+  "pool_interactions": [],
+  "wound_art": { "arms": 3, "legs": 3, "body": 3, "head": 3 },
+  "hurtboxes": {
+    "stand": [
+      { "x": -36, "y": 0, "w": 72, "h": 230 },
+      { "x": -24, "y": 230, "w": 48, "h": 70 }
+    ],
+    "crouch": [
+      { "x": -38, "y": 0, "w": 76, "h": 200 }
+    ],
+    "air": [
+      { "x": -36, "y": 50, "w": 72, "h": 210 }
+    ]
+  },
+  "throw": { "range": 100, "damage": 140, "techWindow": 10, "startup": 6 },
+  "palette": {
+    "primary": "#5a4a52",
+    "secondary": "#2a1218",
+    "accent": "#b8434e",
+    "blood": "#8f0f22"
+  }
+}

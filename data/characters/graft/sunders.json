@@ -1,0 +1,33 @@
+{
+  "character": "graft",
+  "note": "P3 content — staged per DECISIONS D-008.",
+  "sunders": [
+    {
+      "region": "ARMS",
+      "id": "found_wanting",
+      "trigger": { "desc": "land Fitting twice in one match", "cond": "hits_this_match('fitting') >= 2" },
+      "cinematic": "TODO",
+      "flavor": "He removes the arm at the elbow with intent, examines it, and — finding it wanting — uses it as the club for the rest of the cinematic."
+    },
+    {
+      "region": "LEGS",
+      "id": "wrong_hinge",
+      "trigger": { "desc": "Meat Wall absorbs a full string, then punish", "cond": "meatwall_absorbed_string && punish" },
+      "cinematic": "TODO",
+      "flavor": "A boot-stomp through the knee with a giant's mass — a joint becoming a hinge the wrong way."
+    },
+    {
+      "region": "BODY",
+      "id": "jar_lid",
+      "trigger": { "desc": "opponent's ARMS already Sundered — he escalates the fitting", "cond": "opponent.sundered.ARMS" },
+      "cinematic": "TODO",
+      "flavor": "Both hands take the ribcage like a jar lid."
+    }
+  ],
+  "debuffs_reference": {
+    "ARMS": "victim punch damage -20%, throws escapable free",
+    "LEGS": "victim loses run/dash cancel, move speed -15%",
+    "BODY": "victim meter gain -30%, Bleeding applied",
+    "HEAD": "victim inputs ghost briefly on hit, directional UI flickers"
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "bloodrift.balance.v1",
+  "title": "BLOODRIFT balance/core.json v1 (FROZEN 2026-08-04)",
+  "type": "object",
+  "required": ["meter", "comboScaling", "trauma", "bleed", "pools", "wakeup", "rounds", "hitstopByDamage", "counterHit", "juggle"],
+  "additionalProperties": true,
+  "properties": {
+    "meter": {
+      "type": "object",
+      "required": ["max", "exCost", "rollCost", "breakerCost", "overdriveCost"],
+      "properties": {
+        "max": { "type": "integer" }, "exCost": { "type": "integer" },
+        "rollCost": { "type": "integer" }, "breakerCost": { "type": "integer" },
+        "overdriveCost": { "type": "integer" },
+        "takeDamagePerHundred": { "type": "integer", "description": "centipints gained per 100 damage taken" }
+      }
+    },
+    "comboScaling": { "type": "array", "items": { "type": "integer" }, "description": "per-mille damage multiplier by combo hit index; last entry repeats" },
+    "trauma": {
+      "type": "object",
+      "required": ["thresholds"],
+      "properties": {
+        "thresholds": { "type": "array", "items": { "type": "integer" }, "description": "trauma to enter wound state 1/2/3 per limb region" }
+      }
+    },
+    "bleed": {
+      "type": "object",
+      "required": ["dripPer60", "chipClampHp"],
+      "properties": {
+        "dripPer60": { "type": "integer", "description": "hp lost per 60 frames per bleeding region" },
+        "chipClampHp": { "type": "integer", "description": "chip damage cannot reduce HP below this; bleed drip CAN (Bleed-out KO)" }
+      }
+    },
+    "pools": {
+      "type": "object",
+      "required": ["minEventVolume", "mergeDist", "tickInterval", "tickMeter", "migratePerFrame"],
+      "properties": {
+        "minEventVolume": { "type": "integer", "description": "blood-event volume needed to spawn/merge a pool" },
+        "mergeDist": { "type": "integer", "description": "px" },
+        "tickInterval": { "type": "integer", "description": "frames between pool meter ticks while standing in one" },
+        "tickMeter": { "type": "integer", "description": "centipints per tick" },
+        "migratePerFrame": { "type": "integer", "description": "millipx/frame drift toward arena scarX" },
+        "radiusPerVolume": { "type": "integer", "description": "milli-px of radius per volume unit" },
+        "maxRadius": { "type": "integer" }
+      }
+    },
+    "wakeup": {
+      "type": "object",
+      "required": ["kdFrames", "hardKdFrames", "delayedExtra", "rollDist", "rollFrames"],
+      "properties": {
+        "kdFrames": { "type": "integer" }, "hardKdFrames": { "type": "integer" },
+        "delayedExtra": { "type": "integer" }, "rollDist": { "type": "integer" },
+        "rollFrames": { "type": "integer" }
+      }
+    },
+    "rounds": {
+      "type": "object",
+      "required": ["timerSec", "toWin"],
+      "properties": { "timerSec": { "type": "integer" }, "toWin": { "type": "integer" } }
+    },
+    "hitstopByDamage": {
+      "type": "array",
+      "items": { "type": "object", "required": ["min", "frames"], "properties": { "min": { "type": "integer" }, "frames": { "type": "integer" } } },
+      "description": "first entry whose min <= damage wins; order descending"
+    },
+    "counterHit": {
+      "type": "object",
+      "required": ["hitstunBonus"],
+      "properties": { "hitstunBonus": { "type": "integer" }, "damageBonusPermille": { "type": "integer" } }
+    },
+    "juggle": {
+      "type": "object",
+      "required": ["airHitstun", "reGravity"],
+      "properties": {
+        "airHitstun": { "type": "integer", "description": "frames of air hitstun per juggle hit" },
+        "reGravity": { "type": "integer", "description": "gravity while in juggle state (millipx/frame^2)" },
+        "liftVy": { "type": "integer", "description": "default upward velocity applied by launch knock if move omits vy" }
+      }
+    },
+    "pushbackDefault": { "type": "object", "properties": { "hit": { "type": "integer" }, "block": { "type": "integer" } } },
+    "throwTech": { "type": "object", "properties": { "window": { "type": "integer" } } },
+    "blood": {
+      "type": "object",
+      "properties": {
+        "volumePerDamage": { "type": "integer", "description": "milli-volume per point of damage" },
+        "poolDamageMin": { "type": "integer", "description": "single-hit damage at/above which a pool always spawns" }
+      }
+    }
+  }
+}

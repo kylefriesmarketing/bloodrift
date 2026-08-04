@@ -1,0 +1,59 @@
+{
+  "meter": {
+    "max": 300,
+    "exCost": 100,
+    "rollCost": 100,
+    "breakerCost": 200,
+    "overdriveCost": 300,
+    "takeDamagePerHundred": 8
+  },
+  "comboScaling": [1000, 1000, 900, 800, 700, 600, 500, 400, 350, 300],
+  "trauma": {
+    "thresholds": [120, 260, 420]
+  },
+  "bleed": {
+    "dripPer60": 10,
+    "chipClampHp": 1
+  },
+  "pools": {
+    "minEventVolume": 60,
+    "mergeDist": 90,
+    "tickInterval": 30,
+    "tickMeter": 2,
+    "migratePerFrame": 8,
+    "radiusPerVolume": 260,
+    "maxRadius": 150
+  },
+  "wakeup": {
+    "kdFrames": 42,
+    "hardKdFrames": 58,
+    "delayedExtra": 12,
+    "rollDist": 170,
+    "rollFrames": 22
+  },
+  "rounds": {
+    "timerSec": 99,
+    "toWin": 2
+  },
+  "hitstopByDamage": [
+    { "min": 90, "frames": 12 },
+    { "min": 60, "frames": 9 },
+    { "min": 40, "frames": 7 },
+    { "min": 0, "frames": 5 }
+  ],
+  "counterHit": {
+    "hitstunBonus": 6,
+    "damageBonusPermille": 100
+  },
+  "juggle": {
+    "airHitstun": 30,
+    "reGravity": 700,
+    "liftVy": -11000
+  },
+  "pushbackDefault": { "hit": 7000, "block": 9000 },
+  "throwTech": { "window": 10 },
+  "blood": {
+    "volumePerDamage": 1000,
+    "poolDamageMin": 60
+  }
+}

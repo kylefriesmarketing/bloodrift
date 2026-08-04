@@ -1,0 +1,149 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "bloodrift.moves.v1",
+  "title": "BLOODRIFT moves.json v1 (FROZEN 2026-08-04 — changes require a migration ticket in docs/DECISIONS.md)",
+  "description": "moves.json is an ARRAY of move objects. Frame convention: `startup` = frames before the first active frame (move can first connect on frame startup+1). total = startup+active+recovery. `onHit`/`onBlock` are NOMINAL advantage assuming contact on the FIRST active frame; the engine uses hitstun/blockstun directly, so meaty contact naturally improves advantage. Lint enforces onHit == hitstun - (active-1+recovery) and same for block.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "name", "kind", "trigger", "guard", "limb_tag"],
+    "additionalProperties": true,
+    "properties": {
+      "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+      "name": { "type": "string" },
+      "input": { "type": "string", "description": "human notation, e.g. qcf+FP — documentation only; the engine reads `trigger`" },
+      "kind": { "type": "string", "enum": ["normal", "command_normal", "string_hit", "special", "stance", "overdrive"] },
+      "trigger": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {
+          "type": { "type": "string", "enum": ["button", "motion", "chain", "buttons", "rift_hold"] },
+          "button": { "type": "string", "enum": ["FP", "BP", "FK", "BK", "TH", "BL", "RF"] },
+          "buttons": { "type": "array", "items": { "type": "string" } },
+          "motion": { "type": "string", "enum": ["qcf", "qcb", "dp", "hcb", "bf", "dd"] },
+          "pos": { "type": "string", "enum": ["stand", "crouch", "air"] },
+          "dir": { "type": "string", "enum": ["n", "d", "b", "f"], "description": "held direction for command normals (crouch normals use pos:crouch)" },
+          "from": { "type": "string", "description": "chain: parent move id" },
+          "window": { "type": "array", "items": { "type": "integer" }, "description": "chain: [minF,maxF] after parent contact in which the next button buffers" }
+        }
+      },
+      "limb_tag": { "type": "string", "enum": ["ARMS", "BODY", "LEGS", "HEAD"], "description": "victim region that accumulates trauma from this move" },
+      "uses": { "type": "string", "enum": ["ARMS", "BODY", "LEGS", "HEAD"], "description": "attacker limb, render hint" },
+      "guard": { "type": "string", "enum": ["mid", "low", "overhead", "throw", "unblockable"] },
+      "frames": {
+        "type": "object",
+        "required": ["startup", "active", "recovery"],
+        "properties": {
+          "startup": { "type": "integer", "minimum": 0 },
+          "active": { "type": "integer", "minimum": 1 },
+          "recovery": { "type": "integer", "minimum": 0 },
+          "hitstun": { "type": "integer", "minimum": 0 },
+          "blockstun": { "type": "integer", "minimum": 0 },
+          "hitstop": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "onHit": { "type": "integer" },
+      "onBlock": { "type": "integer" },
+      "damage": { "type": "integer", "minimum": 0 },
+      "chip": { "type": "integer", "minimum": 0 },
+      "meterGain": {
+        "type": "object",
+        "properties": { "hit": { "type": "integer" }, "block": { "type": "integer" } },
+        "description": "centipints (100 = 1 pint)"
+      },
+      "knock": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {
+          "type": { "type": "string", "enum": ["none", "back", "down", "hardDown", "launch", "groundBounce"] },
+          "vx": { "type": "integer" }, "vy": { "type": "integer" },
+          "onCounterOnly": { "type": "boolean" }
+        }
+      },
+      "pushback": { "type": "object", "properties": { "hit": { "type": "integer" }, "block": { "type": "integer" } } },
+      "hitboxes": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["frames", "x", "y", "w", "h"],
+          "properties": {
+            "frames": { "type": "array", "items": { "type": "integer" } },
+            "x": { "type": "integer" }, "y": { "type": "integer" },
+            "w": { "type": "integer", "minimum": 1 }, "h": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "description": "frames relative to active start [1..active], px relative to fighter origin, +x facing"
+      },
+      "projectile": {
+        "type": "object",
+        "required": ["speed", "life", "w", "h", "y"],
+        "properties": {
+          "speed": { "type": "integer", "description": "millipx/frame" },
+          "life": { "type": "integer" },
+          "w": { "type": "integer" }, "h": { "type": "integer" },
+          "y": { "type": "integer", "description": "spawn height px above floor" },
+          "durability": { "type": "integer", "minimum": 1 },
+          "pierce": { "type": "boolean" }
+        }
+      },
+      "movement": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["frames", "vx"],
+          "properties": {
+            "frames": { "type": "array", "items": { "type": "integer" } },
+            "vx": { "type": "integer" },
+            "passThrough": { "type": "boolean" }
+          }
+        },
+        "description": "self-movement windows, frames relative to move start (1-indexed, inclusive)"
+      },
+      "armor": {
+        "type": "object",
+        "properties": { "frames": { "type": "array", "items": { "type": "integer" } }, "hits": { "type": "integer" } }
+      },
+      "invuln": {
+        "type": "object",
+        "properties": { "frames": { "type": "array", "items": { "type": "integer" } }, "vs": { "type": "string", "enum": ["all", "air", "throw"] } }
+      },
+      "parry": {
+        "type": "object",
+        "properties": {
+          "frames": { "type": "array", "items": { "type": "integer" } },
+          "vs": { "type": "array", "items": { "type": "string" } },
+          "staggerAdd": { "type": "integer" }
+        }
+      },
+      "stance": {
+        "type": "object",
+        "properties": {
+          "enter": { "type": "integer" }, "exit": { "type": "integer" },
+          "absorbProjectiles": { "type": "boolean" }, "absorbHeal": { "type": "integer" },
+          "armorPool": { "type": "boolean" }
+        }
+      },
+      "grab": {
+        "type": "object",
+        "properties": {
+          "range": { "type": "integer" }, "cinematicFrames": { "type": "integer" },
+          "mashReduce": { "type": "integer" }, "damageFloor": { "type": "integer" },
+          "airOk": { "type": "boolean" }
+        }
+      },
+      "cancels": { "type": "array", "items": { "type": "string", "enum": ["special", "overdrive"] } },
+      "cancelWindow": { "type": "integer", "description": "frames after contact during which cancels are accepted" },
+      "cost": { "type": "object", "properties": { "meter": { "type": "integer" }, "debt": { "type": "integer" } } },
+      "variants": {
+        "type": "object",
+        "properties": {
+          "ex": { "type": "object", "description": "shallow override patch; triggered by holding BL through the input; costs cost.meter (default 100)" },
+          "flare": { "type": "object", "description": "shallow override patch; hold RF through the input; adds cost.debt (default 10) Solar Debt" }
+        }
+      },
+      "adds": { "type": "array", "items": { "type": "string", "enum": ["pierce", "ignite", "armor_break", "invuln_startup", "knockdown"] } },
+      "mastery": { "type": "object", "description": "P4 — carried in data now, ignored by engine" },
+      "tags": { "type": "array", "items": { "type": "string" } }
+    }
+  }
+}

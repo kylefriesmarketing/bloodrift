@@ -1,0 +1,27 @@
+{
+  "character": "graft",
+  "note": "P4 content — carried in data, ignored by engine v1.",
+  "items": [
+    {
+      "id": "surgeons_enemies_list",
+      "name": "Surgeon's Enemies List",
+      "slot": "relic",
+      "rarity": "epic",
+      "affixes": [
+        { "trigger": "on_harvest", "action": "modify_stat", "target": "self.graft_pool_max", "formula": "+0.05 * base" }
+      ],
+      "flavor": "Harvest thefts also grant +5% graft-limb health each."
+    },
+    {
+      "id": "the_original_staple",
+      "name": "The Original Staple",
+      "slot": "relic",
+      "rarity": "riftforged",
+      "affixes": [
+        { "trigger": "match_start", "action": "grant_resource", "resource": "harvest.slots", "amount": 1 },
+        { "trigger": "match_start", "action": "modify_stat", "target": "self.base_special_damage", "formula": "-0.10 * base" }
+      ],
+      "flavor": "A third stolen-move slot; his own base specials −10% damage — less him, more everyone else."
+    }
+  ]
+}

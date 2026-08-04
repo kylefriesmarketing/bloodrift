@@ -1,0 +1,33 @@
+{
+  "character": "zenith",
+  "note": "P3 content — staged per DECISIONS D-008. Triggers reference sim facts the limb ledger + event log already track.",
+  "sunders": [
+    {
+      "region": "ARMS",
+      "id": "boiled_grip",
+      "trigger": { "desc": "parry a punch-tagged attack", "cond": "parry_success && attacker_move.uses == 'ARMS'" },
+      "cinematic": "TODO",
+      "flavor": "He catches the punch and boils the forearm in his grip."
+    },
+    {
+      "region": "LEGS",
+      "id": "shin_verdict",
+      "trigger": { "desc": "punish a blocked low", "cond": "punish && blocked_move.guard == 'low'" },
+      "cinematic": "TODO",
+      "flavor": "Heel-stomp that shatters a shin against his knee."
+    },
+    {
+      "region": "BODY",
+      "id": "chest_flare",
+      "trigger": { "desc": "land Flared Sunlance at max range", "cond": "hit_move == 'sunlance' && variant == 'flare' && projectile_age >= 100" },
+      "cinematic": "TODO",
+      "flavor": "Point-blank chest flare — ribs curl from the heat on the bone-cam."
+    }
+  ],
+  "debuffs_reference": {
+    "ARMS": "victim punch damage -20%, throws escapable free",
+    "LEGS": "victim loses run/dash cancel, move speed -15%",
+    "BODY": "victim meter gain -30%, Bleeding applied",
+    "HEAD": "victim inputs ghost briefly on hit, directional UI flickers"
+  }
+}

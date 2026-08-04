@@ -1,0 +1,116 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "bloodrift.character.v1",
+  "title": "BLOODRIFT character.json v1 (FROZEN 2026-08-04 — changes require a migration ticket in docs/DECISIONS.md)",
+  "type": "object",
+  "required": ["id", "name", "faction", "archetype", "stats", "rift_button", "hurtboxes", "throw", "palette"],
+  "additionalProperties": true,
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+    "name": { "type": "string" },
+    "title": { "type": "string" },
+    "faction": { "type": "string", "enum": ["vanguard", "court", "dominion"] },
+    "archetype": { "type": "string" },
+    "difficulty": { "type": "integer", "minimum": 1, "maximum": 5 },
+    "stats": {
+      "type": "object",
+      "required": ["hp", "walkF", "walkB", "dashF", "dashB", "jumpVy", "gravity", "weight", "width", "height", "crouchHeight"],
+      "additionalProperties": true,
+      "properties": {
+        "hp": { "type": "integer", "minimum": 1 },
+        "walkF": { "type": "integer", "minimum": 0, "description": "millipx per frame" },
+        "walkB": { "type": "integer", "minimum": 0 },
+        "dashF": {
+          "type": "object", "required": ["speed", "dur"],
+          "properties": { "speed": { "type": "integer" }, "dur": { "type": "integer" }, "tail": { "type": "integer" } }
+        },
+        "dashB": {
+          "type": "object", "required": ["speed", "dur"],
+          "properties": { "speed": { "type": "integer" }, "dur": { "type": "integer" }, "tail": { "type": "integer" } }
+        },
+        "jumpVy": { "type": "integer", "maximum": 0, "description": "millipx/frame, negative = up" },
+        "gravity": { "type": "integer", "minimum": 1 },
+        "prejump": { "type": "integer", "minimum": 1 },
+        "weight": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "width": { "type": "integer", "minimum": 10, "description": "pushbox width px" },
+        "height": { "type": "integer", "minimum": 10 },
+        "crouchHeight": { "type": "integer", "minimum": 10 }
+      }
+    },
+    "rift_button": {
+      "type": "object",
+      "required": ["mechanic"],
+      "properties": {
+        "mechanic": { "type": "string", "enum": ["flare", "graft_sets", "none"] },
+        "config": { "type": "object" }
+      }
+    },
+    "rpg_hook": {
+      "type": "object",
+      "required": ["id", "persistent"],
+      "properties": {
+        "id": { "type": "string" },
+        "persistent": { "type": "boolean" },
+        "state": { "type": "object" },
+        "effects": { "type": "array", "items": { "$ref": "effect" } }
+      }
+    },
+    "pool_interactions": { "type": "array", "items": { "$ref": "effect" } },
+    "wound_art": { "type": "object" },
+    "hurtboxes": {
+      "type": "object",
+      "required": ["stand", "crouch", "air"],
+      "properties": {
+        "stand": { "type": "array", "items": { "$ref": "box" } },
+        "crouch": { "type": "array", "items": { "$ref": "box" } },
+        "air": { "type": "array", "items": { "$ref": "box" } }
+      }
+    },
+    "throw": {
+      "type": "object",
+      "required": ["range", "damage", "techWindow"],
+      "properties": {
+        "range": { "type": "integer" },
+        "damage": { "type": "integer" },
+        "techWindow": { "type": "integer" },
+        "startup": { "type": "integer" }
+      }
+    },
+    "palette": {
+      "type": "object",
+      "required": ["primary", "secondary", "accent", "blood"],
+      "properties": {
+        "primary": { "type": "string" }, "secondary": { "type": "string" },
+        "accent": { "type": "string" }, "blood": { "type": "string" }
+      }
+    }
+  },
+  "$defs": {
+    "box": {
+      "type": "object",
+      "required": ["x", "y", "w", "h"],
+      "properties": {
+        "x": { "type": "integer" }, "y": { "type": "integer" },
+        "w": { "type": "integer", "minimum": 1 }, "h": { "type": "integer", "minimum": 1 }
+      },
+      "description": "px, origin = floor-center of fighter, +x toward facing, y up from floor"
+    },
+    "effect": {
+      "type": "object",
+      "required": ["trigger", "action"],
+      "properties": {
+        "trigger": { "type": "string" },
+        "condition": { "type": "string" },
+        "interval_frames": { "type": "integer" },
+        "action": { "type": "string" },
+        "target": { "type": "string" },
+        "amount": { "type": "integer" },
+        "delta": { "type": "integer" },
+        "formula": { "type": "string" },
+        "debuff": { "type": "string" },
+        "resource": { "type": "string" }
+      },
+      "description": "Effect-DSL rule: trigger/condition/action. Amounts are integers (centipints for meter, millipx for distances)."
+    }
+  }
+}

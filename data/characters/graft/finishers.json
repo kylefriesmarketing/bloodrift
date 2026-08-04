@@ -1,0 +1,29 @@
+{
+  "character": "graft",
+  "note": "P3 content — staged per DECISIONS D-008.",
+  "executions": [
+    {
+      "id": "alterations",
+      "name": "Alterations",
+      "cinematic": "TODO",
+      "script": "The iron table rises from the arena floor. He works with pins in his mouth like a tailor at a deadline — camera on his craftsman's absorption while the sounds do the work. He sits them up wearing their own limbs in a better arrangement, keeps one for himself. Turns their chin left, right. Nods. 'Improved.'"
+    },
+    {
+      "id": "spare_parts",
+      "name": "Spare Parts",
+      "cinematic": "TODO",
+      "script": "Four pulls, one twist — a neat, sorted, labeled pile in under five seconds, arranged small-to-large with the head on top facing the camera. He keeps exactly one piece and files it into his chest-cavity storage with a librarian's tenderness."
+    }
+  ],
+  "desecration": {
+    "id": "final_fitting",
+    "name": "Final Fitting",
+    "unlock": "S-rank Fitting mastery",
+    "script": "The compare-grab ends the match mid-consideration — the freeze-frame is him already wearing the limb he was comparing, waving goodbye with it."
+  },
+  "overdrive": {
+    "id": "secondhand",
+    "name": "SECONDHAND",
+    "script": "Every stolen move in his loadout fires in sequence as a stitched-together combo, ending with all his sutures pulling tight at once, compressing him around the opponent like a closing fist of borrowed muscle. (P1: ships as the suture-compression grab alone — no stolen moves yet, DECISIONS D-004.)"
+  }
+}

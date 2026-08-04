@@ -1,0 +1,29 @@
+{
+  "character": "zenith",
+  "note": "P3 content — staged per DECISIONS D-008.",
+  "executions": [
+    {
+      "id": "dawn_once_more",
+      "name": "Dawn, Once More",
+      "cinematic": "TODO",
+      "script": "Holds the loser by the collar, whispers 'look away', supernova at skin contact — flesh vaporizes in a rolling wave from the touch-point; the standing skeleton takes one step, collapses into the pool, and the pool boils."
+    },
+    {
+      "id": "the_long_fall",
+      "name": "The Long Fall",
+      "cinematic": "TODO",
+      "script": "Rockets them into the black Rift-sky until both vanish. Three silent seconds. The loser returns alone as a meteor — the crater fills slowly from the bottom."
+    }
+  ],
+  "desecration": {
+    "id": "last_light",
+    "name": "Last Light",
+    "unlock": "S-rank Sunlance mastery",
+    "script": "A routine Sunlance burns through instead of knocking down; the opponent stands haloed for a beat, then drops as ash from the chest out."
+  },
+  "overdrive": {
+    "id": "noon",
+    "name": "NOON",
+    "script": "One second of true daylight — a screen-wide column of vertical light hammers the opponent into the ground. In Court arenas the architecture visibly recoils."
+  }
+}

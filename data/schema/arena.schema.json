@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "bloodrift.arena.v1",
+  "title": "BLOODRIFT arena.json v1 (FROZEN 2026-08-04)",
+  "type": "object",
+  "required": ["id", "name", "width", "scarX", "spawn"],
+  "additionalProperties": true,
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+    "name": { "type": "string" },
+    "width": { "type": "integer", "minimum": 800, "description": "world px; walls at 0 and width" },
+    "scarX": { "type": "integer", "description": "x the Rift-scar sits at — blood pools migrate toward it" },
+    "poolAmp": { "type": "integer", "description": "per-mille amplifier on pool meter ticks (Rift-Scar arena = amplified)" },
+    "spawn": {
+      "type": "object",
+      "required": ["p1", "p2"],
+      "properties": { "p1": { "type": "integer" }, "p2": { "type": "integer" } }
+    },
+    "interactables": { "type": "array", "items": { "type": "object" }, "description": "P6 — carried in data, ignored by engine v1" },
+    "look": { "type": "object", "description": "render-only: palette, bands, props" }
+  }
+}
