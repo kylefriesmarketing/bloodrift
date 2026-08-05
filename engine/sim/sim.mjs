@@ -110,7 +110,7 @@ class Fighter {
     this.stancePhase = null;    // 'enter'|'hold'|'exit'
     // sunders (P3): regions broken on THIS fighter + the facts ledger for triggers
     this.sundered = { ARMS: false, BODY: false, LEGS: false, HEAD: false };
-    this.facts = { absorbs: 0, mhits: {}, drinks: 0 };
+    this.facts = { absorbs: 0, mhits: {}, muses: {}, drinks: 0 };
     this.concussT = 0;
     this.lowPunishable = false;
     this.drainCd = 0;
@@ -165,7 +165,7 @@ class Fighter {
       db: this.debt, fl: this.flaresRound, gs: this.gset, gh: this.graftHp,
       rc: this.rfCd, sp: this.stancePhase, sq: this.stanceT || 0,
       sn: [this.sundered.ARMS, this.sundered.BODY, this.sundered.LEGS, this.sundered.HEAD],
-      fa2: { a: this.facts.absorbs, m: this.facts.mhits, d: this.facts.drinks },
+      fa2: { a: this.facts.absorbs, m: this.facts.mhits, u: this.facts.muses, d: this.facts.drinks },
       cc: this.concussT, lp: this.lowPunishable, dcd: this.drainCd,
       pa: [this.pressAge.FP, this.pressAge.BP, this.pressAge.FK, this.pressAge.BK, this.pressAge.TH, this.pressAge.RF],
       dw: this.dashWant || null, lf: this.lastFwdTap, lb: this.lastBackTap, pd: this.prevDir,
@@ -230,6 +230,18 @@ export class Sim {
     if (opts.cpu) {
       for (let i = 0; i < 2; i++) {
         if (opts.cpu[i]) this.fighters[i].ai = makeCpuState((opts.seed || 1) ^ (0x9e37 + i * 7919), opts.cpu[i].level || 1);
+      }
+    }
+    // P4 hydration: persistent signature state enters as plain data (Riftborn rules)
+    if (opts.sig) {
+      for (let i = 0; i < 2; i++) {
+        const s = opts.sig[i];
+        if (!s) continue;
+        const f = this.fighters[i];
+        if (s.debt !== undefined && f.char.character.rift_button.mechanic === 'flare') {
+          f.debt = Math.max(0, Math.min(f.char.character.rift_button.config.maxDebt || 100, s.debt));
+        }
+        if (s.joules !== undefined) f.joules = Math.max(0, s.joules);
       }
     }
   }
@@ -620,6 +632,7 @@ export class Sim {
     f.armorLeft = mv.armor ? (mv.armor.hits || 1) : 0;
     f.counterable = true;
     f.projSpawned = false;
+    f.facts.muses[id] = (f.facts.muses[id] || 0) + 1; // mastery XP ledger (P4)
     this.emit({ t: 'moveStart', who: i, move: id, variant });
   }
 

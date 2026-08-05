@@ -13,7 +13,7 @@ in blood. Design docs in `docs/` are the spec ([GDD](docs/BLOODRIFT_01_GAME_DESI
 | P1 core duel — ZENITH vs GRAFT, full data-driven kits | ✅ | 2 complete character folders, dial strings, specials, EX/Flare, throws, command grabs, parry, Meat Wall, Overdrives, breaker |
 | P2 Living Blood — events → pools → wounds → Bleed-out | ✅ | pools are sim objects that tick meter (amplified on the Rift-Scar), trauma ledger per limb, Bleeding KOs through the chip clamp, arena decals persist all match |
 | P3 Sunders + finisher framework | ✅ slice | roster trigger conditions live (structured `when` DSL), persistent debuffs, bone-cam beat, FEED THE RIFT execute/spare window; full cinematics still owed |
-| P4 RPG layer (persistence, gear, mastery, trees) | ⬜ | hooks staged: `rpg_hook.state`, gear.json, mastery blocks all carried in data |
+| P4 RPG layer | ✅ v1 | **profiles persist** (localStorage): XP/levels, W-L, execute/spare ledger, move MASTERY that patches your moves at rank B+ (your Sunlance chips harder than mine), Solar Debt carries and burns max HP, STRIGOI banks vintages by faction. **Tempered toggle** strips it all (GDD §7.3). Gear/trees/loot still owed (D-015) |
 | P5 roster waves | 🩸 W1 opened | **STRIGOI shipped as pure data** + ONE generic mechanic (`drain`: pool-drinking, tether lifesteal/meter-theft — schema v1.1, D-014). Character select is live; roster is a `CHARS` list in main.mjs. TRIAGE + JOULE complete W1 |
 | P6 modes (Gauntlet first) · P7 demo ship | ⬜ | |
 

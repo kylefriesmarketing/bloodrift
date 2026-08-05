@@ -9,6 +9,11 @@ import {
   root, data, makeSim, masks, hold, press, motion, run, runUntil,
   findEv, countEv, assertEq, assert, B
 } from './harness.mjs';
+import { Sim } from '../engine/sim/sim.mjs';
+import {
+  freshProfile, charProf, levelOf, masteryRank, buildMods, hydrateBundle,
+  matchDelta, applyDelta
+} from '../engine/rpg/profile.mjs';
 
 const results = [];
 function t(name, fn) {
@@ -493,6 +498,142 @@ t('strigoi: CPU mirror stays deterministic (drain in the loop)', () => {
     return out.join(',');
   };
   assertEq(hashesOf(), hashesOf(), 'strigoi CPU replay divergence');
+});
+
+// ---------------------------------------------------------------- 4d. P4 v1 — persistence
+
+function hydratedSim(mods0, sig0, opts = {}) {
+  const chars0 = hydrateBundle(
+    data('data/characters/zenith/character.json'), data('data/characters/zenith/moves.json'),
+    data('data/characters/zenith/sunders.json'), data('data/characters/zenith/finishers.json'), mods0);
+  const chars1 = hydrateBundle(
+    data('data/characters/graft/character.json'), data('data/characters/graft/moves.json'),
+    data('data/characters/graft/sunders.json'), data('data/characters/graft/finishers.json'), null);
+  return new Sim({
+    chars: [chars0, chars1],
+    arena: data('data/arenas/riftscar.json'),
+    balance: data('data/balance/core.json'),
+    seed: opts.seed || 42,
+    sig: [sig0 || null, null],
+    cpu: opts.cpu || null
+  });
+}
+
+t('p4: carried Solar Debt burns max HP (capped −15%, proportional below)', () => {
+  const p = freshProfile();
+  charProf(p, 'zenith').sig.debt = 40;
+  const mods = buildMods(p, 'zenith', false);
+  assertEq(mods.hpBurnPermille, 150, 'burn caps at 15% (min(40,15)*10)');
+  const sim = hydratedSim(mods, mods.sig);
+  assertEq(sim.fighters[0].hpMax, 850, 'hpMax burned');
+  assertEq(sim.fighters[0].hp, 850, 'starts at burned max');
+  assertEq(sim.fighters[0].debt, 40, 'debt carried into the match');
+  // and a light debt burns proportionally
+  const p2 = freshProfile();
+  charProf(p2, 'zenith').sig.debt = 8;
+  const m2 = buildMods(p2, 'zenith', false);
+  assertEq(m2.hpBurnPermille, 80, '8 debt → −8%');
+  assertEq(hydratedSim(m2, m2.sig).fighters[0].hpMax, 920, 'hpMax 920');
+});
+
+t('p4: S-curve mastery ranks + rank-B Sunlance chips 18 through block', () => {
+  assertEq(masteryRank({ uses: 0, hits: 0 }), 'D', 'fresh rank');
+  assertEq(masteryRank({ uses: 20, hits: 20 }), 'B', 'B at score 80');
+  assertEq(masteryRank({ uses: 20, hits: 60 }), 'A', 'A at score 200');
+  assertEq(masteryRank({ uses: 100, hits: 100 }), 'S', 'S at 400');
+  const p = freshProfile();
+  charProf(p, 'zenith').mastery.sunlance = { uses: 20, hits: 20 }; // rank B
+  const mods = buildMods(p, 'zenith', false);
+  assert(mods.movePatches.sunlance, 'sunlance patch present');
+  const sim = hydratedSim(mods, mods.sig);
+  assertEq(sim.fighters[0].char.movesById.sunlance.chip, 18, 'rank-B chip patch applied');
+  const [m0, m1] = masks(300);
+  hold(m1, 0, 299, B.BL);
+  motion(m0, 70, 'qcf', B.FP, 1);
+  const evs = run(sim, m0, m1, 300);
+  const blk = findEv(evs, 'block');
+  assert(blk, 'sunlance not blocked');
+  assertEq(blk.chip, 18, 'mastered chip through block');
+  assertEq(sim.fighters[1].hp, 1150 - 18, 'graft hp');
+});
+
+t('p4: Tempered strips everything', () => {
+  const p = freshProfile();
+  charProf(p, 'zenith').sig.debt = 60;
+  charProf(p, 'zenith').mastery.sunlance = { uses: 50, hits: 90 };
+  assertEq(buildMods(p, 'zenith', true), null, 'tempered → no mods');
+  const sim = hydratedSim(null, null);
+  assertEq(sim.fighters[0].hpMax, 1000, 'normalized hp');
+  assertEq(sim.fighters[0].debt, 0, 'no carried debt');
+  assertEq(sim.fighters[0].char.movesById.sunlance.chip, 14, 'stock chip');
+});
+
+t('p4: match → delta → profile round-trip (XP, mastery, execution)', () => {
+  const sim = makeSim();
+  const [m0, m1] = masks(400);
+  hold(m0, INTRO, 205, B.R);
+  press(m0, 214, B.FP);
+  run(sim, m0, m1, 260);
+  sim.roundWins[0] = 1;
+  sim.fighters[1].hp = 5;
+  const [m2] = masks(400);
+  press(m2, 10, B.FP);
+  run(sim, m2, null, 240, s => s.phase === 'finish');
+  run(sim, [0, 0, 0, B.RF], null, 4);
+  run(sim, null, null, 200);
+  assert(sim.matchOver && sim.executed, 'setup: executed win');
+  const d = matchDelta(sim, 0);
+  assertEq(d.won, true, 'won');
+  assertEq(d.executed, true, 'executed');
+  assert(d.uses.s_fp >= 2, 'jab uses counted');
+  assert(d.hits.s_fp >= 2, 'jab hits counted');
+  assertEq(d.xp, 105 + Math.trunc(sim.fighters[0].stat.dmgDealt / 40), 'xp formula');
+  assertEq(d.sigCarry.debt, 0, 'no debt accrued');
+  const p = freshProfile();
+  applyDelta(p, 'zenith', d);
+  const cp = charProf(p, 'zenith');
+  assertEq(cp.wins, 1, 'win recorded');
+  assertEq(cp.executions, 1, 'execution recorded');
+  assertEq(cp.xp, d.xp, 'xp banked');
+  assert(cp.mastery.s_fp.uses >= 2, 'mastery persisted');
+});
+
+t('p4: STRIGOI executions bank vintages by faction', () => {
+  const sim = makeSim({ p1: 'strigoi', p2: 'zenith' });
+  const [m0, m1] = masks(400);
+  hold(m0, INTRO, 205, B.R);
+  press(m0, 214, B.FP);
+  run(sim, m0, m1, 260);
+  sim.roundWins[0] = 1;
+  sim.fighters[1].hp = 5;
+  const [m2] = masks(400);
+  press(m2, 10, B.FP);
+  run(sim, m2, null, 240, s => s.phase === 'finish');
+  run(sim, [0, 0, 0, B.RF], null, 4);
+  run(sim, null, null, 200);
+  assert(sim.matchOver && sim.executed, 'setup: executed win');
+  const d = matchDelta(sim, 0);
+  assertEq(d.sigCarry.vintage, 'vanguard', 'hero blood, banked');
+  const p = freshProfile();
+  applyDelta(p, 'strigoi', d);
+  assertEq(charProf(p, 'strigoi').sig.bank.vanguard, 1, 'the cellar grows');
+});
+
+t('p4: hydrated matches stay deterministic', () => {
+  const play = () => {
+    const p = freshProfile();
+    charProf(p, 'zenith').sig.debt = 25;
+    charProf(p, 'zenith').mastery.sunlance = { uses: 20, hits: 20 };
+    const mods = buildMods(p, 'zenith', false);
+    const sim = hydratedSim(mods, mods.sig, { seed: 3131, cpu: [{ level: 2 }, { level: 2 }] });
+    const out = [];
+    for (let f = 0; f < 2400; f++) {
+      sim.step(0, 0);
+      if (f % 80 === 0) out.push(sim.hash());
+    }
+    return out.join(',');
+  };
+  assertEq(play(), play(), 'mods must not desync replays');
 });
 
 // ---------------------------------------------------------------- 5. determinism

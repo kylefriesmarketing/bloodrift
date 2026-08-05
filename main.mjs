@@ -6,6 +6,10 @@ import { B } from './engine/sim/input.mjs';
 import { Renderer } from './engine/fx/render.mjs';
 import { Hud } from './engine/ui/hud.mjs';
 import { Sfx } from './engine/fx/sfx.mjs';
+import {
+  PROFILE_KEY, freshProfile, charProf, levelOf, masteryRank,
+  buildMods, hydrateBundle, matchDelta, applyDelta
+} from './engine/rpg/profile.mjs';
 
 const $ = id => document.getElementById(id);
 
@@ -25,9 +29,28 @@ async function loadData() {
   DATA.arena = await j('data/arenas/riftscar.json');
   DATA.balance = await j('data/balance/core.json');
 }
+// ---------------- profile (P4 v1 — Riftborn hydration, Tempered strips it)
+let profile = freshProfile();
+let tempered = false;
+try {
+  const raw = localStorage.getItem(PROFILE_KEY);
+  if (raw) profile = JSON.parse(raw);
+  tempered = localStorage.getItem('br-tempered') === '1';
+} catch { /* fresh profile */ }
+function saveProfile() {
+  try {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+    localStorage.setItem('br-tempered', tempered ? '1' : '0');
+  } catch { /* storage unavailable — session-only */ }
+}
+
 function bundleOf(id) {
   const d = DATA[id];
-  return makeCharBundle(d.c, d.m, d.s, d.f);
+  return hydrateBundle(d.c, d.m, d.s, d.f, buildMods(profile, id, tempered));
+}
+function sigOf(id) {
+  const mods = buildMods(profile, id, tempered);
+  return mods ? mods.sig : null;
 }
 
 // ---------------- input
@@ -73,10 +96,12 @@ function newMatch(seed) {
     arena: DATA.arena,
     balance: DATA.balance,
     seed: seed || ((Date.now() % 0x7fffffff) | 1),
+    sig: [sigOf(sel.p1), sigOf(sel.p2)],
     cpu: mode === 'watch' ? [{ level: cpuLevel }, { level: cpuLevel }]
       : mode === 'cpu' ? [null, { level: cpuLevel }]
         : null
   });
+  sim._recorded = false;
   ren.reset();
   hud.reset();
   slowmo = 0;
@@ -85,20 +110,34 @@ function newMatch(seed) {
   paused = false;
 }
 
+function recordMatch() {
+  if (!sim || sim._recorded || !sim.matchOver || tempered) return;
+  sim._recorded = true;
+  applyDelta(profile, sel.p1, matchDelta(sim, 0));
+  applyDelta(profile, sel.p2, matchDelta(sim, 1));
+  saveProfile();
+  renderPickers();
+}
+
 function stepOnce() {
   const m0 = (mode === '2p' || mode === 'cpu') ? maskOf(0) : 0;
   const m1 = mode === '2p' ? maskOf(1) : 0;
   sim.step(m0, m1);
-  if (sim.ev.length) {
-    for (const e of sim.ev) {
-      evRing.push({ ...e, frame: sim.frame });
-      if (e.t === 'roundEnd') slowmo = 70;
-    }
-    if (evRing.length > 400) evRing.splice(0, evRing.length - 400);
-    ren.consume(sim, sim.ev);
-    hud.consume(sim, sim.ev);
-    sfx.consume(sim.ev);
+  afterStep();
+  if (sim.ev.length) sfx.consume(sim.ev);
+}
+
+// shared post-step event processing — the ONLY place match results are recorded
+function afterStep() {
+  if (!sim.ev.length) return;
+  for (const e of sim.ev) {
+    evRing.push({ ...e, frame: sim.frame });
+    if (e.t === 'roundEnd') slowmo = 70;
+    if (e.t === 'matchEnd') recordMatch();
   }
+  if (evRing.length > 400) evRing.splice(0, evRing.length - 400);
+  ren.consume(sim, sim.ev);
+  hud.consume(sim, sim.ev);
 }
 
 function frame(tNow) {
@@ -168,11 +207,39 @@ function renderPickers() {
     holder.innerHTML = '';
     for (const id of CHARS) {
       const b = document.createElement('button');
-      b.textContent = DATA[id].c.name;
-      b.title = DATA[id].c.title;
+      const cp = charProf(profile, id);
+      b.textContent = tempered ? DATA[id].c.name : `${DATA[id].c.name} · LV${levelOf(cp.xp)}`;
+      b.title = `${DATA[id].c.title} — ${cp.wins}W/${cp.matches - cp.wins}L · ${cp.executions} fed to the Rift`;
       b.classList.toggle('sel', sel[seat] === id);
       b.onclick = () => { sel[seat] = id; renderPickers(); };
       holder.appendChild(b);
+    }
+  }
+  // ruleset + carried-state line
+  const tb = $('m-tempered');
+  if (tb) tb.textContent = tempered ? '⚖ TEMPERED — normalized, nothing carries' : '🩸 RIFTBORN — your scars come with you';
+  const line = $('prof-line');
+  if (line) {
+    if (tempered) { line.textContent = 'ranked-legal ruleset · profiles untouched'; }
+    else {
+      const bits = [];
+      const z = charProf(profile, 'zenith');
+      if (z.sig.debt) bits.push(`ZENITH carries ${z.sig.debt} Solar Debt (−${Math.min(z.sig.debt, 15)}% max HP)`);
+      const s = charProf(profile, 'strigoi');
+      if (s.sig.bank) {
+        const bk = s.sig.bank;
+        bits.push(`STRIGOI's cellar: ${bk.vanguard || 0} hero · ${bk.court || 0} court · ${bk.dominion || 0} dominion vintages`);
+      }
+      const mastered = [];
+      for (const id of CHARS) {
+        const cp = charProf(profile, id);
+        for (const [mvId, m] of Object.entries(cp.mastery)) {
+          const r = masteryRank(m);
+          if (r === 'B' || r === 'A' || r === 'S') mastered.push(`${mvId} ${r}`);
+        }
+      }
+      if (mastered.length) bits.push(`mastered: ${mastered.slice(0, 4).join(', ')}`);
+      line.textContent = bits.length ? bits.join('   ·   ') : 'a fresh book — the Rift has no record of you yet';
     }
   }
 }
@@ -184,6 +251,7 @@ async function boot() {
   $('m-cpu').onclick = () => startMode('cpu');
   $('m-2p').onclick = () => startMode('2p');
   $('m-watch').onclick = () => startMode('watch');
+  $('m-tempered').onclick = () => { tempered = !tempered; saveProfile(); renderPickers(); };
   document.querySelectorAll('[data-lvl]').forEach(b => {
     b.onclick = () => {
       cpuLevel = +b.dataset.lvl;
@@ -197,6 +265,10 @@ async function boot() {
   // test hooks (headless-friendly: drive the sim without rAF)
   window.__br = {
     get sim() { return sim; },
+    get profile() { return profile; },
+    get tempered() { return tempered; },
+    setTempered(v) { tempered = !!v; saveProfile(); renderPickers(); return tempered; },
+    wipeProfile() { profile = freshProfile(); saveProfile(); renderPickers(); return true; },
     data: DATA,
     chars: CHARS,
     start(m, opts = {}) {
@@ -232,12 +304,7 @@ async function boot() {
   };
   function stepOnce0(m0, m1) {
     sim.step(m0, m1);
-    if (sim.ev.length) {
-      for (const e of sim.ev) evRing.push({ ...e, frame: sim.frame });
-      if (evRing.length > 400) evRing.splice(0, evRing.length - 400);
-      ren.consume(sim, sim.ev);
-      hud.consume(sim, sim.ev);
-    }
+    afterStep();
   }
 }
 

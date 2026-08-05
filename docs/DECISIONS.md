@@ -78,6 +78,18 @@ Bleeding; HEAD = inputs ghost (25f zero-buffer window after every hit taken). On
 per match; they persist across rounds. HEAD sunders exist in engine but no launch-pair
 character has one authored (matches the roster sheets).
 
+**D-015 · P4 v1 — persistence ships as pure data hydration.** `engine/rpg/profile.mjs` owns
+the profile shape (per-character XP/level, W-L, executions/spares, per-move mastery ledger,
+signature `sig` state); the HOST owns storage (browser `localStorage['br-profile-v1']`,
+tests inject memory). Persistence enters a match only two ways: a REBUILT character bundle
+(`hydrateBundle`: max-HP burn from carried Solar Debt at min(debt,15)%, mastery rank-B field
+patches + rank-A `ex_adds` from each move's own `mastery.ranks` data) and `Sim opts.sig`
+(debt/joules init) — so hydrated matches replay bit-identical given the same profile.
+Mastery ranks: score = uses + 3·hits; C/B/A/S at 30/80/180/400. XP: 40/match +40 win
++25 execute +15 spare + damage/40 (cap 30). STRIGOI executions bank vintages by victim
+faction. **Tempered** (GDD §7.3) passes null mods — normalized, and results don't record.
+Not yet in v1: gear, Dominance trees, loot rolls, level gates, S-rank Desecrations.
+
 **D-014 · Schema v1.1 — additive migration (STRIGOI, Wave 1 opener).** Per rule 1 this is a
 ticket, not a silent edit. Additions, all optional/back-compatible: moves.json gains
 `lifesteal` (permille of damage/chip healed to the attacker — the Court's drain identity),
