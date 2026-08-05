@@ -1,0 +1,65 @@
+{
+  "id": "joule",
+  "name": "JOULE",
+  "title": "The Pain Bank",
+  "faction": "vanguard",
+  "archetype": "grappler",
+  "difficulty": 2,
+  "stats": {
+    "hp": 1200,
+    "walkF": 2500,
+    "walkB": 2200,
+    "dashF": { "speed": 5600, "dur": 16, "tail": 8 },
+    "dashB": { "speed": 6000, "dur": 16, "tail": 6 },
+    "jumpVy": -23500,
+    "gravity": 1550,
+    "prejump": 6,
+    "weight": 5,
+    "width": 118,
+    "height": 305,
+    "crouchHeight": 205
+  },
+  "rift_button": {
+    "mechanic": "bank",
+    "config": {
+      "convertPermille": 500,
+      "max": 300
+    }
+  },
+  "rpg_hook": {
+    "id": "pain_bank",
+    "persistent": true,
+    "state": { "joules": 0 },
+    "effects": [
+      {
+        "trigger": "match_end",
+        "condition": "result == 'loss'",
+        "action": "adjust_persistent",
+        "target": "pain_bank",
+        "formula": "+damage_taken * 0.10",
+        "note": "P4 Compound Interest branch — the roster's only mechanic that pays out on defeat. Base carry (unspent joules persist) is LIVE via sig.joules."
+      }
+    ]
+  },
+  "pool_interactions": [],
+  "wound_art": { "arms": 3, "legs": 3, "body": 3, "head": 3 },
+  "hurtboxes": {
+    "stand": [
+      { "x": -38, "y": 0, "w": 76, "h": 235 },
+      { "x": -26, "y": 235, "w": 52, "h": 70 }
+    ],
+    "crouch": [
+      { "x": -40, "y": 0, "w": 80, "h": 205 }
+    ],
+    "air": [
+      { "x": -38, "y": 50, "w": 76, "h": 215 }
+    ]
+  },
+  "throw": { "range": 52, "damage": 150, "techWindow": 10, "startup": 6 },
+  "palette": {
+    "primary": "#d99a2b",
+    "secondary": "#4a4e55",
+    "accent": "#ffcf6a",
+    "blood": "#ff2135"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "character": "joule",
+  "note": "P3 content — the FEED THE RIFT window names executions[0].",
+  "executions": [
+    {
+      "id": "return_to_sender",
+      "name": "Return to Sender",
+      "cinematic": "TODO",
+      "script": "He taps the loser's chest with two fingers, almost kind — and discharges the entire Bank at once. The camera stays on his sad face while, behind him, the silhouette leaves through the arena wall in a cone of red. He hard-hats the dust off. 'Nothing personal. It was yours.'"
+    },
+    {
+      "id": "load_bearing",
+      "name": "Load-Bearing",
+      "cinematic": "TODO",
+      "script": "He hoists them overhead like a beam, walks to the Rift-scar, and presses — the bone-cam shows the spine accepting a building's worth of stored weight for exactly one frame. What he sets down, gently, is not load-bearing anymore."
+    }
+  ],
+  "desecration": {
+    "id": "overtime",
+    "name": "Overtime",
+    "unlock": "S-rank Bear Down mastery",
+    "script": "The hug simply doesn't stop at the round-end bell; the freeze-frame is the crowd flinching."
+  },
+  "overdrive": {
+    "id": "structural_failure",
+    "name": "STRUCTURAL FAILURE",
+    "script": "He opens the Bank all the way: grabs the opponent and releases every stored newton through them into the arena — the background visibly demolishes in a controlled-implosion wave, and the opponent is the charge."
+  }
+}

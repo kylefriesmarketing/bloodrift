@@ -21,7 +21,7 @@
             "type": "object",
             "required": ["type"],
             "properties": {
-              "type": { "type": "string", "enum": ["parry_vs_uses", "punish_blocked_low", "proj_hit", "move_hits", "absorb_punish", "hit_region_sundered", "pools_drunk"] },
+              "type": { "type": "string", "enum": ["parry_vs_uses", "punish_blocked_low", "proj_hit", "move_hits", "absorb_punish", "hit_region_sundered", "pools_drunk", "hit_while_bleeding"] },
               "uses": { "type": "string", "enum": ["ARMS", "BODY", "LEGS", "HEAD"] },
               "move": { "type": "string" },
               "variant": { "type": "string" },

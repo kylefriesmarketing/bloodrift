@@ -25,7 +25,7 @@ const INTRO = 62; // fight phase begins ~frame 60; scripts act after this
 
 // ---------------------------------------------------------------- 1. schemas
 
-const ROSTER = ['zenith', 'graft', 'strigoi'];
+const ROSTER = ['zenith', 'graft', 'strigoi', 'joule', 'triage'];
 
 t('schema: character.json (roster)', () => {
   const sch = data('data/schema/character.schema.json');
@@ -498,6 +498,110 @@ t('strigoi: CPU mirror stays deterministic (drain in the loop)', () => {
     return out.join(',');
   };
   assertEq(hashesOf(), hashesOf(), 'strigoi CPU replay divergence');
+});
+
+// ---------------------------------------------------------------- 4c2. JOULE + TRIAGE (W1 continues)
+
+t('joule: damage taken banks joules (500‰)', () => {
+  const sim = makeSim({ p1: 'zenith', p2: 'joule' });
+  const [m0, m1] = masks(320);
+  hold(m0, INTRO, 210, B.R);
+  press(m0, 220, B.FP);
+  const evs = run(sim, m0, m1, 320);
+  assert(findEv(evs, 'hit'), 'jab never landed');
+  assertEq(sim.fighters[1].joules, 15, 'joules from 30 damage taken');
+});
+
+t('joule: Absolute Armor eats a Sunlance whole and banks it', () => {
+  const sim = makeSim({ p1: 'zenith', p2: 'joule' });
+  const [m0, m1] = masks(300);
+  hold(m1, 70, 280, B.RF);
+  motion(m0, 100, 'qcf', B.FP, 1);
+  const evs = run(sim, m0, m1, 300);
+  assert(findEv(evs, 'stanceEnter'), 'stance never entered');
+  const bank = findEv(evs, 'bank');
+  assert(bank, 'projectile not banked');
+  assertEq(bank.amt, 70, 'full sunlance banked');
+  assert(!findEv(evs, 'hit'), 'no hit should land through Absolute Armor');
+  assertEq(sim.fighters[1].hp, 1200, 'joule untouched');
+  assertEq(sim.fighters[1].joules, 70, 'the Bank holds it');
+});
+
+t('joule: Discharge — charged Bear Down spends 100 joules for 230', () => {
+  const sim = makeSim({ p1: 'joule', p2: 'zenith' });
+  run(sim, null, null, 70);
+  sim.fighters[0].joules = 150;
+  const [m0, m1] = masks(400);
+  hold(m0, 0, 178, B.R);
+  motion(m0, 186, 'hcb', B.TH, 1, B.RF);
+  const evs = run(sim, m0, m1, 400);
+  assert(findEv(evs, 'discharge'), 'charged variant not triggered');
+  const gh = findEv(evs, 'grabHit');
+  assert(gh, 'bear down never landed');
+  assertEq(gh.dmg, 230, 'discharged hug damage');
+  assertEq(sim.fighters[1].hp, 770, 'zenith hp');
+  assertEq(sim.fighters[0].joules, 50, 'joules spent');
+});
+
+t('joule: Spot Me catches an airborne body, whiffs nothing grounded', () => {
+  const sim = makeSim({ p1: 'joule', p2: 'zenith' });
+  run(sim, null, null, 70);
+  const [m0, m1] = masks(300);
+  hold(m0, 0, 150, B.R);
+  run(sim, m0, m1, 160);
+  // put zenith rising over his head
+  const z = sim.fighters[1];
+  z.state = 'air'; z.y = 120 * 1000; z.vy = -9000; z.vx = 0;
+  const [m2] = masks(120);
+  motion(m2, 2, 'dp', B.FP, 1);
+  const evs = run(sim, m2, null, 120);
+  const gh = findEv(evs, 'grabHit');
+  assert(findEv(evs, 'grabConnect'), 'air catch never connected');
+  assert(gh && gh.dmg === 130, 'powerbomb damage');
+});
+
+t('triage: incisions intensify an open bleed (exact drip math)', () => {
+  const sim = makeSim({ p1: 'triage', p2: 'graft' });
+  run(sim, null, null, 70);
+  const g = sim.fighters[1];
+  g.bleedRegions = ['ARMS'];
+  g.incisions.BODY = 3;
+  run(sim, null, null, 120);
+  // per frame: 1 region * 10 + 3 incisions * 4 = 22 → 2640 over 120f → 44 hp
+  assertEq(g.hp, 1150 - 44, 'incised bleed drains faster');
+});
+
+t('triage: Rounds charts the weak limb (+12% on tagged hits) and Clamp steals a sample', () => {
+  const sim = makeSim({ p1: 'triage', p2: 'graft', startMeter: [0, 60] });
+  const [m0, m1] = masks(460);
+  hold(m0, INTRO, 200, B.R);
+  press(m0, 210, B.RF);          // Rounds — charts ARMS (all-zero tie → first region)
+  press(m0, 222, B.FP);          // scalpel jab, ARMS-tagged: 26 → 29
+  motion(m0, 300, 'hcb', B.TH, 1); // Clamp: 115 + steals 0.5 pint
+  const evs = run(sim, m0, m1, 460);
+  assert(findEv(evs, 'rounds'), 'Rounds never fired');
+  const hit = findEv(evs, 'hit', e => e.move === 's_fp');
+  assert(hit, 'jab never landed');
+  assertEq(hit.dmg, 29, 'marked-limb bonus damage');
+  const gh = findEv(evs, 'grabHit');
+  assert(gh, 'clamp never landed');
+  assertEq(gh.dmg, 115, 'clamp damage');
+  assertEq(sim.fighters[1].incisions.BODY, 1, 'clamp carves an incision');
+  assertEq(sim.fighters[0].meter, 5 + 10 + 50, 'her meter: +5 jab, +10 clamp, +50 sampled');
+  assert(sim.fighters[1].meter < 60, 'his meter was sampled');
+});
+
+t('w1: JOULE vs TRIAGE CPU mirror stays deterministic', () => {
+  const hashesOf = () => {
+    const sim = makeSim({ p1: 'joule', p2: 'triage', seed: 555, cpu: [{ level: 2 }, { level: 2 }] });
+    const out = [];
+    for (let f = 0; f < 3200; f++) {
+      sim.step(0, 0);
+      if (f % 80 === 0) out.push(sim.hash());
+    }
+    return out.join(',');
+  };
+  assertEq(hashesOf(), hashesOf(), 'new-pair CPU replay divergence');
 });
 
 // ---------------------------------------------------------------- 4d. P4 v1 — persistence

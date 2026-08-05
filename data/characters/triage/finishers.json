@@ -1,0 +1,29 @@
+{
+  "character": "triage",
+  "note": "P3 content — the FEED THE RIFT window names executions[0].",
+  "executions": [
+    {
+      "id": "autopsy_live",
+      "name": "Autopsy, Live",
+      "cinematic": "TODO",
+      "script": "The loser is still standing when she begins the Y-incision. She works fast and gently, narrating findings to an unseen recorder — 'cause of death…' — and finishes the sentence by showing them their own heart, still keeping time. It stops. So do they."
+    },
+    {
+      "id": "do_no_harm",
+      "name": "Do No Harm",
+      "cinematic": "TODO",
+      "script": "She sews every wound on their body shut with blurring speed — the opponent, fully mended, looks up amazed. 'First, do no harm.' Then she taps the one Incision she left open over the aorta. The screen goes red from the inside out."
+    }
+  ],
+  "desecration": {
+    "id": "second_opinion",
+    "name": "Second Opinion",
+    "unlock": "S-rank Adrenaline Spike mastery",
+    "script": "The syringe uppercut lands and the opponent simply doesn't come down whole — the plunger was full of Rift-clot; they crystallize mid-air and shatter across the pool."
+  },
+  "overdrive": {
+    "id": "malpractice",
+    "name": "MALPRACTICE",
+    "script": "She flash-anesthetizes the opponent to their knees and performs eleven procedures in four seconds — the camera cuts to her headlamp POV, all glinting steel and arterial spray — then clicks her penlight off: every limb leaves the cinematic one wound-state worse."
+  }
+}

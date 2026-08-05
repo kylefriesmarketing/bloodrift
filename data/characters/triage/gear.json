@@ -1,0 +1,27 @@
+{
+  "character": "triage",
+  "note": "P4 content — carried in data, ignored by engine v1.",
+  "items": [
+    {
+      "id": "black_bag",
+      "name": "Black Bag",
+      "slot": "relic",
+      "rarity": "epic",
+      "affixes": [
+        { "trigger": "match_start", "action": "apply_debuff", "debuff": "random_enemy_limb_incised" }
+      ],
+      "flavor": "Start each match with one random enemy limb pre-Incised."
+    },
+    {
+      "id": "oath_breakers_gloves",
+      "name": "Oath-Breaker's Gloves",
+      "slot": "arms",
+      "rarity": "riftforged",
+      "affixes": [
+        { "trigger": "on_execution", "action": "grant_resource", "resource": "atlas.chart", "amount": 2 },
+        { "trigger": "on_spare", "action": "modify_stat", "target": "xp_gain", "formula": "0" }
+      ],
+      "flavor": "Executions chart limbs for the Atlas twice as fast, but Spares grant her no XP at all."
+    }
+  ]
+}

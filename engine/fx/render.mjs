@@ -919,6 +919,46 @@ export class Renderer {
       cx.beginPath();
       cx.arc(-face * torsoW * 0.42, torsoY, W * 0.34, 0, Math.PI * 2);
       cx.fill();
+    } else if (cid === 'joule') {
+      // I-beam chest plate + the capacitor scarring, glowing with the Bank
+      cx.fillStyle = shade(pal.secondary, 8);
+      rr(cx, -torsoW * 0.36, torsoY + bodyH * 0.06, torsoW * 0.72, bodyH * 0.1, 3);
+      const bankK = Math.min(1, (f.joules || 0) / 300);
+      if (bankK > 0.02) {
+        cx.strokeStyle = `rgba(255,207,106,${0.25 + bankK * 0.6 + 0.1 * Math.sin(t * (0.1 + bankK * 0.25))})`;
+        cx.lineWidth = 2 + bankK * 2.5;
+        cx.beginPath();
+        cx.arc(-face * torsoW * 0.3, torsoY + bodyH * 0.12, W * 0.5 + bankK * 8, -2.4, 0.6);
+        cx.stroke();
+        if (bankK > 0.6) {
+          cx.strokeStyle = `rgba(255,255,220,${(bankK - 0.6) * 0.8})`;
+          cx.lineWidth = 1.2;
+          for (let k2 = 0; k2 < 3; k2++) {
+            const ja = t * 0.3 + k2 * 2.1;
+            cx.beginPath();
+            cx.moveTo(Math.cos(ja) * torsoW * 0.3, torsoY + Math.sin(ja) * bodyH * 0.15);
+            cx.lineTo(Math.cos(ja) * torsoW * 0.45 + 4, torsoY + Math.sin(ja) * bodyH * 0.24 - 4);
+            cx.stroke();
+          }
+        }
+      }
+    } else if (cid === 'triage') {
+      // the defaced red cross
+      cx.strokeStyle = pal.accent;
+      cx.lineWidth = 4;
+      cx.beginPath();
+      cx.moveTo(-torsoW * 0.16, torsoY + bodyH * 0.02);
+      cx.lineTo(torsoW * 0.16, torsoY + bodyH * 0.26);
+      cx.moveTo(torsoW * 0.16, torsoY + bodyH * 0.02);
+      cx.lineTo(-torsoW * 0.16, torsoY + bodyH * 0.26);
+      cx.stroke();
+      // instrument webbing
+      cx.strokeStyle = shade(pal.secondary, 30);
+      cx.lineWidth = 2;
+      cx.beginPath();
+      cx.moveTo(-torsoW * 0.4, torsoY);
+      cx.lineTo(torsoW * 0.32, torsoY + bodyH * 0.34);
+      cx.stroke();
     } else {
       // zenith's ragged mantle, breathing in the arena draft
       cx.fillStyle = 'rgba(120,30,30,0.55)';
@@ -1023,6 +1063,40 @@ export class Renderer {
       cx.beginPath(); cx.arc(face * (W * 0.06 + headR * 0.42), headY - headR * 0.1, headR * 0.15, 0, Math.PI * 2); cx.fill();
       cx.fillStyle = '#4a3f45';
       cx.beginPath(); cx.arc(face * (W * 0.06 + headR * 0.05), headY - headR * 0.12, headR * 0.11, 0, Math.PI * 2); cx.fill();
+    } else if (cid === 'joule') {
+      // hard hat, worn honestly
+      cx.fillStyle = '#e8b23a';
+      cx.strokeStyle = outline;
+      cx.lineWidth = 2.4;
+      cx.beginPath();
+      cx.arc(face * W * 0.06, headY - headR * 0.18, headR * 0.95, Math.PI, 0);
+      cx.closePath();
+      cx.fill(); cx.stroke();
+      cx.fillStyle = '#c89a2e';
+      rr(cx, face * W * 0.06 - headR * 1.1, headY - headR * 0.2, headR * 2.2, headR * 0.22, 3);
+      // soft eyes — the gentlest man on the roster
+      cx.fillStyle = '#3a3430';
+      cx.beginPath(); cx.arc(face * (W * 0.06 + headR * 0.32), headY + headR * 0.08, headR * 0.09, 0, Math.PI * 2); cx.fill();
+    } else if (cid === 'triage') {
+      // headlamp — it flicks on for the work
+      const on = mv || f.state === 'grabbing';
+      cx.fillStyle = on ? '#fff7d8' : '#8a8478';
+      cx.strokeStyle = outline;
+      cx.lineWidth = 1.6;
+      cx.beginPath();
+      cx.arc(face * (W * 0.06 + headR * 0.1), headY - headR * 0.55, headR * 0.22, 0, Math.PI * 2);
+      cx.fill(); cx.stroke();
+      if (on) {
+        cx.fillStyle = 'rgba(255,247,216,0.12)';
+        cx.beginPath();
+        cx.moveTo(face * (W * 0.06 + headR * 0.2), headY - headR * 0.55);
+        cx.lineTo(face * (W * 0.06 + headR * 3.2), headY - headR * 1.4);
+        cx.lineTo(face * (W * 0.06 + headR * 3.2), headY + headR * 0.6);
+        cx.closePath();
+        cx.fill();
+      }
+      cx.fillStyle = '#2a2e36';
+      cx.fillRect(face * W * 0.06 + (face > 0 ? headR * 0.02 : -headR * 0.62), headY - headR * 0.16, headR * 0.6, headR * 0.16);
     } else {
       cx.fillStyle = '#3a2f1a';
       cx.fillRect(face * W * 0.06 + (face > 0 ? headR * 0.05 : -headR * 0.65), headY - headR * 0.22, headR * 0.6, headR * 0.2);

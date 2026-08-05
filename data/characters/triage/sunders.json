@@ -1,0 +1,36 @@
+{
+  "character": "triage",
+  "note": "P3 live — roster triggers on the generic `when` types.",
+  "sunders": [
+    {
+      "region": "ARMS",
+      "id": "window_blind",
+      "when": { "type": "proj_hit", "move": "scalpel_arc", "minAge": 30 },
+      "trigger": { "desc": "land Scalpel Arc at max range" },
+      "cinematic": "TODO",
+      "flavor": "Two precise cuts sever the biceps tendon — the muscle snaps up like a window blind."
+    },
+    {
+      "region": "LEGS",
+      "id": "hamstring_slice",
+      "when": { "type": "move_hits", "move": "rib_spreader", "count": 2 },
+      "trigger": { "desc": "land the second Rib Spreader" },
+      "cinematic": "TODO",
+      "flavor": "A hamstring slice from a slide, narrated clinically."
+    },
+    {
+      "region": "BODY",
+      "id": "as_intended",
+      "when": { "type": "hit_while_bleeding", "move": "clamp" },
+      "trigger": { "desc": "land Clamp on a Bleeding opponent" },
+      "cinematic": "TODO",
+      "flavor": "The rib-spreader, used as intended, on camera."
+    }
+  ],
+  "debuffs_reference": {
+    "ARMS": "victim punch damage -20%, their throws tech twice as easily",
+    "LEGS": "victim loses dashes, move speed -15%",
+    "BODY": "victim meter gain -30%, Bleeding applied",
+    "HEAD": "victim inputs ghost briefly after every hit taken"
+  }
+}

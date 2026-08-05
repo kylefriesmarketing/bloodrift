@@ -269,6 +269,39 @@ export class Hud {
         cx.fillStyle = '#ff8a3a';
         cx.fillText('MAX — the star runs hot', x0, gy + 22);
       }
+    } else if (ch.rift_button.mechanic === 'bank') {
+      const jk = Math.min(1, (f.joules || 0) / (ch.rift_button.config.max || 300));
+      cx.font = '700 12px Georgia, serif';
+      cx.fillStyle = '#ffcf6a';
+      cx.fillText(`KINETIC BANK — ${f.joules || 0} J`, x0, gy - 8);
+      cx.fillStyle = 'rgba(0,0,0,0.6)';
+      rr2(cx, side === 0 ? x0 : x0 - 180, gy, 180, 9, 3);
+      if (jk > 0) {
+        cx.fillStyle = jk >= 1 ? '#ffe9a8' : '#d99a2b';
+        rr2(cx, side === 0 ? x0 : x0 - 180 * jk, gy, 180 * jk, 9, 3);
+      }
+      if (jk >= 0.33 && sim.frame % 40 < 20) {
+        cx.font = '700 11px Georgia, serif';
+        cx.fillStyle = '#ffcf6a';
+        cx.fillText('hold RIFT with a special — DISCHARGE', x0, gy + 22);
+      }
+    } else if (ch.rift_button.mechanic === 'atlas') {
+      const cdMax = ch.rift_button.config.roundsCd || 240;
+      const ready = 1 - Math.min(1, f.drainCd / cdMax);
+      cx.font = '700 12px Georgia, serif';
+      cx.fillStyle = '#c8323e';
+      cx.fillText(f.marked ? `OPERATING THEATER — ${f.marked} charted` : 'OPERATING THEATER', x0, gy - 8);
+      cx.fillStyle = 'rgba(0,0,0,0.6)';
+      rr2(cx, side === 0 ? x0 : x0 - 180, gy, 180, 9, 3);
+      if (ready > 0) {
+        cx.fillStyle = ready >= 1 ? '#e8465a' : '#7a2830';
+        rr2(cx, side === 0 ? x0 : x0 - 180 * ready, gy, 180 * ready, 9, 3);
+      }
+      if (ready >= 1 && !f.marked) {
+        cx.font = '700 11px Georgia, serif';
+        cx.fillStyle = '#e8465a';
+        cx.fillText('ROUNDS ready — RIFT to chart', x0, gy + 22);
+      }
     } else if (ch.rift_button.mechanic === 'drain') {
       const cdMax = (f.char.moves.find(m => m.trigger.type === 'rift_press') || {}).cooldown || 150;
       const ready = 1 - Math.min(1, f.drainCd / cdMax);

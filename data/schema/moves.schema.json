@@ -128,7 +128,8 @@
         "properties": {
           "range": { "type": "integer" }, "cinematicFrames": { "type": "integer" },
           "mashReduce": { "type": "integer" }, "damageFloor": { "type": "integer" },
-          "airOk": { "type": "boolean" }
+          "airOk": { "type": "boolean" },
+          "airOnly": { "type": "boolean", "description": "v1.2 (D-016): only connects on airborne victims (anti-air catches)" }
         }
       },
       "lifesteal": { "type": "integer", "minimum": 0, "maximum": 1000, "description": "v1.1 (D-014): permille of damage/chip healed to the attacker" },
@@ -136,12 +137,13 @@
       "cooldown": { "type": "integer", "minimum": 0, "description": "v1.1 (D-014): frames between uses (rift_press moves)" },
       "cancels": { "type": "array", "items": { "type": "string", "enum": ["special", "overdrive"] } },
       "cancelWindow": { "type": "integer", "description": "frames after contact during which cancels are accepted" },
-      "cost": { "type": "object", "properties": { "meter": { "type": "integer" }, "debt": { "type": "integer" } } },
+      "cost": { "type": "object", "properties": { "meter": { "type": "integer" }, "debt": { "type": "integer" }, "joules": { "type": "integer" } } },
       "variants": {
         "type": "object",
         "properties": {
           "ex": { "type": "object", "description": "shallow override patch; triggered by holding BL through the input; costs cost.meter (default 100)" },
-          "flare": { "type": "object", "description": "shallow override patch; hold RF through the input; adds cost.debt (default 10) Solar Debt" }
+          "flare": { "type": "object", "description": "shallow override patch; hold RF through the input; adds cost.debt (default 10) Solar Debt" },
+          "charged": { "type": "object", "description": "v1.2 (D-016): hold RF through the input; spends cost.joules from the Kinetic Bank" }
         }
       },
       "adds": { "type": "array", "items": { "type": "string", "enum": ["pierce", "ignite", "armor_break", "invuln_startup", "knockdown"] } },

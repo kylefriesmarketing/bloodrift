@@ -1,0 +1,36 @@
+{
+  "character": "joule",
+  "note": "P3 live — roster triggers on the generic `when` types.",
+  "sunders": [
+    {
+      "region": "ARMS",
+      "id": "closed_hand",
+      "when": { "type": "absorb_punish", "absorbs": 3 },
+      "trigger": { "desc": "Absolute Armor absorbs 3+ hits, then punish" },
+      "cinematic": "TODO",
+      "flavor": "He catches the punch in one fist and closes his hand."
+    },
+    {
+      "region": "LEGS",
+      "id": "shuttering_timber",
+      "when": { "type": "move_hits", "move": "spot_me", "count": 2 },
+      "trigger": { "desc": "catch a second jump-in with Spot Me" },
+      "cinematic": "TODO",
+      "flavor": "A stomp through a planted thigh like breaking shuttering timber."
+    },
+    {
+      "region": "BODY",
+      "id": "past_tolerance",
+      "when": { "type": "move_hits", "move": "bear_down", "count": 2 },
+      "trigger": { "desc": "land Bear Down twice" },
+      "cinematic": "TODO",
+      "flavor": "The hug, dialed to a Sunder — ribs flexing past tolerance on the bone-cam."
+    }
+  ],
+  "debuffs_reference": {
+    "ARMS": "victim punch damage -20%, their throws tech twice as easily",
+    "LEGS": "victim loses dashes, move speed -15%",
+    "BODY": "victim meter gain -30%, Bleeding applied",
+    "HEAD": "victim inputs ghost briefly after every hit taken"
+  }
+}

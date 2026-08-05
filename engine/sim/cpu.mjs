@@ -84,9 +84,15 @@ export function cpuThink(sim, i) {
     return ai.queue.shift();
   }
 
-  // drain characters: sip pools underfoot, tether in range
-  if (f.char.character.rift_button.mechanic === 'drain' && f.drainCd <= 0 && gap < 240 && rng.chance(140)) {
+  // rift-button instincts: drain sips/tethers, the surgeon charts, the bank braces
+  const mech = f.char.character.rift_button.mechanic;
+  if ((mech === 'drain' || mech === 'atlas') && f.drainCd <= 0 && gap < 240 && rng.chance(140)) {
     return B.RF;
+  }
+  if (mech === 'bank' && o.state === 'move' && gap < 200 && rng.chance(120)) {
+    const n = 20 + rng.int(30);
+    for (let k = 0; k < n; k++) ai.queue.push(B.RF); // Absolute Armor brace
+    return ai.queue.shift();
   }
 
   if (gap < 55) {

@@ -114,6 +114,13 @@ class Fighter {
     this.concussT = 0;
     this.lowPunishable = false;
     this.drainCd = 0;
+    // JOULE: the Kinetic Bank. TRIAGE: incisions carved into THIS fighter + her mark.
+    this.joules = 0;
+    this.incisions = { ARMS: 0, BODY: 0, LEGS: 0, HEAD: 0 };
+    this.marked = null;   // region on the OPPONENT this fighter's Rounds has marked
+    this.markT = 0;
+    this.stanceHeldT = 0;
+    this.stanceMoveId = null;
     // stats for goldens / achievements-later
     this.stat = { dmgDealt: 0, flares: 0, throwsTeched: 0, parries: 0, absorbed: 0 };
     if (char.character.rift_button.mechanic === 'graft_sets') {
@@ -144,8 +151,8 @@ class Fighter {
       (this.state === 'dashF' || this.state === 'dashB') && this.stateT >= 2;
   }
   grabbable() {
-    return ['idle', 'walkF', 'walkB', 'crouch', 'dashF', 'dashB', 'land', 'move', 'stance'].includes(this.state) &&
-      this.throwInvulnT <= 0 && this.y <= 0;
+    return ['idle', 'walkF', 'walkB', 'crouch', 'dashF', 'dashB', 'land', 'move', 'stance', 'air', 'launched'].includes(this.state) &&
+      this.throwInvulnT <= 0;
   }
 
   serialize() {
@@ -167,6 +174,8 @@ class Fighter {
       sn: [this.sundered.ARMS, this.sundered.BODY, this.sundered.LEGS, this.sundered.HEAD],
       fa2: { a: this.facts.absorbs, m: this.facts.mhits, u: this.facts.muses, d: this.facts.drinks },
       cc: this.concussT, lp: this.lowPunishable, dcd: this.drainCd,
+      jl: this.joules, in2: [this.incisions.ARMS, this.incisions.BODY, this.incisions.LEGS, this.incisions.HEAD],
+      mk: this.marked, mkT: this.markT, sh: this.stanceHeldT, sm: this.stanceMoveId,
       pa: [this.pressAge.FP, this.pressAge.BP, this.pressAge.FK, this.pressAge.BK, this.pressAge.TH, this.pressAge.RF],
       dw: this.dashWant || null, lf: this.lastFwdTap, lb: this.lastBackTap, pd: this.prevDir,
       pv: this.pushVx || 0, ps: this.pushVxSelf || 0, wr: !!this.wakeRoll,
@@ -333,6 +342,7 @@ export class Sim {
     if (f.throwInvulnT > 0) f.throwInvulnT--;
     if (f.concussT > 0) f.concussT--;
     if (f.drainCd > 0) f.drainCd--;
+    if (f.markT > 0) { f.markT--; if (f.markT === 0) f.marked = null; }
     if (f.sundered.LEGS) f.dashWant = null; // Sundered LEGS: no dashes
 
     switch (f.state) {
@@ -464,18 +474,40 @@ export class Sim {
       }
       return false;
     }
-    if (mech.mechanic !== 'graft_sets') return false;
-    if (tr.rfHeldFrames >= 8 && f.rfCd <= 0 && f.grounded()) {
-      // enter Meat Wall
-      const mv = f.char.movesById['meat_wall'];
+    // TRIAGE — Rounds: a diagnostic glance that marks the most-ruined limb for +damage
+    if (mech.mechanic === 'atlas') {
+      if (tr.held(B.TH)) return false;
+      if (!this.buffered(i, 'RF', 2) || f.drainCd > 0) return false;
+      this.consume(i, 'RF');
+      const cfg = mech.config || {};
+      f.drainCd = cfg.roundsCd || 240;
+      const opp = this.other(i);
+      let best = 'BODY', bestT = -1;
+      for (const r of REGIONS) {
+        if (opp.trauma[r] > bestT) { bestT = opp.trauma[r]; best = r; }
+      }
+      f.marked = best;
+      f.markT = cfg.markDur || 300;
+      this.emit({ t: 'rounds', who: i, region: best, trauma: { ...opp.trauma } });
+      return false; // a glance, not a turn
+    }
+    // stance mechanics: graft's Meat Wall absorbs, JOULE's Absolute Armor banks.
+    // Neutral-direction gate: holding Rift THROUGH a motion (Flare/Discharge inputs)
+    // must not accidentally plant you in the stance.
+    if (mech.mechanic !== 'graft_sets' && mech.mechanic !== 'bank') return false;
+    if (tr.rfHeldFrames >= 8 && f.rfCd <= 0 && f.grounded() && tr.dirAt(0) === 5) {
+      const mv = f.char.moves.find(m => m.trigger.type === 'rift_hold');
       if (mv) {
         this.setState(f, 'stance', 0);
         f.stancePhase = 'enter';
         f.stanceT = mv.stance.enter;
+        f.stanceHeldT = 0;
+        f.stanceMoveId = mv.id;
         this.emit({ t: 'stanceEnter', who: i });
         return true;
       }
     }
+    if (mech.mechanic !== 'graft_sets') return false;
     if (tr.released(B.RF) && tr.rfHeldFrames === 0 && f.rfCd <= 0) {
       // it was a tap (released before the 8f hold threshold) — rfHeldFrames already reset by step()
       // use pressAge to confirm a recent press
@@ -493,14 +525,19 @@ export class Sim {
   tickStance(i) {
     const f = this.fighters[i];
     const tr = this.trackers[i];
-    const mv = f.char.movesById['meat_wall'];
+    const mv = f.char.movesById[f.stanceMoveId || 'meat_wall'];
     f.stanceT--;
     if (f.stancePhase === 'enter') {
-      if (f.stanceT <= 0) { f.stancePhase = 'hold'; }
+      if (f.stanceT <= 0) { f.stancePhase = 'hold'; f.stanceHeldT = 0; }
       return;
     }
     if (f.stancePhase === 'hold') {
-      if (!tr.held(B.RF)) { f.stancePhase = 'exit'; f.stanceT = mv.stance.exit; }
+      f.stanceHeldT++;
+      const maxHold = (mv.stance && mv.stance.maxHold) || 0;
+      if (!tr.held(B.RF) || (maxHold > 0 && f.stanceHeldT >= maxHold)) {
+        f.stancePhase = 'exit';
+        f.stanceT = mv.stance.exit;
+      }
       return;
     }
     if (f.stancePhase === 'exit') {
@@ -604,6 +641,14 @@ export class Sim {
       // at max debt the Flare fizzles into the base version
       return null;
     }
+    if (mv.variants && mv.variants.charged && mech.mechanic === 'bank' && tr.held(B.RF)) {
+      const cost = (mv.variants.charged.cost && mv.variants.charged.cost.joules) || 100;
+      if (f.joules >= cost) {
+        f.joules -= cost;
+        this.emit({ t: 'discharge', who: i, move: mv.id, spent: cost });
+        return 'charged';
+      }
+    }
     if (mv.variants && mv.variants.ex && tr.held(B.BL)) {
       const cost = (mv.variants.ex.cost && mv.variants.ex.cost.meter) || this.balance.meter.exCost;
       if (f.meter >= cost) {
@@ -664,6 +709,15 @@ export class Sim {
     if (mv.projectile && f.moveF === fr.startup + 1 && !f.projSpawned) {
       f.projSpawned = true;
       this.spawnProjectile(i, mv);
+    }
+
+    // TRIAGE's Tourniquet: cleanse one Bleeding state at the active frame
+    if (mv.cleanse && f.moveF === fr.startup + 1) {
+      if (f.bleedRegions.length > 0) {
+        const cured = f.bleedRegions.pop();
+        this.emit({ t: 'cleanse', who: i, region: cured });
+        if (f.moveVar === 'ex') this.gainMeter(f, 50);
+      }
     }
 
     // grab connect check during active window
@@ -1040,9 +1094,24 @@ export class Sim {
       }
     }
 
-    // 2) meat wall absorb / graft armor
+    // 2) stances + armor: Meat Wall absorbs, Absolute Armor banks, move-armor by mechanic
     const wall = vic.state === 'stance' && vic.stancePhase === 'hold';
-    const gcfg = vic.char.character.rift_button.mechanic === 'graft_sets' ? vic.char.character.rift_button.config : null;
+    const vmech = vic.char.character.rift_button.mechanic;
+    const gcfg = vmech === 'graft_sets' ? vic.char.character.rift_button.config : null;
+    const bcfg = vmech === 'bank' ? vic.char.character.rift_button.config : null;
+    // JOULE's Absolute Armor: eats the hit entirely, banks every newton
+    if (wall && bcfg && !adds.includes('armor_break')) {
+      const dmgIn = proj ? proj.damage : mv.damage;
+      vic.joules = Math.min(bcfg.max || 300, vic.joules + dmgIn);
+      vic.facts.absorbs++;
+      if (proj) {
+        proj.dead = true;
+        this.projectiles = this.projectiles.filter(p => !p.dead);
+      } else atk.hitDone = true;
+      this.hitstopT = Math.max(this.hitstopT, 6);
+      this.emit({ t: 'bank', who: vic.id, amt: dmgIn, joules: vic.joules });
+      return;
+    }
     if (proj && wall && gcfg && !adds.includes('armor_break')) {
       vic.graftHp = Math.min(gcfg.poolMax, vic.graftHp + gcfg.absorbHeal);
       vic.stat.absorbed++;
@@ -1052,6 +1121,27 @@ export class Sim {
       this.hitstopT = Math.max(this.hitstopT, 4);
       this.emit({ t: 'absorb', who: vic.id, heal: gcfg.absorbHeal });
       return;
+    }
+    // JOULE move-armor (Wrecking Approach): banks the blow, takes a quarter
+    if (!adds.includes('armor_break') && bcfg && vic.state === 'move') {
+      const vmv = resolveMove(vic.char, vic.moveId, vic.moveVar);
+      if (vmv.armor && vic.armorLeft > 0) {
+        const [a2, b2] = vmv.armor.frames;
+        if (vic.moveF >= a2 && vic.moveF <= b2) {
+          vic.armorLeft--;
+          const dmgIn = proj ? proj.damage : mv.damage;
+          vic.joules = Math.min(bcfg.max || 300, vic.joules + dmgIn);
+          const real = Math.max(1, trunc(dmgIn * 250, 1000));
+          this.damage(vic, real, 'hit', ai);
+          if (proj) { proj.hitIds.push(vic.id); if (!proj.pierce) { proj.durability--; if (proj.durability <= 0) proj.dead = true; } }
+          else atk.hitDone = true;
+          this.hitstopT = Math.max(this.hitstopT, 6);
+          this.bloodEvent(vic, 10, 1);
+          this.emit({ t: 'bank', who: vic.id, amt: dmgIn, joules: vic.joules });
+          this.projectiles = this.projectiles.filter(p => !p.dead);
+          return;
+        }
+      }
     }
     let armored = false;
     if (!adds.includes('armor_break') && gcfg && vic.graftHp > 0) {
@@ -1123,6 +1213,11 @@ export class Sim {
     const vicLowPunish = vic.lowPunishable;
     let baseDmg = proj ? proj.damage : mv.damage;
     if (atk.sundered.ARMS && (mv.uses || 'ARMS') === 'ARMS') baseDmg = trunc(baseDmg * 800, 1000); // Sundered ARMS
+    // TRIAGE's Rounds mark: the charted limb takes extra
+    if (atk.marked && atk.markT > 0 && (mv.limb_tag || 'BODY') === atk.marked) {
+      const acfg = atk.char.character.rift_button.config || {};
+      baseDmg = trunc(baseDmg * (acfg.markDamagePermille || 1120), 1000);
+    }
     const scaleIdx = Math.min(vic.comboHits, this.balance.comboScaling.length - 1);
     let dmg = trunc(baseDmg * this.balance.comboScaling[scaleIdx], 1000);
     if (counter) dmg = trunc(dmg * (1000 + this.balance.counterHit.damageBonusPermille), 1000);
@@ -1135,6 +1230,10 @@ export class Sim {
     if (vic.sundered.HEAD) vic.concussT = 25;
     this.gainMeter(atk, (mv.meterGain && mv.meterGain.hit) || 0);
     this.gainMeter(vic, trunc(dmg * this.balance.meter.takeDamagePerHundred, 100));
+    // JOULE: every hurt is a deposit
+    if (vmech === 'bank' && bcfg) {
+      vic.joules = Math.min(bcfg.max || 300, vic.joules + trunc(dmg * (bcfg.convertPermille || 500), 1000));
+    }
     // drain identity (v1.1): lifesteal + meter theft
     if (mv.lifesteal) {
       const heal = trunc(dmg * mv.lifesteal, 1000);
@@ -1152,6 +1251,11 @@ export class Sim {
     const region = mv.limb_tag || 'BODY';
     const before = vic.woundState(region);
     vic.trauma[region] += dmg;
+    // TRIAGE's incisions: stacking bleed intensifiers carved into the region
+    if (mv.incision) {
+      vic.incisions[region] = Math.min(5, vic.incisions[region] + 1);
+      this.emit({ t: 'incision', who: vic.id, region, stacks: vic.incisions[region] });
+    }
     const after = vic.woundState(region);
     if (after > before) {
       this.emit({ t: 'wound', who: vic.id, region, state: after });
@@ -1274,6 +1378,10 @@ export class Sim {
         case 'pools_drunk':
           fire = ctx.kind === 'hit' && atk.facts.drinks >= (w.drinks || 3);
           break;
+        case 'hit_while_bleeding':
+          fire = (ctx.kind === 'hit' || ctx.kind === 'grab') && (!w.move || ctx.moveId === w.move) &&
+            vic.bleedRegions.length > 0;
+          break;
       }
       if (fire) { this.fireSunder(atk, vic, def); return; } // one per contact
     }
@@ -1322,7 +1430,10 @@ export class Sim {
     const atk = this.fighters[i];
     const vic = this.other(i);
     if (!vic.grabbable()) return;
-    if (vic.y > 0 && !mv.grab.airOk) return;
+    const vicAir = vic.y > 0 || vic.state === 'air' || vic.state === 'launched';
+    if (vicAir && !mv.grab.airOk) return;
+    if (!vicAir && mv.grab.airOnly) return;
+    if (vicAir && vic.y > 200 * SCALE) return; // out of reach overhead
     const gap = trunc(Math.abs(vic.x - atk.x), SCALE) - trunc(atk.stats.width + vic.stats.width, 2);
     if (gap > mv.grab.range) return;
     // connect
@@ -1337,8 +1448,9 @@ export class Sim {
     // Sundered ARMS on the grabber: their throws tech twice as easily
     vic.techT = mv.techable ? vic.char.character.throw.techWindow * (atk.sundered.ARMS ? 2 : 1) : 0;
     vic.moveId = null;
-    // snap victim to grab range
+    // snap victim to grab range (air catches drag them down to the slam)
     vic.x = atk.x + atk.facing * trunc((atk.stats.width + vic.stats.width) * SCALE, 2);
+    vic.y = 0; vic.vy = 0; vic.vx = 0;
     vic.facing = -atk.facing;
     this.emit({ t: 'grabConnect', who: i, move: mv.id });
   }
@@ -1389,7 +1501,26 @@ export class Sim {
             this.emit({ t: 'drain', who: i, amt: heal });
           }
         }
+        if (mv.meterSteal) {
+          const st = Math.min(vic.meter, mv.meterSteal);
+          if (st > 0) { vic.meter -= st; this.gainMeter(atk, st); }
+        }
+        {
+          const vb = vic.char.character.rift_button;
+          if (vb.mechanic === 'bank') {
+            vic.joules = Math.min((vb.config.max || 300), vic.joules + trunc(dmg * (vb.config.convertPermille || 500), 1000));
+          }
+        }
         const region = mv.limb_tag || 'BODY';
+        if (mv.incision) {
+          vic.incisions[region] = Math.min(5, vic.incisions[region] + 1);
+          this.emit({ t: 'incision', who: vic.id, region, stacks: vic.incisions[region] });
+        }
+        if (mv.odIncisions) {
+          // MALPRACTICE: eleven procedures in four seconds — every region carved
+          for (const r of REGIONS) vic.incisions[r] = Math.min(5, vic.incisions[r] + 1);
+          this.emit({ t: 'incision', who: vic.id, region: 'ALL', stacks: 0 });
+        }
         const before = vic.woundState(region);
         vic.trauma[region] += dmg;
         if (vic.woundState(region) === 3 && before < 3 && !vic.bleedRegions.includes(region)) {
@@ -1414,15 +1545,32 @@ export class Sim {
 
   // ---------------- breaker
 
+  isInPool(f) {
+    if (f.y > 0) return false;
+    for (const p of this.pools) {
+      if (Math.abs(f.x - p.x) <= p.r * SCALE) return true;
+    }
+    return false;
+  }
+
+  breakerCostFor(f) {
+    const base = this.balance.meter.breakerCost;
+    for (const rule of (f.char.character.pool_interactions || [])) {
+      if (rule.trigger === 'breaker_cost_in_pool' && this.isInPool(f)) return rule.cost || 100;
+    }
+    return base;
+  }
+
   checkBreaker(only) {
     for (let i = 0; i < 2; i++) {
       if (only !== undefined && i !== only) continue;
       const f = this.fighters[i];
       if (f.state !== 'hitstun' && f.state !== 'launched') continue;
-      if (f.meter < this.balance.meter.breakerCost) continue;
+      const cost = this.breakerCostFor(f);
+      if (f.meter < cost) continue;
       const tr = this.trackers[i];
       if (tr.held(B.BL) && tr.held(B.TH) && (tr.pressed(B.TH) || tr.pressed(B.BL))) {
-        f.meter -= this.balance.meter.breakerCost;
+        f.meter -= cost;
         const atk = this.other(i);
         this.setState(f, f.y > 0 ? 'launched' : 'idle', 0);
         if (f.y > 0) { f.vy = -4200; f.vx = 0; f.kdHard = false; }
@@ -1495,10 +1643,11 @@ export class Sim {
   tickDots() {
     for (const f of this.fighters) {
       if (f.state === 'ko') continue;
-      // bleeding: can KO (Bleed-out)
+      // bleeding: can KO (Bleed-out). TRIAGE's incisions intensify an open bleed.
       const n = f.bleedRegions.length;
       if (n > 0) {
-        f.bleedAcc += n * this.balance.bleed.dripPer60;
+        const incTotal = f.incisions.ARMS + f.incisions.BODY + f.incisions.LEGS + f.incisions.HEAD;
+        f.bleedAcc += n * this.balance.bleed.dripPer60 + incTotal * 4;
         while (f.bleedAcc >= 60) {
           f.bleedAcc -= 60;
           if (f.hp > 0) { f.hp -= 1; f.lastCause = 'bleed'; }

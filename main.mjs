@@ -16,7 +16,7 @@ const $ = id => document.getElementById(id);
 // ---------------- data
 async function j(u) { const r = await fetch(u); if (!r.ok) throw new Error(u + ' → ' + r.status); return r.json(); }
 
-export const CHARS = ['zenith', 'graft', 'strigoi'];
+export const CHARS = ['zenith', 'triage', 'joule', 'graft', 'strigoi'];
 const DATA = {};
 async function loadData() {
   await Promise.all(CHARS.map(async id => {

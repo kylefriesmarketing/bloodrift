@@ -1,0 +1,27 @@
+{
+  "character": "joule",
+  "note": "P4 content — carried in data, ignored by engine v1.",
+  "items": [
+    {
+      "id": "foremans_ledger",
+      "name": "Foreman's Ledger",
+      "slot": "relic",
+      "rarity": "epic",
+      "affixes": [
+        { "trigger": "on_damage_taken", "condition": "self.hp < self.hp_max * 0.5", "action": "modify_stat", "target": "bank.convert", "formula": "+0.15 * base" }
+      ],
+      "flavor": "+15% Bank conversion while below half health."
+    },
+    {
+      "id": "site_safety_vest_cursed",
+      "name": "Site-Safety Vest, Cursed",
+      "slot": "body",
+      "rarity": "riftforged",
+      "affixes": [
+        { "trigger": "match_start", "action": "modify_stat", "target": "self.hp", "formula": "-0.20 * base" },
+        { "trigger": "match_start", "action": "grant_resource", "resource": "joules", "amount": 240 }
+      ],
+      "flavor": "Begin every match with 20% missing HP, pre-banked as Joules."
+    }
+  ]
+}
