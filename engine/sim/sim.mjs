@@ -185,7 +185,7 @@ export class Sim {
     this.phaseT = 60;
     this.roundNum = 1;
     this.roundWins = [0, 0];
-    this.timer = this.balance.rounds.timerSec * 60;
+    this.timer = this.balance.rounds.timerSec; // seconds; ticks down once per 60 frames
     this.hitstopT = 0;
     this.superFlashT = 0;
     this.winner = -1;
@@ -1405,7 +1405,7 @@ export class Sim {
 
   resetRound() {
     this.roundNum++;
-    this.timer = this.balance.rounds.timerSec * 60;
+    this.timer = this.balance.rounds.timerSec;
     this.phase = 'intro';
     this.phaseT = 60;
     this.hitstopT = 0;
