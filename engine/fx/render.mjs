@@ -32,6 +32,8 @@ export class Renderer {
     this.parts = [];
     this.shakeT = 0;
     this.flashT = 0;
+    this.boneT = 0;
+    this.execT = 0;
     this.displayHp = [1, 1];
   }
 
@@ -71,6 +73,34 @@ export class Renderer {
         case 'breaker': this.flash('#8fd8ff', 6); break;
         case 'roundEnd': this.flash('#ff2135', 10); this.shake(15); break;
         case 'flare': this.flash('#ffd97a', 3); break;
+        case 'sunder': {
+          this.flash('#ff2135', 10);
+          this.shake(17);
+          this.boneT = 52;
+          this.boneWho = e.who;
+          this.boneRegion = e.region;
+          break;
+        }
+        case 'execution': {
+          this.flash('#ff2135', 14);
+          this.shake(19);
+          this.execT = 140;
+          const loser = sim.fighters[e.who];
+          const col = loser.char.character.palette.blood;
+          for (let k = 0; k < 130; k++) {
+            this.parts.push({
+              type: 'drop', col,
+              x: loser.x / SCALE + (Math.random() - 0.5) * 60,
+              y: 40 + Math.random() * 120,
+              vx: (Math.random() - 0.5) * 9,
+              vy: 2 + Math.random() * 7.5,
+              g: 0.42, size: 1.6 + Math.random() * 3.2, life: 130
+            });
+          }
+          break;
+        }
+        case 'finishPrompt': this.dimT = 9999; break;
+        case 'matchEnd': this.dimT = 0; break;
       }
     }
   }
@@ -306,6 +336,66 @@ export class Renderer {
         cx.stroke();
         cx.globalAlpha = 1;
       }
+    }
+
+    // sunder bone-cam overlay: the X-ray beat
+    if (this.boneT > 0) {
+      this.boneT--;
+      const f = sim.fighters[this.boneWho];
+      const bx = W2S(f.x / SCALE), byc = Y2S(f.y / SCALE) - 120 * this.camS;
+      const k = this.boneT / 52;
+      cx.globalAlpha = Math.min(0.85, k * 1.4);
+      const rg = cx.createRadialGradient(bx, byc, 8, bx, byc, 170 * this.camS);
+      rg.addColorStop(0, 'rgba(255,33,53,0.55)');
+      rg.addColorStop(1, 'rgba(255,33,53,0)');
+      cx.fillStyle = rg;
+      cx.fillRect(bx - 180, byc - 180, 360, 360);
+      // schematic bones — spine, ribs, limbs; the broken region flickers
+      cx.strokeStyle = this.boneT % 4 < 2 ? '#ffffff' : '#ffd9d9';
+      cx.lineWidth = 3 * this.camS;
+      cx.beginPath();
+      cx.moveTo(bx, byc - 70 * this.camS); cx.lineTo(bx, byc + 60 * this.camS); // spine
+      for (let r = 0; r < 4; r++) {
+        cx.moveTo(bx - 26 * this.camS, byc - 40 * this.camS + r * 16 * this.camS);
+        cx.lineTo(bx + 26 * this.camS, byc - 40 * this.camS + r * 16 * this.camS); // ribs
+      }
+      cx.moveTo(bx, byc - 46 * this.camS); cx.lineTo(bx - 52 * this.camS, byc + 6 * this.camS);  // arms
+      cx.moveTo(bx, byc - 46 * this.camS); cx.lineTo(bx + 52 * this.camS, byc + 6 * this.camS);
+      cx.moveTo(bx, byc + 60 * this.camS); cx.lineTo(bx - 30 * this.camS, byc + 128 * this.camS); // legs
+      cx.moveTo(bx, byc + 60 * this.camS); cx.lineTo(bx + 30 * this.camS, byc + 128 * this.camS);
+      cx.stroke();
+      // the break: jagged red fracture across the region
+      cx.strokeStyle = '#ff2135';
+      cx.lineWidth = 4 * this.camS;
+      const ry = this.boneRegion === 'HEAD' ? -84 : this.boneRegion === 'ARMS' ? -20 : this.boneRegion === 'BODY' ? -10 : 96;
+      const rx = this.boneRegion === 'ARMS' ? -40 : this.boneRegion === 'LEGS' ? -18 : 0;
+      cx.beginPath();
+      cx.moveTo(bx + (rx - 16) * this.camS, byc + ry * this.camS);
+      cx.lineTo(bx + (rx - 2) * this.camS, byc + (ry + 8) * this.camS);
+      cx.lineTo(bx + (rx + 4) * this.camS, byc + (ry - 6) * this.camS);
+      cx.lineTo(bx + (rx + 18) * this.camS, byc + (ry + 4) * this.camS);
+      cx.stroke();
+      cx.globalAlpha = 1;
+    }
+
+    // FEED THE RIFT: the arena dims and the pools reach for the loser
+    if (sim.phase === 'finish') {
+      cx.fillStyle = 'rgba(4,2,6,0.42)';
+      cx.fillRect(0, 0, VW, VH);
+      const pulse2 = 0.5 + 0.5 * Math.sin(this.t * 0.11);
+      for (const p of sim.pools) {
+        const px = W2S(p.x / SCALE), pr = p.r * this.camS;
+        cx.strokeStyle = `rgba(255,33,53,${0.35 + pulse2 * 0.35})`;
+        cx.lineWidth = 2;
+        cx.beginPath();
+        cx.ellipse(px, FLOOR_Y + 14, pr * (1 + pulse2 * 0.1), pr * 0.26, 0, 0, Math.PI * 2);
+        cx.stroke();
+      }
+    }
+    if (this.execT > 0) {
+      this.execT--;
+      cx.fillStyle = `rgba(120,4,14,${0.16 * (this.execT / 140)})`;
+      cx.fillRect(0, 0, VW, VH);
     }
 
     // vignette + grain-ish scan

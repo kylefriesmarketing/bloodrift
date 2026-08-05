@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "bloodrift.sunders.v1",
+  "title": "BLOODRIFT sunders.json v1 (FROZEN 2026-08-05 at the P3 slice)",
+  "description": "`when` trigger types the engine evaluates generically: parry_vs_uses (fire on parrying an attack whose `uses` matches), punish_blocked_low (block a low, hit them before they recover), proj_hit (land projectile `move` [variant] with age >= minAge), move_hits (Nth landed hit/grab of `move` this match), absorb_punish (after `absorbs` armor/stance absorbs, land a hit on an opponent who is mid-move), hit_region_sundered (land `move` while victim's `region` is already sundered).",
+  "type": "object",
+  "required": ["character", "sunders"],
+  "additionalProperties": true,
+  "properties": {
+    "character": { "type": "string" },
+    "sunders": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["region", "id", "when"],
+        "additionalProperties": true,
+        "properties": {
+          "region": { "type": "string", "enum": ["ARMS", "BODY", "LEGS", "HEAD"] },
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "when": {
+            "type": "object",
+            "required": ["type"],
+            "properties": {
+              "type": { "type": "string", "enum": ["parry_vs_uses", "punish_blocked_low", "proj_hit", "move_hits", "absorb_punish", "hit_region_sundered"] },
+              "uses": { "type": "string", "enum": ["ARMS", "BODY", "LEGS", "HEAD"] },
+              "move": { "type": "string" },
+              "variant": { "type": "string" },
+              "minAge": { "type": "integer" },
+              "count": { "type": "integer", "minimum": 1 },
+              "absorbs": { "type": "integer", "minimum": 1 },
+              "region": { "type": "string", "enum": ["ARMS", "BODY", "LEGS", "HEAD"] }
+            }
+          },
+          "flavor": { "type": "string" },
+          "cinematic": { "type": "string" }
+        }
+      }
+    }
+  }
+}

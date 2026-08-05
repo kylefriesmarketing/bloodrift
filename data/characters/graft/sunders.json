@@ -1,33 +1,36 @@
 {
   "character": "graft",
-  "note": "P3 content — staged per DECISIONS D-008.",
+  "note": "P3 live. `when` is the machine trigger (see data/schema/sunders.schema.json); one Sunder per region per match.",
   "sunders": [
     {
       "region": "ARMS",
       "id": "found_wanting",
-      "trigger": { "desc": "land Fitting twice in one match", "cond": "hits_this_match('fitting') >= 2" },
+      "when": { "type": "move_hits", "move": "fitting", "count": 2 },
+      "trigger": { "desc": "land Fitting twice in one match" },
       "cinematic": "TODO",
-      "flavor": "He removes the arm at the elbow with intent, examines it, and — finding it wanting — uses it as the club for the rest of the cinematic."
+      "flavor": "He removes the arm at the elbow with intent, examines it, and — finding it wanting — uses it as the club."
     },
     {
       "region": "LEGS",
       "id": "wrong_hinge",
-      "trigger": { "desc": "Meat Wall absorbs a full string, then punish", "cond": "meatwall_absorbed_string && punish" },
+      "when": { "type": "absorb_punish", "absorbs": 3 },
+      "trigger": { "desc": "absorb three strikes with Borrowed Hands, then punish" },
       "cinematic": "TODO",
       "flavor": "A boot-stomp through the knee with a giant's mass — a joint becoming a hinge the wrong way."
     },
     {
       "region": "BODY",
       "id": "jar_lid",
-      "trigger": { "desc": "opponent's ARMS already Sundered — he escalates the fitting", "cond": "opponent.sundered.ARMS" },
+      "when": { "type": "hit_region_sundered", "region": "ARMS", "move": "fitting" },
+      "trigger": { "desc": "land Fitting on an opponent whose ARMS are already Sundered" },
       "cinematic": "TODO",
       "flavor": "Both hands take the ribcage like a jar lid."
     }
   ],
   "debuffs_reference": {
-    "ARMS": "victim punch damage -20%, throws escapable free",
-    "LEGS": "victim loses run/dash cancel, move speed -15%",
+    "ARMS": "victim punch damage -20%, their throws tech twice as easily",
+    "LEGS": "victim loses dashes, move speed -15%",
     "BODY": "victim meter gain -30%, Bleeding applied",
-    "HEAD": "victim inputs ghost briefly on hit, directional UI flickers"
+    "HEAD": "victim inputs ghost briefly after every hit taken"
   }
 }

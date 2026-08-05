@@ -108,6 +108,11 @@ class Fighter {
     this.graftHp = 0;
     this.rfCd = 0;
     this.stancePhase = null;    // 'enter'|'hold'|'exit'
+    // sunders (P3): regions broken on THIS fighter + the facts ledger for triggers
+    this.sundered = { ARMS: false, BODY: false, LEGS: false, HEAD: false };
+    this.facts = { absorbs: 0, mhits: {} };
+    this.concussT = 0;
+    this.lowPunishable = false;
     // stats for goldens / achievements-later
     this.stat = { dmgDealt: 0, flares: 0, throwsTeched: 0, parries: 0, absorbed: 0 };
     if (char.character.rift_button.mechanic === 'graft_sets') {
@@ -158,6 +163,9 @@ class Fighter {
       gt: this.grabT, gm: this.grabMove, gv: this.grabVar, tc: this.techT, ms: this.mashCount,
       db: this.debt, fl: this.flaresRound, gs: this.gset, gh: this.graftHp,
       rc: this.rfCd, sp: this.stancePhase, sq: this.stanceT || 0,
+      sn: [this.sundered.ARMS, this.sundered.BODY, this.sundered.LEGS, this.sundered.HEAD],
+      fa2: { a: this.facts.absorbs, m: this.facts.mhits },
+      cc: this.concussT, lp: this.lowPunishable,
       pa: [this.pressAge.FP, this.pressAge.BP, this.pressAge.FK, this.pressAge.BK, this.pressAge.TH, this.pressAge.RF],
       dw: this.dashWant || null, lf: this.lastFwdTap, lb: this.lastBackTap, pd: this.prevDir,
       pv: this.pushVx || 0, ps: this.pushVxSelf || 0, wr: !!this.wakeRoll,
@@ -295,7 +303,9 @@ export class Sim {
   }
 
   buffered(i, btn, maxAge) {
-    return this.fighters[i].pressAge[btn] <= maxAge;
+    const f = this.fighters[i];
+    if (f.concussT > 0) maxAge = 0; // Sundered HEAD: inputs ghost after every hit taken
+    return f.pressAge[btn] <= maxAge;
   }
   consume(i, btn) { this.fighters[i].pressAge[btn] = 99; }
 
@@ -308,6 +318,8 @@ export class Sim {
     if (f.rfCd > 0) f.rfCd--;
     if (f.invulnT > 0) f.invulnT--;
     if (f.throwInvulnT > 0) f.throwInvulnT--;
+    if (f.concussT > 0) f.concussT--;
+    if (f.sundered.LEGS) f.dashWant = null; // Sundered LEGS: no dashes
 
     switch (f.state) {
       case 'idle': case 'walkF': case 'walkB': case 'crouch': {
@@ -395,7 +407,14 @@ export class Sim {
     f.state = state;
     f.stateT = 0;
     f.stateDur = dur;
+    f.lowPunishable = false; // any state change closes the punish window
     if (state !== 'move') { f.moveId = null; f.moveVar = null; f.moveF = 0; f.chainBuf = null; f.recoveryAdd = 0; }
+  }
+
+  gainMeter(f, amt) {
+    if (amt <= 0) return;
+    if (f.sundered.BODY) amt = trunc(amt * 7, 10); // Sundered BODY: meter gain -30%
+    f.meter = Math.min(this.balance.meter.max, f.meter + amt);
   }
 
   resetCombo(f) { f.comboHits = 0; f.comboDmg = 0; }
@@ -742,9 +761,13 @@ export class Sim {
   }
 
   walkMod(f) {
-    if (f.char.character.rift_button.mechanic !== 'graft_sets') return 1000;
-    const cfg = f.char.character.rift_button.config;
-    return f.gset === 'power' ? cfg.power.walkPermille : cfg.finesse.walkPermille;
+    let mod = 1000;
+    if (f.char.character.rift_button.mechanic === 'graft_sets') {
+      const cfg = f.char.character.rift_button.config;
+      mod = f.gset === 'power' ? cfg.power.walkPermille : cfg.finesse.walkPermille;
+    }
+    if (f.sundered.LEGS) mod = trunc(mod * 850, 1000); // Sundered LEGS: -15% speed
+    return mod;
   }
 
   clampAndPush() {
@@ -961,11 +984,12 @@ export class Sim {
           if (vic.char.character.rift_button.mechanic === 'flare' && vic.debt >= (cfg.parryRefundDebt || 10)) {
             vic.debt -= cfg.parryRefundDebt || 10;
           } else {
-            vic.meter = Math.min(this.balance.meter.max, vic.meter + (cfg.parryRefundMeter || 50));
+            this.gainMeter(vic, cfg.parryRefundMeter || 50);
           }
           this.setState(vic, 'idle', 0);
           this.hitstopT = Math.max(this.hitstopT, 9);
           this.emit({ t: 'parry', who: vic.id, vs: mv.id });
+          this.checkSunders(vic, atk, { kind: 'parry', uses: mv.uses || 'ARMS' });
           return;
         }
       }
@@ -977,6 +1001,7 @@ export class Sim {
     if (proj && wall && gcfg && !adds.includes('armor_break')) {
       vic.graftHp = Math.min(gcfg.poolMax, vic.graftHp + gcfg.absorbHeal);
       vic.stat.absorbed++;
+      vic.facts.absorbs++;
       proj.dead = true;
       this.projectiles = this.projectiles.filter(p => !p.dead);
       this.hitstopT = Math.max(this.hitstopT, 4);
@@ -997,6 +1022,7 @@ export class Sim {
     if (armored) {
       const dmgToPool = proj ? proj.damage : mv.damage;
       vic.graftHp = Math.max(0, vic.graftHp - dmgToPool);
+      vic.facts.absorbs++;
       const real = Math.max(1, trunc(dmgToPool * gcfg.armorDamagePermille, 1000));
       this.damage(vic, real, 'hit', ai);
       if (proj) { proj.hitIds.push(vic.id); if (!proj.pierce) { proj.durability--; if (proj.durability <= 0) proj.dead = true; } }
@@ -1021,11 +1047,13 @@ export class Sim {
           const clamp = this.balance.bleed.chipClampHp;
           vic.hp = Math.max(clamp, vic.hp - chip);
         }
+        // blocking a low opens the attacker to a Sunder punish (zenith LEGS trigger)
+        if (mv.guard === 'low' && atk.state === 'move' && !proj) atk.lowPunishable = true;
         vic.state = 'blockstun';
         vic.stateT = 0;
         vic.stunT = Math.max(vic.stunT, mv.frames.blockstun || 12);
         this.applyPushback(vic, atk, mv, 'block');
-        atk.meter = Math.min(this.balance.meter.max, atk.meter + ((mv.meterGain && mv.meterGain.block) || 0));
+        this.gainMeter(atk, (mv.meterGain && mv.meterGain.block) || 0);
         if (atk.state === 'move' && !proj) { atk.hitDone = true; atk.contactMade = true; atk.contactF = atk.moveF; }
         if (proj) { proj.hitIds.push(vic.id); if (!proj.pierce) { proj.durability--; if (proj.durability <= 0) proj.dead = true; } }
         this.hitstopT = Math.max(this.hitstopT, Math.max(2, (mv.frames.hitstop || 5) - 2));
@@ -1037,8 +1065,13 @@ export class Sim {
 
     // 4) HIT
     const counter = vic.state === 'move' && vic.counterable;
+    // pre-stun facts for the Sunder triggers (state changes below would erase them)
+    const vicWasInMove = vic.state === 'move';
+    const vicLowPunish = vic.lowPunishable;
+    let baseDmg = proj ? proj.damage : mv.damage;
+    if (atk.sundered.ARMS && (mv.uses || 'ARMS') === 'ARMS') baseDmg = trunc(baseDmg * 800, 1000); // Sundered ARMS
     const scaleIdx = Math.min(vic.comboHits, this.balance.comboScaling.length - 1);
-    let dmg = trunc((proj ? proj.damage : mv.damage) * this.balance.comboScaling[scaleIdx], 1000);
+    let dmg = trunc(baseDmg * this.balance.comboScaling[scaleIdx], 1000);
     if (counter) dmg = trunc(dmg * (1000 + this.balance.counterHit.damageBonusPermille), 1000);
     dmg = Math.max(1, dmg);
 
@@ -1046,8 +1079,9 @@ export class Sim {
     atk.stat.dmgDealt += dmg;
     vic.comboHits++;
     vic.comboDmg += dmg;
-    atk.meter = Math.min(this.balance.meter.max, atk.meter + ((mv.meterGain && mv.meterGain.hit) || 0));
-    vic.meter = Math.min(this.balance.meter.max, vic.meter + trunc(dmg * this.balance.meter.takeDamagePerHundred, 100));
+    if (vic.sundered.HEAD) vic.concussT = 25;
+    this.gainMeter(atk, (mv.meterGain && mv.meterGain.hit) || 0);
+    this.gainMeter(vic, trunc(dmg * this.balance.meter.takeDamagePerHundred, 100));
 
     // trauma ledger
     const region = mv.limb_tag || 'BODY';
@@ -1129,6 +1163,69 @@ export class Sim {
       t: 'hit', who: vic.id, by: ai, move: mv.id, dmg, counter,
       combo: vic.comboHits, x: trunc(vic.x, SCALE), y: impactY, region
     });
+
+    // sunder triggers ride on the landed hit
+    atk.facts.mhits[mv.id] = (atk.facts.mhits[mv.id] || 0) + 1;
+    this.checkSunders(atk, vic, {
+      kind: 'hit', moveId: mv.id,
+      variant: proj ? proj.variant : atk.moveVar,
+      projAge: proj ? proj.age : undefined,
+      vicInMove: vicWasInMove, vicLowPunish
+    });
+  }
+
+  // ---------------- sunders (P3)
+
+  checkSunders(atk, vic, ctx) {
+    const list = atk.char.sunders;
+    if (!list) return;
+    for (const def of list) {
+      if (vic.sundered[def.region]) continue;
+      const w = def.when;
+      if (!w) continue;
+      let fire = false;
+      switch (w.type) {
+        case 'parry_vs_uses':
+          fire = ctx.kind === 'parry' && ctx.uses === w.uses;
+          break;
+        case 'punish_blocked_low':
+          fire = ctx.kind === 'hit' && ctx.vicLowPunish && ctx.vicInMove;
+          break;
+        case 'proj_hit':
+          fire = ctx.kind === 'hit' && ctx.moveId === w.move &&
+            (!w.variant || ctx.variant === w.variant) && (ctx.projAge || 0) >= (w.minAge || 0);
+          break;
+        case 'move_hits':
+          fire = (ctx.kind === 'hit' || ctx.kind === 'grab') && ctx.moveId === w.move &&
+            (atk.facts.mhits[w.move] || 0) >= w.count;
+          break;
+        case 'absorb_punish':
+          fire = ctx.kind === 'hit' && atk.facts.absorbs >= w.absorbs && ctx.vicInMove;
+          break;
+        case 'hit_region_sundered':
+          fire = (ctx.kind === 'hit' || ctx.kind === 'grab') && (!w.move || ctx.moveId === w.move) &&
+            vic.sundered[w.region];
+          break;
+      }
+      if (fire) { this.fireSunder(atk, vic, def); return; } // one per contact
+    }
+  }
+
+  fireSunder(atk, vic, def) {
+    vic.sundered[def.region] = true;
+    if (def.region === 'BODY' && !vic.bleedRegions.includes('BODY')) {
+      vic.bleedRegions.push('BODY'); // GDD §6: Sundered BODY applies Bleeding
+      this.emit({ t: 'bleeding', who: vic.id, region: 'BODY' });
+    }
+    // cinematic-lite: long freeze, heavy blood, the floor drinks
+    this.hitstopT = Math.max(this.hitstopT, 46);
+    this.bloodEvent(vic, 90, 3);
+    this.addPool(vic.x, 120);
+    if (vic.state !== 'launched' && vic.state !== 'kd' && vic.y <= 0) {
+      vic.state = 'launched'; vic.stateT = 0;
+      vic.vy = -6500; vic.vx = 3500 * atk.facing; vic.kdHard = false;
+    }
+    this.emit({ t: 'sunder', who: vic.id, by: atk.id, region: def.region, name: def.id, flavor: def.flavor || '' });
   }
 
   damage(vic, amount, cause, byId) {
@@ -1169,7 +1266,8 @@ export class Sim {
     atk.mashCount = 0;
     vic.state = mv.id === '_throw' ? 'thrown' : 'grabbed';
     vic.stateT = 0;
-    vic.techT = mv.techable ? vic.char.character.throw.techWindow : 0;
+    // Sundered ARMS on the grabber: their throws tech twice as easily
+    vic.techT = mv.techable ? vic.char.character.throw.techWindow * (atk.sundered.ARMS ? 2 : 1) : 0;
     vic.moveId = null;
     // snap victim to grab range
     vic.x = atk.x + atk.facing * trunc((atk.stats.width + vic.stats.width) * SCALE, 2);
@@ -1209,11 +1307,13 @@ export class Sim {
 
       atk.grabT--;
       if (atk.grabT <= 0) {
-        const dmg = Math.max(mv.grab.damageFloor, mv.damage - atk.mashCount * mv.grab.mashReduce);
+        let dmg = Math.max(mv.grab.damageFloor, mv.damage - atk.mashCount * mv.grab.mashReduce);
+        if (atk.sundered.ARMS && (mv.uses || 'ARMS') === 'ARMS') dmg = trunc(dmg * 800, 1000);
         this.damage(vic, dmg, 'hit', i);
         atk.stat.dmgDealt += dmg;
-        atk.meter = Math.min(this.balance.meter.max, atk.meter + ((mv.meterGain && mv.meterGain.hit) || 0));
-        vic.meter = Math.min(this.balance.meter.max, vic.meter + trunc(dmg * this.balance.meter.takeDamagePerHundred, 100));
+        if (vic.sundered.HEAD) vic.concussT = 25;
+        this.gainMeter(atk, (mv.meterGain && mv.meterGain.hit) || 0);
+        this.gainMeter(vic, trunc(dmg * this.balance.meter.takeDamagePerHundred, 100));
         const region = mv.limb_tag || 'BODY';
         const before = vic.woundState(region);
         vic.trauma[region] += dmg;
@@ -1231,6 +1331,8 @@ export class Sim {
         this.bloodEvent(vic, dmg, 2);
         this.addPool(vic.x, Math.max(40, dmg));
         this.emit({ t: 'grabHit', who: vic.id, by: i, move: mv.id, dmg, x: trunc(vic.x, SCALE) });
+        atk.facts.mhits[mv.id] = (atk.facts.mhits[mv.id] || 0) + 1;
+        this.checkSunders(atk, vic, { kind: 'grab', moveId: mv.id, variant: atk.grabVar });
       }
     }
   }
@@ -1308,7 +1410,7 @@ export class Sim {
         f.poolTickT++;
         if (f.poolTickT >= b.tickInterval) {
           f.poolTickT = 0;
-          f.meter = Math.min(this.balance.meter.max, f.meter + trunc(b.tickMeter * amp, 1000));
+          this.gainMeter(f, trunc(b.tickMeter * amp, 1000));
           this.emit({ t: 'poolTick', who: f.id });
         }
       } else f.poolTickT = 0;
@@ -1361,8 +1463,10 @@ export class Sim {
     this.roundReason = reason;
     this.phase = 'roundEnd';
     this.phaseT = 150;
+    this.finalRound = false;
     if (winner !== 2) {
       this.roundWins[winner]++;
+      this.finalRound = this.roundWins[winner] >= this.balance.rounds.toWin;
       const wf = this.fighters[winner];
       // effect DSL: round_won rules (match-scoped)
       this.applyRules(wf, 'round_won', { flares_this_round: wf.flaresRound });
@@ -1370,7 +1474,7 @@ export class Sim {
       if (loser.state !== 'launched' && loser.state !== 'kd') {
         loser.state = 'launched'; loser.vy = -6000; loser.vx = -loser.facing * 3000; loser.kdHard = true;
       }
-      this.emit({ t: 'roundEnd', winner, reason });
+      this.emit({ t: 'roundEnd', winner, reason, final: this.finalRound });
     } else {
       this.emit({ t: 'roundEnd', winner: 2, reason });
     }
@@ -1388,19 +1492,55 @@ export class Sim {
       for (let i = 0; i < 2; i++) this.integrate(i);
       this.clampAndPush();
       if (this.phaseT <= 0) {
-        const need = this.balance.rounds.toWin;
-        if (this.roundWinner !== 2 && this.roundWins[this.roundWinner] >= need) {
-          this.phase = 'matchEnd';
-          this.matchOver = true;
-          this.winner = this.roundWinner;
-          this.winReason = this.roundReason;
-          this.emit({ t: 'matchEnd', winner: this.winner, reason: this.winReason });
-        } else {
-          this.resetRound();
-        }
+        if (this.finalRound) this.enterFinish();
+        else this.resetRound();
       }
       return;
     }
+    if (this.phase === 'finish') {
+      for (let i = 0; i < 2; i++) this.integrate(i);
+      this.clampAndPush();
+      const w = this.roundWinner;
+      if (!this.executed) {
+        const human = !this.fighters[w].ai;
+        const elapsed = 480 - this.phaseT;
+        if (human ? this.trackers[w].pressed(B.RF)
+          : (this.finishCpu >= 0 && elapsed >= this.finishCpu)) {
+          this.executed = true;
+          const exs = this.fighters[w].char.finishers;
+          const ex = exs && exs.executions && exs.executions[0];
+          const loser = this.other(w);
+          // the Rift is fed: the arena drinks the loser
+          this.bloodEvent(loser, 240, 3);
+          this.addPool(loser.x, 340);
+          this.emit({ t: 'execution', winner: w, who: loser.id, name: ex ? ex.name : 'Execution' });
+          this.phaseT = Math.min(this.phaseT, 150);
+        }
+      }
+      if (this.phaseT <= 0) {
+        if (!this.executed) this.emit({ t: 'spared', winner: w, who: this.other(w).id });
+        this.phase = 'matchEnd';
+        this.matchOver = true;
+        this.winner = w;
+        this.winReason = this.roundReason;
+        this.emit({ t: 'matchEnd', winner: this.winner, reason: this.winReason, executed: this.executed });
+      }
+      return;
+    }
+  }
+
+  enterFinish() {
+    this.phase = 'finish';
+    this.phaseT = 480; // the 8-second window (GDD §8.1)
+    this.executed = false;
+    const w = this.roundWinner;
+    const wf = this.fighters[w];
+    // CPU winners decide deterministically up front: ~70% feed the Rift
+    this.finishCpu = wf.ai ? (this.rng.chance(700) ? 60 + this.rng.int(200) : -1) : -2;
+    if (wf.y <= 0 && wf.state !== 'kd') this.setState(wf, 'idle', 0);
+    const loser = this.other(w);
+    if (loser.y <= 0 && loser.state !== 'kd' && loser.state !== 'launched') this.setState(loser, 'kd', 99999);
+    this.emit({ t: 'finishPrompt', winner: w });
   }
 
   resetRound() {
@@ -1468,6 +1608,7 @@ export class Sim {
       rw: this.roundWins.slice(), tm: this.timer,
       hs: this.hitstopT, sf: this.superFlashT,
       wn: this.winner, wr: this.winReason, mo: this.matchOver,
+      ex: !!this.executed, fr2: !!this.finalRound, fc: this.finishCpu === undefined ? null : this.finishCpu,
       rng: this.rng.state,
       fighters: this.fighters.map(f => f.serialize()),
       projectiles: this.projectiles.map(p => ({
@@ -1493,7 +1634,7 @@ export class Sim {
 
 // Build the runtime character bundle from raw JSON (browser fetches, node reads fs —
 // the engine itself never loads files).
-export function makeCharBundle(characterJson, movesJson) {
+export function makeCharBundle(characterJson, movesJson, sundersJson, finishersJson) {
   const movesById = {};
   for (const m of movesJson) movesById[m.id] = m;
   const chainsFrom = {};
@@ -1502,5 +1643,9 @@ export function makeCharBundle(characterJson, movesJson) {
       (chainsFrom[m.trigger.from] = chainsFrom[m.trigger.from] || []).push(m);
     }
   }
-  return { character: characterJson, moves: movesJson, movesById, chainsFrom };
+  return {
+    character: characterJson, moves: movesJson, movesById, chainsFrom,
+    sunders: sundersJson ? sundersJson.sunders : null,
+    finishers: finishersJson || null
+  };
 }

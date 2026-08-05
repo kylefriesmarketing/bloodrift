@@ -22,8 +22,12 @@ export function data(rel) {
 export function makeSim(opts = {}) {
   const sim = new Sim({
     chars: [
-      makeCharBundle(data('data/characters/zenith/character.json'), data('data/characters/zenith/moves.json')),
-      makeCharBundle(data('data/characters/graft/character.json'), data('data/characters/graft/moves.json'))
+      makeCharBundle(
+        data('data/characters/zenith/character.json'), data('data/characters/zenith/moves.json'),
+        data('data/characters/zenith/sunders.json'), data('data/characters/zenith/finishers.json')),
+      makeCharBundle(
+        data('data/characters/graft/character.json'), data('data/characters/graft/moves.json'),
+        data('data/characters/graft/sunders.json'), data('data/characters/graft/finishers.json'))
     ],
     arena: data('data/arenas/riftscar.json'),
     balance: data('data/balance/core.json'),

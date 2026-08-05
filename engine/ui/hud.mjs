@@ -44,6 +44,26 @@ export class Hud {
         case 'breaker': this.say('TRANSFUSION', '2 pints spent', '#8fd8ff', 45); break;
         case 'bleeding': this.say('BLEEDING', `${sim.fighters[e.who].char.character.name} is losing blood`, '#ff2135', 70); break;
         case 'throwTech': this.say('TECH', '', '#8fa8c8', 30); break;
+        case 'sunder':
+          this.queue.length = 0;
+          this.say(`SUNDERED — ${e.region}`, e.flavor || '', '#ff2135', 130);
+          break;
+        case 'finishPrompt': {
+          const w = sim.fighters[e.winner];
+          this.queue.length = 0;
+          this.say('FEED THE RIFT', w.ai ? 'the Rift waits for its tithe' : 'RIFT button — execute · or walk away', '#ff2135', 470);
+          break;
+        }
+        case 'execution': {
+          this.queue.length = 0;
+          this.say(e.name.toUpperCase(), 'the Rift is fed', '#ff2135', 150);
+          break;
+        }
+        case 'spared': {
+          this.queue.length = 0;
+          this.say('SPARED', 'mercy is also a wager', '#8fa8c8', 120);
+          break;
+        }
         case 'hit': if (e.combo >= 2) this.comboFlash[1 - e.who] = 90; break;
       }
     }

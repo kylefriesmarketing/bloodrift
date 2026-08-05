@@ -57,6 +57,10 @@ export class Sfx {
         case 'wound': this.thud(120, 0.2, 0.4, true); break;
         case 'throwTech': this.thud(400, 0.06, 0.2, false); break;
         case 'flare': this.thud(600, 0.12, 0.2, false); break;
+        case 'sunder': this.thud(60, 0.55, 0.9, true); this.thud(900, 0.08, 0.2, false); break;
+        case 'execution': this.thud(40, 1.2, 0.95, true); break;
+        case 'finishPrompt': this.thud(80, 0.8, 0.4, false); break;
+        case 'spared': this.thud(300, 0.4, 0.25, false); break;
       }
     }
   }

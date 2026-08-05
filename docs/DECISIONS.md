@@ -59,3 +59,28 @@ the round to NEITHER and replays. Lint-tested? No — noted here, revisit in pla
 **D-010 · CPU opponent lives inside the sim** as an optional per-seat controller (pure
 function of sim state + its own seeded LCG stream), so CPU matches replay and hash-verify
 exactly like human matches.
+
+---
+
+## 2026-08-05 — P3 slice (same bootstrap effort)
+
+**D-011 · Grab range semantics.** `throw.range` / `grab.range` in data = maximum **edge gap**
+in px between pushboxes (not center distance). Universal throws 45/50, Fitting 60 (EX 72),
+SECONDHAND 80.
+
+**D-012 · Sunders are LIVE with the roster's real trigger conditions**, encoded as structured
+`when` objects in sunders.json (schema frozen: `data/schema/sunders.schema.json`, six generic
+trigger types reusable across the roster). Cinematics are cinematic-LITE for now: 46f freeze +
+bone-cam overlay + heavy blood + announcer; the timeline-data cinematic system (BUILD_PLAN §8)
+is still owed. Debuffs implemented per GDD §6: ARMS = −20% damage on ARMS-tagged moves + your
+throws tech twice as easily; LEGS = −15% speed + dashes disabled; BODY = meter gain −30% +
+Bleeding; HEAD = inputs ghost (25f zero-buffer window after every hit taken). One per region
+per match; they persist across rounds. HEAD sunders exist in engine but no launch-pair
+character has one authored (matches the roster sheets).
+
+**D-013 · FEED THE RIFT ships as the P3 finish window.** Final round ends → 150f slump →
+`finish` phase: 480f (8s) window where the winner presses **Rift** to Execute (first execution
+from finishers.json is named on screen; the sim spawns a 340-volume pool — the Rift drinks)
+or lets it lapse to Spare. Execute/Spare is a sim INPUT → replays/hashes carry it; CPU winners
+decide via the seeded rng (~70% execute). Full execution cinematics + the harvest/XP economy
+are P4 wiring on this hook.

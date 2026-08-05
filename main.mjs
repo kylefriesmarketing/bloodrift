@@ -14,13 +14,15 @@ async function j(u) { const r = await fetch(u); if (!r.ok) throw new Error(u + '
 
 const DATA = {};
 async function loadData() {
-  const [zc, zm, gc, gm, arena, balance] = await Promise.all([
+  const [zc, zm, zs, zf, gc, gm, gs, gf, arena, balance] = await Promise.all([
     j('data/characters/zenith/character.json'), j('data/characters/zenith/moves.json'),
+    j('data/characters/zenith/sunders.json'), j('data/characters/zenith/finishers.json'),
     j('data/characters/graft/character.json'), j('data/characters/graft/moves.json'),
+    j('data/characters/graft/sunders.json'), j('data/characters/graft/finishers.json'),
     j('data/arenas/riftscar.json'), j('data/balance/core.json')
   ]);
-  DATA.zenith = { c: zc, m: zm };
-  DATA.graft = { c: gc, m: gm };
+  DATA.zenith = { c: zc, m: zm, s: zs, f: zf };
+  DATA.graft = { c: gc, m: gm, s: gs, f: gf };
   DATA.arena = arena;
   DATA.balance = balance;
 }
@@ -65,8 +67,8 @@ const evRing = [];
 function newMatch() {
   sim = new Sim({
     chars: [
-      makeCharBundle(DATA.zenith.c, DATA.zenith.m),
-      makeCharBundle(DATA.graft.c, DATA.graft.m)
+      makeCharBundle(DATA.zenith.c, DATA.zenith.m, DATA.zenith.s, DATA.zenith.f),
+      makeCharBundle(DATA.graft.c, DATA.graft.m, DATA.graft.s, DATA.graft.f)
     ],
     arena: DATA.arena,
     balance: DATA.balance,
@@ -190,7 +192,8 @@ async function boot() {
       newMatch();
       if (opts.seed) {
         sim = new Sim({
-          chars: [makeCharBundle(DATA.zenith.c, DATA.zenith.m), makeCharBundle(DATA.graft.c, DATA.graft.m)],
+          chars: [makeCharBundle(DATA.zenith.c, DATA.zenith.m, DATA.zenith.s, DATA.zenith.f),
+            makeCharBundle(DATA.graft.c, DATA.graft.m, DATA.graft.s, DATA.graft.f)],
           arena: DATA.arena, balance: DATA.balance, seed: opts.seed,
           cpu: mode === 'watch' ? [{ level: cpuLevel }, { level: cpuLevel }]
             : mode === 'cpu' ? (humanSeat === 0 ? [null, { level: cpuLevel }] : [{ level: cpuLevel }, null]) : null

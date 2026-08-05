@@ -319,6 +319,112 @@ t('golden: chip cannot KO (clamps at 1 hp)', () => {
   assertEq(sim.phase, 'fight', 'round must not end on chip');
 });
 
+// ---------------------------------------------------------------- 4b. P3 — sunders + finish
+
+t('schema: sunders.json (both)', () => {
+  const sch = data('data/schema/sunders.schema.json');
+  for (const c of ['zenith', 'graft']) {
+    const errs = validate(sch, data(`data/characters/${c}/sunders.json`));
+    assert(errs.length === 0, `${c}: ${errs.join(' | ')}`);
+  }
+});
+
+t('sunder: Corona parry of a punch sunders GRAFT\'s ARMS (then -20% punch damage)', () => {
+  const sim = makeSim();
+  const [m0, m1] = masks(420);
+  hold(m0, INTRO, 148, B.R);
+  hold(m1, INTRO, 148, B.L);
+  motion(m0, 150, 'qcb', B.BP, 1);
+  press(m1, 158, B.FP);          // parried punch → boiled_grip
+  hold(m1, 262, 318, B.L);       // walk all the way back in after the knockdown
+  press(m1, 324, B.FP);          // broken-arm jab
+  const evs = run(sim, m0, m1, 420);
+  const sd = findEv(evs, 'sunder');
+  assert(sd, 'sunder never fired');
+  assertEq(sd.region, 'ARMS', 'sundered region');
+  assertEq(sd.who, 1, 'graft is the victim');
+  assert(sim.fighters[1].sundered.ARMS, 'sundered flag set');
+  const hit = findEv(evs, 'hit', e => e.by === 1);
+  assert(hit, 'post-sunder jab never landed');
+  assertEq(hit.dmg, 32, 'punch damage reduced 40 → 32');
+});
+
+t('sunder: second Fitting sunders ARMS; ZENITH\'s Sunlance drops 70 → 56', () => {
+  const sim = makeSim();
+  const [m0, m1] = masks(700);
+  hold(m1, INTRO, 235, B.L);
+  motion(m1, 244, 'hcb', B.TH, -1);   // fitting #1
+  hold(m1, 340, 392, B.L);            // walk the flung ZENITH back down
+  motion(m1, 398, 'hcb', B.TH, -1);   // fitting #2 (after his wakeup) → found_wanting
+  motion(m0, 600, 'qcf', B.FP, 1);    // broken-arm sunlance, after his wakeup
+  const evs = run(sim, m0, m1, 760);
+  assertEq(countEv(evs, 'grabHit'), 2, 'both fittings landed');
+  const sd = findEv(evs, 'sunder');
+  assert(sd, 'sunder never fired');
+  assertEq(sd.region, 'ARMS', 'region');
+  assertEq(sd.who, 0, 'zenith is the victim');
+  const lance = findEv(evs, 'hit', e => e.move === 'sunlance');
+  assert(lance, 'sunlance never landed');
+  assertEq(lance.dmg, 56, 'ARMS-sundered sunlance damage');
+});
+
+t('sunder debuff: LEGS = -15% walk and no dashes (exact integer math)', () => {
+  const sim = makeSim();
+  run(sim, null, null, 70);
+  const g = sim.fighters[1];
+  g.sundered.LEGS = true;
+  const x0 = g.x;
+  const [m0, m1] = masks(100);
+  hold(m1, 0, 99, B.L);
+  run(sim, m0, m1, 100);
+  // power set 900‰, LEGS 850‰ → trunc(2600 * trunc(900*850/1000)) = 1989 millipx/frame
+  assertEq(x0 - g.x, 198900, 'walk distance over 100 frames');
+});
+
+t('sunder debuff: BODY = meter gain -30%', () => {
+  const sim = makeSim();
+  run(sim, null, null, 70);
+  sim.fighters[0].sundered.BODY = true;
+  const [m0, m1] = masks(300);
+  hold(m1, 0, 170, B.L);
+  press(m1, 180, B.FP);
+  const evs = run(sim, m0, m1, 300);
+  assert(findEv(evs, 'hit'), 'jab never landed');
+  assertEq(sim.fighters[0].meter, 2, 'victim meter gain 3 → 2 under BODY sunder');
+  assertEq(sim.fighters[1].meter, 5, 'attacker unaffected');
+});
+
+t('finish: FEED THE RIFT — execution path (Rift press) and spare path (timeout)', () => {
+  const playToPrompt = () => {
+    const sim = makeSim();
+    const [m0, m1] = masks(400);
+    hold(m0, INTRO, 205, B.R);
+    press(m0, 214, B.FP);
+    run(sim, m0, m1, 260);
+    sim.roundWins[0] = 1;          // harness liberty: this KO closes the match
+    sim.fighters[1].hp = 5;
+    const [m2] = masks(400);
+    press(m2, 10, B.FP);
+    const evs = run(sim, m2, null, 240, s => s.phase === 'finish');
+    assert(findEv(evs, 'finishPrompt') || sim.phase === 'finish', 'finish phase never reached');
+    return sim;
+  };
+  // execute
+  let sim = playToPrompt();
+  let evs = run(sim, [0, 0, 0, 0, 0, B.RF], null, 6);
+  evs = evs.concat(run(sim, null, null, 200));
+  const ex = findEv(evs, 'execution');
+  assert(ex, 'execution never fired');
+  assertEq(ex.name, 'Dawn, Once More', 'execution name from finishers.json');
+  assert(sim.matchOver, 'match should be over after execution');
+  assertEq(sim.winner, 0, 'zenith wins');
+  // spare
+  sim = playToPrompt();
+  evs = run(sim, null, null, 520);
+  assert(findEv(evs, 'spared'), 'spare never fired');
+  assert(sim.matchOver, 'match should be over after sparing');
+});
+
 // ---------------------------------------------------------------- 5. determinism
 
 t('determinism: CPU vs CPU, 3600 frames, bit-identical hashes', () => {
