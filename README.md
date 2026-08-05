@@ -1,5 +1,8 @@
 # BLOODRIFT
 
+**▶ PLAY IT: https://kylefriesmarketing.github.io/bloodrift/** (repo
+`kylefriesmarketing/bloodrift`, Pages from master root — deploy = `git push origin master`)
+
 **1v1 fighting game × character-driven RPG.** Three realities collide; the Rift keeps score
 in blood. Design docs in `docs/` are the spec ([GDD](docs/BLOODRIFT_01_GAME_DESIGN.md) ·
 [Roster](docs/BLOODRIFT_02_ROSTER.md) · [Build plan](docs/BLOODRIFT_03_BUILD_PLAN.md));
