@@ -18,6 +18,7 @@ export class Renderer {
     this.parts = [];      // particles
     this.flashT = 0;
     this.flashCol = '#fff';
+    this.healFx = [0, 0];
     this.t = 0;
     // persistent gore decals, world-space floor strip
     this.decal = document.createElement('canvas');
@@ -34,6 +35,7 @@ export class Renderer {
     this.flashT = 0;
     this.boneT = 0;
     this.execT = 0;
+    this.healFx = [0, 0];
     this.displayHp = [1, 1];
   }
 
@@ -63,6 +65,11 @@ export class Renderer {
               g: 0.42, size: 1.5 + Math.random() * 2.8, life: 90
             });
           }
+          break;
+        }
+        case 'drain': case 'drink': {
+          this.healFx[e.who] = 22;
+          this.spark(sim.fighters[e.who].x / SCALE, 160, '#b03040', 7, true);
           break;
         }
         case 'block': this.spark(sim.fighters[e.who].x / SCALE, 150, '#8fa8c8', 7, true); break;
@@ -480,8 +487,9 @@ export class Renderer {
       if (tr.cur & 512) guard = true;
     }
 
+    const cid = f.char.character.id;
     const bodyH = H * (1 - crouchK * 0.42);
-    const torsoW = W * (f.char.character.id === 'graft' ? 1.28 : 1);
+    const torsoW = W * (cid === 'graft' ? 1.28 : cid === 'strigoi' ? 0.92 : 1);
     const outline = '#070507';
 
     cx.save();
@@ -529,13 +537,28 @@ export class Renderer {
       cx.restore();
     }
 
+    // strigoi: funeral-silk greatcoat flares behind everything
+    if (cid === 'strigoi') {
+      cx.fillStyle = shade(pal.secondary, 6);
+      cx.beginPath();
+      cx.moveTo(-torsoW * 0.5, torsoY - 4 * s);
+      cx.lineTo(torsoW * 0.5, torsoY - 4 * s);
+      cx.lineTo(torsoW * 0.95 + Math.sin(t * 0.09) * 3 * s, -4 * s);
+      cx.lineTo(-torsoW * 0.95 - Math.sin(t * 0.09 + 1) * 3 * s, -4 * s);
+      cx.closePath();
+      cx.fill();
+      cx.strokeStyle = shade(pal.accent, -30);
+      cx.lineWidth = 1.5 * s;
+      cx.stroke();
+    }
+
     // torso (rim-lit against the dark arena)
     cx.strokeStyle = outline;
     cx.lineWidth = 3 * s;
-    cx.fillStyle = justHit ? '#ff5a64' : shade(pal.primary, f.char.character.id === 'graft' ? 16 : -4);
+    cx.fillStyle = justHit ? '#ff5a64' : shade(pal.primary, cid === 'zenith' ? -4 : 16);
     rrs(cx, -torsoW / 2, torsoY - bodyH * 0.06, torsoW, bodyH * 0.5, 8 * s);
     // chest plate accent
-    cx.fillStyle = shade(pal.primary, f.char.character.id === 'graft' ? 34 : 14);
+    cx.fillStyle = shade(pal.primary, cid === 'zenith' ? 14 : 34);
     rr(cx, -torsoW / 2 + 3 * s, torsoY - bodyH * 0.04, torsoW - 6 * s, bodyH * 0.2, 6 * s);
     // top rim light (GDD: graphic-novel edge lighting)
     cx.strokeStyle = 'rgba(255,240,220,0.28)';
@@ -545,8 +568,27 @@ export class Renderer {
     cx.lineTo(torsoW / 2 - 6 * s, torsoY - bodyH * 0.05);
     cx.stroke();
 
-    // GRAFT stitches / ZENITH mantle
-    if (f.char.character.id === 'graft') {
+    // per-character flourish
+    if (cid === 'strigoi') {
+      // high collar + crimson lining
+      cx.fillStyle = shade(pal.secondary, 22);
+      cx.beginPath();
+      cx.moveTo(-torsoW * 0.34, torsoY - bodyH * 0.05);
+      cx.lineTo(-torsoW * 0.5, torsoY - bodyH * 0.2);
+      cx.lineTo(-torsoW * 0.16, torsoY - bodyH * 0.06);
+      cx.closePath(); cx.fill();
+      cx.beginPath();
+      cx.moveTo(torsoW * 0.34, torsoY - bodyH * 0.05);
+      cx.lineTo(torsoW * 0.5, torsoY - bodyH * 0.2);
+      cx.lineTo(torsoW * 0.16, torsoY - bodyH * 0.06);
+      cx.closePath(); cx.fill();
+      cx.strokeStyle = pal.accent;
+      cx.lineWidth = 1.6 * s;
+      cx.beginPath();
+      cx.moveTo(0, torsoY - bodyH * 0.04);
+      cx.lineTo(0, torsoY + bodyH * 0.4);
+      cx.stroke();
+    } else if (f.char.character.id === 'graft') {
       cx.strokeStyle = '#1c0d12';
       cx.lineWidth = 1.5 * s;
       for (let k = 0; k < 3; k++) {
@@ -622,15 +664,26 @@ export class Renderer {
 
     // head — distinct from armor so the silhouette reads
     const headY = torsoY - headR * 0.8;
-    const isGraft = f.char.character.id === 'graft';
+    const isGraft = cid === 'graft';
     cx.strokeStyle = outline;
     cx.lineWidth = 3 * s;
-    cx.fillStyle = justHit ? '#ff6a72' : (isGraft ? '#9a8890' : '#e5d5a8');
+    cx.fillStyle = justHit ? '#ff6a72' : (isGraft ? '#9a8890' : cid === 'strigoi' ? '#ded6d8' : '#e5d5a8');
     cx.beginPath();
     cx.arc(face * W * 0.06, headY, headR, 0, Math.PI * 2);
     cx.fill();
     cx.stroke();
-    if (isGraft) {
+    if (cid === 'strigoi') {
+      // pale to translucency; the eyes are the color of the work
+      cx.fillStyle = '#c22a3a';
+      cx.beginPath(); cx.arc(face * (W * 0.06 + headR * 0.35), headY - headR * 0.12, headR * 0.12, 0, Math.PI * 2); cx.fill();
+      cx.beginPath(); cx.arc(face * (W * 0.06 + headR * 0.02), headY - headR * 0.14, headR * 0.1, 0, Math.PI * 2); cx.fill();
+      cx.strokeStyle = 'rgba(143,15,34,0.5)';
+      cx.lineWidth = 1 * s;
+      cx.beginPath();
+      cx.moveTo(face * W * 0.06 - headR * 0.4, headY + headR * 0.5);
+      cx.lineTo(face * W * 0.06 - headR * 0.15, headY + headR * 0.1);
+      cx.stroke();
+    } else if (isGraft) {
       // head stitches + mismatched eyes
       cx.strokeStyle = '#2a1218';
       cx.lineWidth = 1.4 * s;
@@ -675,6 +728,18 @@ export class Renderer {
       cx.globalAlpha = gore;
       cx.fillStyle = pal.blood;
       rr(cx, -torsoW / 2, torsoY - bodyH * 0.06, torsoW, bodyH * 0.5, 8 * s);
+      cx.globalAlpha = 1;
+    }
+
+    // drain flush: drained blood visibly routes through him
+    if (this.healFx[f.id] > 0) {
+      this.healFx[f.id]--;
+      cx.globalAlpha = 0.3 * (this.healFx[f.id] / 22);
+      cx.fillStyle = pal.accent || '#b03040';
+      rr(cx, -torsoW / 2, torsoY - bodyH * 0.06, torsoW, bodyH * 0.5, 8 * s);
+      cx.beginPath();
+      cx.arc(face * W * 0.06, headY, headR, 0, Math.PI * 2);
+      cx.fill();
       cx.globalAlpha = 1;
     }
 

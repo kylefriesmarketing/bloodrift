@@ -20,17 +20,19 @@ const INTRO = 62; // fight phase begins ~frame 60; scripts act after this
 
 // ---------------------------------------------------------------- 1. schemas
 
-t('schema: character.json (both)', () => {
+const ROSTER = ['zenith', 'graft', 'strigoi'];
+
+t('schema: character.json (roster)', () => {
   const sch = data('data/schema/character.schema.json');
-  for (const c of ['zenith', 'graft']) {
+  for (const c of ROSTER) {
     const errs = validate(sch, data(`data/characters/${c}/character.json`));
     assert(errs.length === 0, `${c}: ${errs.join(' | ')}`);
   }
 });
 
-t('schema: moves.json (both)', () => {
+t('schema: moves.json (roster)', () => {
   const sch = data('data/schema/moves.schema.json');
-  for (const c of ['zenith', 'graft']) {
+  for (const c of ROSTER) {
     const errs = validate(sch, data(`data/characters/${c}/moves.json`));
     assert(errs.length === 0, `${c}: ${errs.join(' | ')}`);
   }
@@ -47,7 +49,7 @@ t('schema: balance + arena', () => {
 
 t('lint: frame data honest + guardrails', () => {
   const problems = [];
-  for (const c of ['zenith', 'graft']) {
+  for (const c of ROSTER) {
     const moves = data(`data/characters/${c}/moves.json`);
     const ids = new Set();
     for (const m of moves) {
@@ -321,9 +323,9 @@ t('golden: chip cannot KO (clamps at 1 hp)', () => {
 
 // ---------------------------------------------------------------- 4b. P3 — sunders + finish
 
-t('schema: sunders.json (both)', () => {
+t('schema: sunders.json (roster)', () => {
   const sch = data('data/schema/sunders.schema.json');
-  for (const c of ['zenith', 'graft']) {
+  for (const c of ROSTER) {
     const errs = validate(sch, data(`data/characters/${c}/sunders.json`));
     assert(errs.length === 0, `${c}: ${errs.join(' | ')}`);
   }
@@ -423,6 +425,74 @@ t('finish: FEED THE RIFT — execution path (Rift press) and spare path (timeout
   evs = run(sim, null, null, 520);
   assert(findEv(evs, 'spared'), 'spare never fired');
   assert(sim.matchOver, 'match should be over after sparing');
+});
+
+// ---------------------------------------------------------------- 4c. STRIGOI (Wave 1 opener)
+
+t('strigoi: Sanguine Draw tether — lifesteal + meter theft, exact numbers', () => {
+  const sim = makeSim({ p1: 'strigoi', p2: 'graft', startMeter: [0, 50] });
+  run(sim, null, null, 70);
+  sim.fighters[0].hp = 700;
+  const [m0, m1] = masks(300);
+  hold(m0, 0, 145, B.R);
+  press(m0, 154, B.RF);
+  const evs = run(sim, m0, m1, 300);
+  const hit = findEv(evs, 'hit', e => e.move === 'sanguine_draw');
+  assert(hit, 'tether never landed');
+  assertEq(hit.dmg, 25, 'tether damage');
+  const dr = findEv(evs, 'drain');
+  assert(dr && dr.amt === 25, 'full lifesteal on the tether');
+  assertEq(sim.fighters[0].hp, 725, 'strigoi healed');
+  assertEq(sim.fighters[1].hp, 1125, 'graft bled');
+  assertEq(sim.fighters[0].meter, 23, 'strigoi meter: +8 hit, +15 stolen');
+  assertEq(sim.fighters[1].meter, 37, 'graft meter: 50 +2 taken −15 stolen');
+  assert(sim.fighters[0].drainCd > 0, 'tether on cooldown');
+});
+
+t('strigoi: drinks a pool once (heal + meter), second press finds it dry', () => {
+  const sim = makeSim({ p1: 'strigoi', p2: 'graft' });
+  run(sim, null, null, 70);
+  sim.fighters[0].hp = 700;
+  const [m0, m1] = masks(400);
+  hold(m1, 0, 40, B.L);
+  motion(m1, 50, 'qcf', B.FP, -1);   // staple → 60 dmg pool at strigoi's feet
+  press(m0, 170, B.RF);              // drink
+  press(m0, 200, B.RF);              // dry — falls through to the tether (whiffs at range)
+  const evs = run(sim, m0, m1, 320);
+  assert(findEv(evs, 'hit', e => e.move === 'staple_toss'), 'setup staple missing');
+  assertEq(countEv(evs, 'drink'), 1, 'exactly one drink');
+  assertEq(sim.fighters[0].facts.drinks, 1, 'drink ledger');
+  assertEq(sim.fighters[0].hp, 700 - 60 + 40, 'staple damage then drink heal');
+  const ticks = countEv(evs.filter(e => e.who === 0), 'poolTick');
+  assertEq(sim.fighters[0].meter, 4 + 20 + ticks * 3, 'meter: +4 taken, +20 drink, +3/pool tick');
+});
+
+t('strigoi: Cask Slam heals half its damage', () => {
+  const sim = makeSim({ p1: 'strigoi', p2: 'graft' });
+  run(sim, null, null, 70);
+  sim.fighters[0].hp = 600;
+  const [m0, m1] = masks(300);
+  hold(m0, 0, 145, B.R);
+  motion(m0, 154, 'hcb', B.TH, 1);
+  const evs = run(sim, m0, m1, 300);
+  const gh = findEv(evs, 'grabHit');
+  assert(gh, 'cask slam never landed');
+  assertEq(gh.dmg, 135, 'cask damage');
+  assertEq(sim.fighters[1].hp, 1015, 'graft hp');
+  assertEq(sim.fighters[0].hp, 667, 'strigoi healed 67');
+});
+
+t('strigoi: CPU mirror stays deterministic (drain in the loop)', () => {
+  const hashesOf = () => {
+    const sim = makeSim({ p1: 'strigoi', p2: 'zenith', seed: 909, cpu: [{ level: 2 }, { level: 2 }] });
+    const out = [];
+    for (let f = 0; f < 3600; f++) {
+      sim.step(0, 0);
+      if (f % 90 === 0) out.push(sim.hash());
+    }
+    return out.join(',');
+  };
+  assertEq(hashesOf(), hashesOf(), 'strigoi CPU replay divergence');
 });
 
 // ---------------------------------------------------------------- 5. determinism

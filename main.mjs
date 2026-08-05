@@ -12,19 +12,22 @@ const $ = id => document.getElementById(id);
 // ---------------- data
 async function j(u) { const r = await fetch(u); if (!r.ok) throw new Error(u + ' → ' + r.status); return r.json(); }
 
+export const CHARS = ['zenith', 'graft', 'strigoi'];
 const DATA = {};
 async function loadData() {
-  const [zc, zm, zs, zf, gc, gm, gs, gf, arena, balance] = await Promise.all([
-    j('data/characters/zenith/character.json'), j('data/characters/zenith/moves.json'),
-    j('data/characters/zenith/sunders.json'), j('data/characters/zenith/finishers.json'),
-    j('data/characters/graft/character.json'), j('data/characters/graft/moves.json'),
-    j('data/characters/graft/sunders.json'), j('data/characters/graft/finishers.json'),
-    j('data/arenas/riftscar.json'), j('data/balance/core.json')
-  ]);
-  DATA.zenith = { c: zc, m: zm, s: zs, f: zf };
-  DATA.graft = { c: gc, m: gm, s: gs, f: gf };
-  DATA.arena = arena;
-  DATA.balance = balance;
+  await Promise.all(CHARS.map(async id => {
+    const [c, m, s, f] = await Promise.all([
+      j(`data/characters/${id}/character.json`), j(`data/characters/${id}/moves.json`),
+      j(`data/characters/${id}/sunders.json`), j(`data/characters/${id}/finishers.json`)
+    ]);
+    DATA[id] = { c, m, s, f };
+  }));
+  DATA.arena = await j('data/arenas/riftscar.json');
+  DATA.balance = await j('data/balance/core.json');
+}
+function bundleOf(id) {
+  const d = DATA[id];
+  return makeCharBundle(d.c, d.m, d.s, d.f);
 }
 
 // ---------------- input
@@ -57,24 +60,21 @@ function maskOf(seat) {
 // ---------------- match lifecycle (clean re-init, no reloads)
 let sim = null, ren = null, hud = new Hud(), sfx = new Sfx();
 let mode = null;            // '2p' | 'cpu' | 'watch'
-let humanSeat = 0;          // in cpu mode, which seat the human drives
 let cpuLevel = 2;
+const sel = { p1: 'zenith', p2: 'graft' };
 let paused = false;
 let slowmo = 0;
 let acc = 0, lastT = 0;
 const evRing = [];
 
-function newMatch() {
+function newMatch(seed) {
   sim = new Sim({
-    chars: [
-      makeCharBundle(DATA.zenith.c, DATA.zenith.m, DATA.zenith.s, DATA.zenith.f),
-      makeCharBundle(DATA.graft.c, DATA.graft.m, DATA.graft.s, DATA.graft.f)
-    ],
+    chars: [bundleOf(sel.p1), bundleOf(sel.p2)],
     arena: DATA.arena,
     balance: DATA.balance,
-    seed: (Date.now() % 0x7fffffff) | 1,
+    seed: seed || ((Date.now() % 0x7fffffff) | 1),
     cpu: mode === 'watch' ? [{ level: cpuLevel }, { level: cpuLevel }]
-      : mode === 'cpu' ? (humanSeat === 0 ? [null, { level: cpuLevel }] : [{ level: cpuLevel }, null])
+      : mode === 'cpu' ? [null, { level: cpuLevel }]
         : null
   });
   ren.reset();
@@ -86,8 +86,8 @@ function newMatch() {
 }
 
 function stepOnce() {
-  const m0 = mode === '2p' ? maskOf(0) : (mode === 'cpu' && humanSeat === 0 ? maskOf(0) : 0);
-  const m1 = mode === '2p' ? maskOf(1) : (mode === 'cpu' && humanSeat === 1 ? maskOf(1) : 0);
+  const m0 = (mode === '2p' || mode === 'cpu') ? maskOf(0) : 0;
+  const m1 = mode === '2p' ? maskOf(1) : 0;
   sim.step(m0, m1);
   if (sim.ev.length) {
     for (const e of sim.ev) {
@@ -162,11 +162,26 @@ function startMode(m) {
   newMatch();
 }
 
+function renderPickers() {
+  for (const seat of ['p1', 'p2']) {
+    const holder = $(`pick-${seat}`);
+    holder.innerHTML = '';
+    for (const id of CHARS) {
+      const b = document.createElement('button');
+      b.textContent = DATA[id].c.name;
+      b.title = DATA[id].c.title;
+      b.classList.toggle('sel', sel[seat] === id);
+      b.onclick = () => { sel[seat] = id; renderPickers(); };
+      holder.appendChild(b);
+    }
+  }
+}
+
 async function boot() {
   await loadData();
   ren = new Renderer($('cv'), DATA.arena);
-  $('m-cpu').onclick = () => { humanSeat = 0; startMode('cpu'); };
-  $('m-cpu-graft').onclick = () => { humanSeat = 1; startMode('cpu'); };
+  renderPickers();
+  $('m-cpu').onclick = () => startMode('cpu');
   $('m-2p').onclick = () => startMode('2p');
   $('m-watch').onclick = () => startMode('watch');
   document.querySelectorAll('[data-lvl]').forEach(b => {
@@ -183,22 +198,15 @@ async function boot() {
   window.__br = {
     get sim() { return sim; },
     data: DATA,
+    chars: CHARS,
     start(m, opts = {}) {
       mode = m || 'watch';
-      humanSeat = opts.humanSeat || 0;
       cpuLevel = opts.level || 2;
+      if (opts.p1) sel.p1 = opts.p1;
+      if (opts.p2) sel.p2 = opts.p2;
       $('menu').style.display = 'none';
       $('stage').style.display = 'block';
-      newMatch();
-      if (opts.seed) {
-        sim = new Sim({
-          chars: [makeCharBundle(DATA.zenith.c, DATA.zenith.m, DATA.zenith.s, DATA.zenith.f),
-            makeCharBundle(DATA.graft.c, DATA.graft.m, DATA.graft.s, DATA.graft.f)],
-          arena: DATA.arena, balance: DATA.balance, seed: opts.seed,
-          cpu: mode === 'watch' ? [{ level: cpuLevel }, { level: cpuLevel }]
-            : mode === 'cpu' ? (humanSeat === 0 ? [null, { level: cpuLevel }] : [{ level: cpuLevel }, null]) : null
-        });
-      }
+      newMatch(opts.seed);
       return true;
     },
     step(n = 1, m0 = 0, m1 = 0) {
@@ -211,7 +219,10 @@ async function boot() {
       return {
         frame: sim.frame, phase: sim.phase, round: sim.roundNum, wins: sim.roundWins.slice(),
         timer: sim.timer, over: sim.matchOver, winner: sim.winner, reason: sim.winReason,
-        hp: [a.hp, b.hp], meter: [a.meter, b.meter], debt: a.debt, graftHp: b.graftHp,
+        chars: [a.char.character.id, b.char.character.id],
+        hp: [a.hp, b.hp], meter: [a.meter, b.meter],
+        debt: [a.debt, b.debt], graftHp: [a.graftHp, b.graftHp],
+        drinks: [a.facts.drinks, b.facts.drinks], sundered: [a.sundered, b.sundered],
         pools: sim.pools.length, x: [a.x / SCALE, b.x / SCALE], states: [a.state, b.state]
       };
     },

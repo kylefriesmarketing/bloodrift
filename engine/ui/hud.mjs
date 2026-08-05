@@ -269,6 +269,23 @@ export class Hud {
         cx.fillStyle = '#ff8a3a';
         cx.fillText('MAX — the star runs hot', x0, gy + 22);
       }
+    } else if (ch.rift_button.mechanic === 'drain') {
+      const cdMax = (f.char.moves.find(m => m.trigger.type === 'rift_press') || {}).cooldown || 150;
+      const ready = 1 - Math.min(1, f.drainCd / cdMax);
+      cx.font = '700 12px Georgia, serif';
+      cx.fillStyle = '#b03040';
+      cx.fillText(`THE BLOOD BANK — ${f.facts.drinks} pool${f.facts.drinks === 1 ? '' : 's'} drunk`, x0, gy - 8);
+      cx.fillStyle = 'rgba(0,0,0,0.6)';
+      rr2(cx, side === 0 ? x0 : x0 - 180, gy, 180, 9, 3);
+      if (ready > 0) {
+        cx.fillStyle = ready >= 1 ? '#c22a3a' : '#6a1a26';
+        rr2(cx, side === 0 ? x0 : x0 - 180 * ready, gy, 180 * ready, 9, 3);
+      }
+      if (ready >= 1) {
+        cx.font = '700 11px Georgia, serif';
+        cx.fillStyle = '#c22a3a';
+        cx.fillText('SANGUINE DRAW ready', x0, gy + 22);
+      }
     } else {
       cx.font = '700 12px Georgia, serif';
       cx.fillStyle = '#b8434e';

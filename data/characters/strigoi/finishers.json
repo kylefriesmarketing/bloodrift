@@ -1,0 +1,29 @@
+{
+  "character": "strigoi",
+  "note": "P3 content — the FEED THE RIFT window names executions[0]; cinematics are the art pass.",
+  "executions": [
+    {
+      "id": "decanted",
+      "name": "Decanted",
+      "cinematic": "TODO",
+      "script": "He doesn't touch them. One raised hand, a sommelier's twist — their blood answers him through the pores, lifting in a thousand fine threads that braid into a sphere above his palm. The husk drops like laundry. He tastes the vintage, considers, and — highest praise — finishes the glass."
+    },
+    {
+      "id": "the_red_cellar",
+      "name": "The Red Cellar",
+      "cinematic": "TODO",
+      "script": "A blur; the loser is inverted, ankle-chained to a rafter that wasn't there before, above a single crystal glass. He opens the throat with one thumbnail, sits in a chair that also wasn't there before, and waits for the glass to fill. The camera holds on the drip. He has time."
+    }
+  ],
+  "desecration": {
+    "id": "corkage",
+    "name": "Corkage",
+    "unlock": "S-rank Cask Slam mastery",
+    "script": "The decorous two-fang tap simply continues past the bell — the freeze-frame is his hand raised politely: a moment, please."
+  },
+  "overdrive": {
+    "id": "red_harvest",
+    "name": "THE RED HARVEST",
+    "script": "He unhinges entirely — greatcoat blooming into a wall of wings — and hits the opponent as a swarm from six angles, each pass a long red thread pulled from them to him, reassembling on the far side flushed, young, and bored."
+  }
+}

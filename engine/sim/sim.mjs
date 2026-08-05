@@ -110,9 +110,10 @@ class Fighter {
     this.stancePhase = null;    // 'enter'|'hold'|'exit'
     // sunders (P3): regions broken on THIS fighter + the facts ledger for triggers
     this.sundered = { ARMS: false, BODY: false, LEGS: false, HEAD: false };
-    this.facts = { absorbs: 0, mhits: {} };
+    this.facts = { absorbs: 0, mhits: {}, drinks: 0 };
     this.concussT = 0;
     this.lowPunishable = false;
+    this.drainCd = 0;
     // stats for goldens / achievements-later
     this.stat = { dmgDealt: 0, flares: 0, throwsTeched: 0, parries: 0, absorbed: 0 };
     if (char.character.rift_button.mechanic === 'graft_sets') {
@@ -164,8 +165,8 @@ class Fighter {
       db: this.debt, fl: this.flaresRound, gs: this.gset, gh: this.graftHp,
       rc: this.rfCd, sp: this.stancePhase, sq: this.stanceT || 0,
       sn: [this.sundered.ARMS, this.sundered.BODY, this.sundered.LEGS, this.sundered.HEAD],
-      fa2: { a: this.facts.absorbs, m: this.facts.mhits },
-      cc: this.concussT, lp: this.lowPunishable,
+      fa2: { a: this.facts.absorbs, m: this.facts.mhits, d: this.facts.drinks },
+      cc: this.concussT, lp: this.lowPunishable, dcd: this.drainCd,
       pa: [this.pressAge.FP, this.pressAge.BP, this.pressAge.FK, this.pressAge.BK, this.pressAge.TH, this.pressAge.RF],
       dw: this.dashWant || null, lf: this.lastFwdTap, lb: this.lastBackTap, pd: this.prevDir,
       pv: this.pushVx || 0, ps: this.pushVxSelf || 0, wr: !!this.wakeRoll,
@@ -319,6 +320,7 @@ export class Sim {
     if (f.invulnT > 0) f.invulnT--;
     if (f.throwInvulnT > 0) f.throwInvulnT--;
     if (f.concussT > 0) f.concussT--;
+    if (f.drainCd > 0) f.drainCd--;
     if (f.sundered.LEGS) f.dashWant = null; // Sundered LEGS: no dashes
 
     switch (f.state) {
@@ -419,11 +421,37 @@ export class Sim {
 
   resetCombo(f) { f.comboHits = 0; f.comboDmg = 0; }
 
-  // rift button: graft tap-toggle + meat wall hold; zenith flare is a hold-modifier read at special start
+  // rift button: graft tap-toggle + meat wall hold; zenith flare is a hold-modifier read at
+  // special start; drain characters tap it to DRINK a pool underfoot or throw the tether.
   tryStanceAndRift(i) {
     const f = this.fighters[i];
     const tr = this.trackers[i];
     const mech = f.char.character.rift_button;
+    if (mech.mechanic === 'drain') {
+      if (tr.held(B.TH)) return false; // overdrive intent (TH+RF) wins
+      if (!this.buffered(i, 'RF', 2)) return false;
+      const cfg = mech.config || {};
+      // a pool underfoot is drunk first — each pool once per fighter (GDD §5.2)
+      for (const p of this.pools) {
+        if (!(p.drank & (1 << i)) && Math.abs(f.x - p.x) <= (p.r + (cfg.drinkRange || 20)) * SCALE) {
+          this.consume(i, 'RF');
+          p.drank |= (1 << i);
+          f.hp = Math.min(f.hpMax, f.hp + (cfg.drinkHeal || 30));
+          this.gainMeter(f, cfg.drinkMeter || 0);
+          f.facts.drinks++;
+          this.emit({ t: 'drink', who: i, heal: cfg.drinkHeal || 30, drinks: f.facts.drinks });
+          return true;
+        }
+      }
+      const mv = f.char.moves.find(m => m.trigger.type === 'rift_press');
+      if (mv && f.drainCd <= 0) {
+        this.consume(i, 'RF');
+        f.drainCd = mv.cooldown || 120;
+        this.startMove(i, mv.id, null);
+        return true;
+      }
+      return false;
+    }
     if (mech.mechanic !== 'graft_sets') return false;
     if (tr.rfHeldFrames >= 8 && f.rfCd <= 0 && f.grounded()) {
       // enter Meat Wall
@@ -1054,6 +1082,14 @@ export class Sim {
         vic.stunT = Math.max(vic.stunT, mv.frames.blockstun || 12);
         this.applyPushback(vic, atk, mv, 'block');
         this.gainMeter(atk, (mv.meterGain && mv.meterGain.block) || 0);
+        // "every blocked string leaks a little life to him" — chip lifesteal
+        if (mv.lifesteal && chip > 0 && atk.hp > 0) {
+          const heal = trunc(chip * mv.lifesteal, 1000);
+          if (heal > 0) {
+            atk.hp = Math.min(atk.hpMax, atk.hp + heal);
+            this.emit({ t: 'drain', who: atk.id, amt: heal });
+          }
+        }
         if (atk.state === 'move' && !proj) { atk.hitDone = true; atk.contactMade = true; atk.contactF = atk.moveF; }
         if (proj) { proj.hitIds.push(vic.id); if (!proj.pierce) { proj.durability--; if (proj.durability <= 0) proj.dead = true; } }
         this.hitstopT = Math.max(this.hitstopT, Math.max(2, (mv.frames.hitstop || 5) - 2));
@@ -1082,6 +1118,18 @@ export class Sim {
     if (vic.sundered.HEAD) vic.concussT = 25;
     this.gainMeter(atk, (mv.meterGain && mv.meterGain.hit) || 0);
     this.gainMeter(vic, trunc(dmg * this.balance.meter.takeDamagePerHundred, 100));
+    // drain identity (v1.1): lifesteal + meter theft
+    if (mv.lifesteal) {
+      const heal = trunc(dmg * mv.lifesteal, 1000);
+      if (heal > 0 && atk.hp > 0) {
+        atk.hp = Math.min(atk.hpMax, atk.hp + heal);
+        this.emit({ t: 'drain', who: ai, amt: heal });
+      }
+    }
+    if (mv.meterSteal) {
+      const st = Math.min(vic.meter, mv.meterSteal);
+      if (st > 0) { vic.meter -= st; this.gainMeter(atk, st); }
+    }
 
     // trauma ledger
     const region = mv.limb_tag || 'BODY';
@@ -1206,6 +1254,9 @@ export class Sim {
           fire = (ctx.kind === 'hit' || ctx.kind === 'grab') && (!w.move || ctx.moveId === w.move) &&
             vic.sundered[w.region];
           break;
+        case 'pools_drunk':
+          fire = ctx.kind === 'hit' && atk.facts.drinks >= (w.drinks || 3);
+          break;
       }
       if (fire) { this.fireSunder(atk, vic, def); return; } // one per contact
     }
@@ -1314,6 +1365,13 @@ export class Sim {
         if (vic.sundered.HEAD) vic.concussT = 25;
         this.gainMeter(atk, (mv.meterGain && mv.meterGain.hit) || 0);
         this.gainMeter(vic, trunc(dmg * this.balance.meter.takeDamagePerHundred, 100));
+        if (mv.lifesteal) {
+          const heal = trunc(dmg * mv.lifesteal, 1000);
+          if (heal > 0) {
+            atk.hp = Math.min(atk.hpMax, atk.hp + heal);
+            this.emit({ t: 'drain', who: i, amt: heal });
+          }
+        }
         const region = mv.limb_tag || 'BODY';
         const before = vic.woundState(region);
         vic.trauma[region] += dmg;
@@ -1384,7 +1442,7 @@ export class Sim {
       best.x = trunc(best.x * best.vol + xMilli * volume, tot);
       best.vol = tot;
     } else {
-      this.pools.push({ x: xMilli, vol: volume });
+      this.pools.push({ x: xMilli, vol: volume, drank: 0 });
     }
     for (const p of this.pools) {
       p.r = Math.min(b.maxRadius, 26 + trunc(p.vol * b.radiusPerVolume, SCALE));
@@ -1615,7 +1673,7 @@ export class Sim {
         id: p.id, o: p.owner, m: p.moveId, x: p.x, y: p.y, vx: p.vx,
         l: p.life, a: p.age, d: p.durability, pi: p.pierce, h: p.hitIds.slice()
       })),
-      pools: this.pools.map(p => ({ x: p.x, v: p.vol, r: p.r })),
+      pools: this.pools.map(p => ({ x: p.x, v: p.vol, r: p.r, k: p.drank || 0 })),
       trackers: this.trackers.map(t => t.serialize())
     };
   }

@@ -1,0 +1,26 @@
+{
+  "character": "strigoi",
+  "note": "P4 content — carried in data, ignored by engine v1.",
+  "items": [
+    {
+      "id": "signet_first_winter",
+      "name": "Signet of the First Winter",
+      "slot": "relic",
+      "rarity": "epic",
+      "affixes": [
+        { "trigger": "on_drink_pool", "action": "gain_meter", "amount": 50 }
+      ],
+      "flavor": "Pools he drinks refund 0.5 pint extra."
+    },
+    {
+      "id": "tastevin_of_the_rift",
+      "name": "Tastevin of the Rift",
+      "slot": "relic",
+      "rarity": "riftforged",
+      "affixes": [
+        { "trigger": "on_drain_boss", "action": "grant_resource", "resource": "blood_bank.random_unbank", "amount": 1 }
+      ],
+      "flavor": "May drain CONFLUX and boss-class blood — unbanks a random vintage each time. The good stuff has interest rates."
+    }
+  ]
+}

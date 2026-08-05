@@ -41,7 +41,7 @@
       "type": "object",
       "required": ["mechanic"],
       "properties": {
-        "mechanic": { "type": "string", "enum": ["flare", "graft_sets", "none"] },
+        "mechanic": { "type": "string", "enum": ["flare", "graft_sets", "drain", "none"] },
         "config": { "type": "object" }
       }
     },

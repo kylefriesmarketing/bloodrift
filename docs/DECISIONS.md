@@ -78,6 +78,17 @@ Bleeding; HEAD = inputs ghost (25f zero-buffer window after every hit taken). On
 per match; they persist across rounds. HEAD sunders exist in engine but no launch-pair
 character has one authored (matches the roster sheets).
 
+**D-014 · Schema v1.1 — additive migration (STRIGOI, Wave 1 opener).** Per rule 1 this is a
+ticket, not a silent edit. Additions, all optional/back-compatible: moves.json gains
+`lifesteal` (permille of damage/chip healed to the attacker — the Court's drain identity),
+`meterSteal` (centipints taken from the victim on hit), trigger type `"rift_press"` (a special
+launched by tapping Rift — STRIGOI's Sanguine Draw), and `cooldown` on rift_press moves.
+sunders.schema gains `when.type: "pools_drunk"` (after N pools drunk, the next landed hit
+sunders). character.json `rift_button.mechanic` gains `"drain"` with config
+`{drinkHeal, drinkMeter, drinkRange}` — pool-drinking is engine-generic: pools track a
+`drank` bitmask (each fighter can drink each pool once, GDD §5.2/roster). No existing field
+changed meaning; v1 data validates unchanged.
+
 **D-013 · FEED THE RIFT ships as the P3 finish window.** Final round ends → 150f slump →
 `finish` phase: 480f (8s) window where the winner presses **Rift** to Execute (first execution
 from finishers.json is named on screen; the sim spawns a 340-volume pool — the Rift drinks)

@@ -17,7 +17,7 @@
         "type": "object",
         "required": ["type"],
         "properties": {
-          "type": { "type": "string", "enum": ["button", "motion", "chain", "buttons", "rift_hold"] },
+          "type": { "type": "string", "enum": ["button", "motion", "chain", "buttons", "rift_hold", "rift_press"] },
           "button": { "type": "string", "enum": ["FP", "BP", "FK", "BK", "TH", "BL", "RF"] },
           "buttons": { "type": "array", "items": { "type": "string" } },
           "motion": { "type": "string", "enum": ["qcf", "qcb", "dp", "hcb", "bf", "dd"] },
@@ -131,6 +131,9 @@
           "airOk": { "type": "boolean" }
         }
       },
+      "lifesteal": { "type": "integer", "minimum": 0, "maximum": 1000, "description": "v1.1 (D-014): permille of damage/chip healed to the attacker" },
+      "meterSteal": { "type": "integer", "minimum": 0, "description": "v1.1 (D-014): centipints taken from the victim on hit" },
+      "cooldown": { "type": "integer", "minimum": 0, "description": "v1.1 (D-014): frames between uses (rift_press moves)" },
       "cancels": { "type": "array", "items": { "type": "string", "enum": ["special", "overdrive"] } },
       "cancelWindow": { "type": "integer", "description": "frames after contact during which cancels are accepted" },
       "cost": { "type": "object", "properties": { "meter": { "type": "integer" }, "debt": { "type": "integer" } } },

@@ -84,6 +84,11 @@ export function cpuThink(sim, i) {
     return ai.queue.shift();
   }
 
+  // drain characters: sip pools underfoot, tether in range
+  if (f.char.character.rift_button.mechanic === 'drain' && f.drainCd <= 0 && gap < 240 && rng.chance(140)) {
+    return B.RF;
+  }
+
   if (gap < 55) {
     const roll = rng.int(100);
     if (roll < 16) { // universal throw

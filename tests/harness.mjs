@@ -19,16 +19,15 @@ export function data(rel) {
   return cache[rel];
 }
 
+export function bundle(id) {
+  return makeCharBundle(
+    data(`data/characters/${id}/character.json`), data(`data/characters/${id}/moves.json`),
+    data(`data/characters/${id}/sunders.json`), data(`data/characters/${id}/finishers.json`));
+}
+
 export function makeSim(opts = {}) {
   const sim = new Sim({
-    chars: [
-      makeCharBundle(
-        data('data/characters/zenith/character.json'), data('data/characters/zenith/moves.json'),
-        data('data/characters/zenith/sunders.json'), data('data/characters/zenith/finishers.json')),
-      makeCharBundle(
-        data('data/characters/graft/character.json'), data('data/characters/graft/moves.json'),
-        data('data/characters/graft/sunders.json'), data('data/characters/graft/finishers.json'))
-    ],
+    chars: [bundle(opts.p1 || 'zenith'), bundle(opts.p2 || 'graft')],
     arena: data('data/arenas/riftscar.json'),
     balance: data('data/balance/core.json'),
     seed: opts.seed || 42,

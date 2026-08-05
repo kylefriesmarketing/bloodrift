@@ -1,0 +1,67 @@
+{
+  "id": "strigoi",
+  "name": "STRIGOI",
+  "title": "The Voivode of Veins",
+  "faction": "court",
+  "archetype": "drain-rushdown",
+  "difficulty": 2,
+  "stats": {
+    "hp": 920,
+    "walkF": 3300,
+    "walkB": 3000,
+    "dashF": { "speed": 8200, "dur": 14, "tail": 4 },
+    "dashB": { "speed": 8400, "dur": 14, "tail": 4 },
+    "jumpVy": -12200,
+    "gravity": 640,
+    "prejump": 4,
+    "weight": 2,
+    "width": 82,
+    "height": 262,
+    "crouchHeight": 172
+  },
+  "rift_button": {
+    "mechanic": "drain",
+    "config": {
+      "drinkHeal": 40,
+      "drinkMeter": 20,
+      "drinkRange": 24
+    }
+  },
+  "rpg_hook": {
+    "id": "blood_bank",
+    "persistent": true,
+    "state": { "hero": 0, "court": 0, "dominion": 0 },
+    "effects": [
+      {
+        "trigger": "on_execution",
+        "action": "grant_resource",
+        "resource": "blood_bank.by_faction",
+        "amount": 1,
+        "note": "P4 — drained blood banks permanently BY VINTAGE (hero/court/dominion); spent at the estate cellar. Inert until persistence ships."
+      }
+    ]
+  },
+  "pool_interactions": [
+    { "trigger": "rift_press_near_pool", "action": "drink_pool", "note": "each pool once per fighter; heals drinkHeal + drinkMeter — the premier blood-pool character" }
+  ],
+  "wound_art": { "arms": 3, "legs": 3, "body": 3, "head": 3 },
+  "hurtboxes": {
+    "stand": [
+      { "x": -27, "y": 0, "w": 54, "h": 202 },
+      { "x": -19, "y": 202, "w": 38, "h": 60 }
+    ],
+    "crouch": [
+      { "x": -29, "y": 0, "w": 58, "h": 172 }
+    ],
+    "air": [
+      { "x": -27, "y": 40, "w": 54, "h": 182 }
+    ]
+  },
+  "throw": { "range": 45, "damage": 120, "techWindow": 10, "startup": 5 },
+  "palette": {
+    "primary": "#2a2030",
+    "secondary": "#12101a",
+    "accent": "#b03040",
+    "blood": "#8f0f22"
+  }
+}

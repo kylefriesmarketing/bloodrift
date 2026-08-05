@@ -5,7 +5,7 @@ in blood. Design docs in `docs/` are the spec ([GDD](docs/BLOODRIFT_01_GAME_DESI
 [Roster](docs/BLOODRIFT_02_ROSTER.md) · [Build plan](docs/BLOODRIFT_03_BUILD_PLAN.md));
 **this README is the milestone authority**; deviations live in [docs/DECISIONS.md](docs/DECISIONS.md).
 
-## Status (2026-08-05) — P0 ✅ · P1 ✅ · P2 ✅ · P3 slice ✅
+## Status (2026-08-05) — P0 ✅ · P1 ✅ · P2 ✅ · P3 slice ✅ · Wave 1 opened (STRIGOI) ✅
 
 | Milestone | State | Proof |
 |---|---|---|
@@ -14,7 +14,7 @@ in blood. Design docs in `docs/` are the spec ([GDD](docs/BLOODRIFT_01_GAME_DESI
 | P2 Living Blood — events → pools → wounds → Bleed-out | ✅ | pools are sim objects that tick meter (amplified on the Rift-Scar), trauma ledger per limb, Bleeding KOs through the chip clamp, arena decals persist all match |
 | P3 Sunders + finisher framework | ✅ slice | roster trigger conditions live (structured `when` DSL), persistent debuffs, bone-cam beat, FEED THE RIFT execute/spare window; full cinematics still owed |
 | P4 RPG layer (persistence, gear, mastery, trees) | ⬜ | hooks staged: `rpg_hook.state`, gear.json, mastery blocks all carried in data |
-| P5 roster waves W1–W5 | ⬜ | engine is character-agnostic; each new fighter = a data folder |
+| P5 roster waves | 🩸 W1 opened | **STRIGOI shipped as pure data** + ONE generic mechanic (`drain`: pool-drinking, tether lifesteal/meter-theft — schema v1.1, D-014). Character select is live; roster is a `CHARS` list in main.mjs. TRIAGE + JOULE complete W1 |
 | P6 modes (Gauntlet first) · P7 demo ship | ⬜ | |
 
 ## Run it
@@ -25,7 +25,7 @@ Serve (ES modules need http):
 "C:\Users\kylef\tools\node\node.exe" bloodrift/serve.mjs 8423
 ```
 
-→ http://localhost:8423/ — modes: vs CPU (either side), 2P local, CPU watch.
+→ http://localhost:8423/ — pick any pairing of ZENITH / GRAFT / STRIGOI; modes: vs CPU, 2P local, CPU watch.
 Controls are on the menu and pause screen (P1: WASD + T/Y/G/H, R throw, F block, V rift).
 EX = hold block through a special. Flare = hold rift (ZENITH). Overdrive = throw+rift at
 3 pints. Transfusion breaker = block+throw in hitstun. **After the final KO: Rift button

@@ -21,13 +21,14 @@
             "type": "object",
             "required": ["type"],
             "properties": {
-              "type": { "type": "string", "enum": ["parry_vs_uses", "punish_blocked_low", "proj_hit", "move_hits", "absorb_punish", "hit_region_sundered"] },
+              "type": { "type": "string", "enum": ["parry_vs_uses", "punish_blocked_low", "proj_hit", "move_hits", "absorb_punish", "hit_region_sundered", "pools_drunk"] },
               "uses": { "type": "string", "enum": ["ARMS", "BODY", "LEGS", "HEAD"] },
               "move": { "type": "string" },
               "variant": { "type": "string" },
               "minAge": { "type": "integer" },
               "count": { "type": "integer", "minimum": 1 },
               "absorbs": { "type": "integer", "minimum": 1 },
+              "drinks": { "type": "integer", "minimum": 1 },
               "region": { "type": "string", "enum": ["ARMS", "BODY", "LEGS", "HEAD"] }
             }
           },

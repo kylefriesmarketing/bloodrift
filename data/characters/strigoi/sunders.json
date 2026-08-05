@@ -1,0 +1,36 @@
+{
+  "character": "strigoi",
+  "note": "P3 live. Roster conditions adapted onto the generic `when` types (see DECISIONS D-012/D-014); the parry-flavored ARMS trigger becomes a Red Line rhythm until his Bank-unlocked parry ships at P4.",
+  "sunders": [
+    {
+      "region": "ARMS",
+      "id": "wrist_taken",
+      "when": { "type": "move_hits", "move": "red_line", "count": 3 },
+      "trigger": { "desc": "land the third Red Line of the match" },
+      "cinematic": "TODO",
+      "flavor": "The wrist taken to his mouth — the radial artery emptying in a heartbeat-synced pulse."
+    },
+    {
+      "region": "LEGS",
+      "id": "femoral_tap",
+      "when": { "type": "move_hits", "move": "cask_slam", "count": 2 },
+      "trigger": { "desc": "land the second Cask Slam" },
+      "cinematic": "TODO",
+      "flavor": "A femoral tap behind the knee, coldly clinical."
+    },
+    {
+      "region": "BODY",
+      "id": "the_withdrawal",
+      "when": { "type": "pools_drunk", "drinks": 3 },
+      "trigger": { "desc": "drink three pools, then land any hit" },
+      "cinematic": "TODO",
+      "flavor": "One palm flat to the chest — and he withdraws. The ribcage visibly deflates a size."
+    }
+  ],
+  "debuffs_reference": {
+    "ARMS": "victim punch damage -20%, their throws tech twice as easily",
+    "LEGS": "victim loses dashes, move speed -15%",
+    "BODY": "victim meter gain -30%, Bleeding applied",
+    "HEAD": "victim inputs ghost briefly after every hit taken"
+  }
+}
