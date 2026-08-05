@@ -78,6 +78,16 @@ Bleeding; HEAD = inputs ghost (25f zero-buffer window after every hit taken). On
 per match; they persist across rounds. HEAD sunders exist in engine but no launch-pair
 character has one authored (matches the roster sheets).
 
+**D-016 · Schema v1.2 — additive (JOULE).** `rift_button.mechanic` gains `"bank"`
+(damage taken converts to Joules at `convertPermille`, cap `max`; Rift-hold = Absolute
+Armor stance that banks a full combo, force-exits at `maxHold` frames; grabs beat it).
+Moves gain variant key `"charged"` (hold Rift through a special's input to spend
+`cost.joules` — the bank's Flare analogue) and `grab.airOnly` (Spot Me catches jump-ins,
+whiffs on grounded foes). The stance path is generalized: any character with a
+`rift_hold`-triggered move gets a stance; graft_sets absorbs into the graft pool, bank
+banks into Joules. Joules persist between matches via the P4 profile (`sig.joules`),
+making JOULE the roster's only fighter who banks his losses.
+
 **D-015 · P4 v1 — persistence ships as pure data hydration.** `engine/rpg/profile.mjs` owns
 the profile shape (per-character XP/level, W-L, executions/spares, per-move mastery ledger,
 signature `sig` state); the HOST owns storage (browser `localStorage['br-profile-v1']`,

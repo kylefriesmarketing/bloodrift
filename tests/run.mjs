@@ -384,8 +384,8 @@ t('sunder debuff: LEGS = -15% walk and no dashes (exact integer math)', () => {
   const [m0, m1] = masks(100);
   hold(m1, 0, 99, B.L);
   run(sim, m0, m1, 100);
-  // power set 900‰, LEGS 850‰ → trunc(2600 * trunc(900*850/1000)) = 1989 millipx/frame
-  assertEq(x0 - g.x, 198900, 'walk distance over 100 frames');
+  // power set 900‰, LEGS 850‰ → trunc(2950 * trunc(900*850/1000) / 1000) = 2256 millipx/frame
+  assertEq(x0 - g.x, 225600, 'walk distance over 100 frames');
 });
 
 t('sunder debuff: BODY = meter gain -30%', () => {

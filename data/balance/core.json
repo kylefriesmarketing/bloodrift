@@ -47,8 +47,8 @@
   },
   "juggle": {
     "airHitstun": 30,
-    "reGravity": 700,
-    "liftVy": -11000
+    "reGravity": 1000,
+    "liftVy": -15000
   },
   "pushbackDefault": { "hit": 7000, "block": 9000 },
   "throwTech": { "window": 10 },

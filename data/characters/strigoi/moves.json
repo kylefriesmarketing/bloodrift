@@ -110,7 +110,7 @@
     "damage": 75,
     "chip": 4,
     "meterGain": { "hit": 8, "block": 3 },
-    "knock": { "type": "launch", "vx": 1800, "vy": -12800 },
+    "knock": { "type": "launch", "vx": 1800, "vy": -17300 },
     "hitboxes": [{ "frames": [1, 4], "x": 20, "y": 138, "w": 62, "h": 128 }],
     "tags": ["antiair", "launcher"]
   },
@@ -279,7 +279,7 @@
     "chip": 0,
     "lifesteal": 500,
     "meterGain": { "hit": 12, "block": 0 },
-    "knock": { "type": "hardDown", "vx": 5500, "vy": -6800 },
+    "knock": { "type": "hardDown", "vx": 5500, "vy": -9200 },
     "grab": { "range": 55, "cinematicFrames": 40, "mashReduce": 3, "damageFloor": 100, "airOk": false },
     "variants": {
       "ex": {
@@ -306,7 +306,7 @@
     "chip": 4,
     "lifesteal": 200,
     "meterGain": { "hit": 9, "block": 3 },
-    "knock": { "type": "launch", "vx": 1500, "vy": -12000 },
+    "knock": { "type": "launch", "vx": 1500, "vy": -16200 },
     "hitboxes": [{ "frames": [1, 4], "x": 24, "y": 120, "w": 90, "h": 130 }],
     "variants": {
       "ex": { "cost": { "meter": 100 }, "damage": 72, "adds": ["invuln_startup"] }
@@ -328,7 +328,7 @@
     "chip": 4,
     "lifesteal": 150,
     "meterGain": { "hit": 9, "block": 3 },
-    "knock": { "type": "launch", "vx": 1000, "vy": -12500 },
+    "knock": { "type": "launch", "vx": 1000, "vy": -16800 },
     "invuln": { "frames": [1, 12], "vs": "air" },
     "hitboxes": [{ "frames": [1, 7], "x": 16, "y": 84, "w": 66, "h": 190 }],
     "tags": ["antiair"]
@@ -371,7 +371,7 @@
     "lifesteal": 500,
     "meterGain": { "hit": 0, "block": 0 },
     "cost": { "meter": 300 },
-    "knock": { "type": "hardDown", "vx": 4000, "vy": -8000 },
+    "knock": { "type": "hardDown", "vx": 4000, "vy": -10500 },
     "hitboxes": [{ "frames": [1, 4], "x": -30, "y": 20, "w": 270, "h": 300 }],
     "superFlash": 40,
     "tags": ["overdrive", "cinematic", "drain"]

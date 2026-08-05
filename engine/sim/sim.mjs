@@ -222,7 +222,7 @@ export class Sim {
         trigger: { type: 'button', button: 'TH', pos: 'stand' },
         frames: { startup: th.startup, active: 2, recovery: 22, hitstop: 0 },
         damage: th.damage, chip: 0, meterGain: { hit: 10, block: 0 },
-        knock: { type: 'down', vx: 6500, vy: -6500 },
+        knock: { type: 'down', vx: 6500, vy: -8800 },
         grab: { range: th.range, cinematicFrames: 28, mashReduce: 0, damageFloor: th.damage, airOk: false },
         techable: true
       };
@@ -772,10 +772,14 @@ export class Sim {
       }
     }
 
-    // air physics — the single integration point (y positive-up, vy negative = rising)
+    // air physics — the single integration point (y positive-up, vy negative = rising).
+    // Falls are 25% heavier than rises (the classic anti-float trick), and juggled
+    // bodies bleed horizontal speed so arcs look thrown, not slid.
     if (f.state === 'air' || f.state === 'launched') {
-      const g = f.state === 'launched' ? this.balance.juggle.reGravity : st.gravity;
+      const gBase = f.state === 'launched' ? this.balance.juggle.reGravity : st.gravity;
+      const g = f.vy > 0 ? trunc(gBase * 125, 100) : gBase;
       f.x += f.vx;
+      if (f.state === 'launched') f.vx = trunc(f.vx * 985, 1000);
       f.y += -f.vy;
       f.vy += g;
       if (f.y <= 0 && f.vy > 0) {
@@ -1169,7 +1173,7 @@ export class Sim {
       // juggle: any hit keeps them airborne
       vic.state = 'launched';
       vic.stateT = 0;
-      vic.vy = knock.vy !== undefined && knock.type !== 'none' ? knock.vy : -6000;
+      vic.vy = knock.vy !== undefined && knock.type !== 'none' ? knock.vy : -8200;
       vic.vx = (knock.vx !== undefined ? knock.vx : 2000) * atk.facing;
       vic.kdHard = knock.type === 'hardDown';
     } else {
@@ -1182,14 +1186,14 @@ export class Sim {
           break;
         case 'groundBounce':
           vic.state = 'launched'; vic.stateT = 0;
-          vic.vy = knock.vy || -9500;
+          vic.vy = knock.vy || -12800;
           vic.vx = (knock.vx || 0) * atk.facing;
           vic.kdHard = false;
           this.emit({ t: 'bounce', who: vic.id });
           break;
         case 'down': case 'hardDown':
           vic.state = 'launched'; vic.stateT = 0;
-          vic.vy = knock.vy || -5000;
+          vic.vy = knock.vy || -7000;
           vic.vx = (knock.vx || 4000) * atk.facing;
           vic.kdHard = knock.type === 'hardDown';
           break;
@@ -1287,7 +1291,7 @@ export class Sim {
     this.addPool(vic.x, 120);
     if (vic.state !== 'launched' && vic.state !== 'kd' && vic.y <= 0) {
       vic.state = 'launched'; vic.stateT = 0;
-      vic.vy = -6500; vic.vx = 3500 * atk.facing; vic.kdHard = false;
+      vic.vy = -8800; vic.vx = 3500 * atk.facing; vic.kdHard = false;
     }
     this.emit({ t: 'sunder', who: vic.id, by: atk.id, region: def.region, name: def.id, flavor: def.flavor || '' });
   }
@@ -1394,7 +1398,7 @@ export class Sim {
         }
         vic.state = 'launched';
         vic.stateT = 0;
-        vic.vy = (mv.knock && mv.knock.vy) || -7000;
+        vic.vy = (mv.knock && mv.knock.vy) || -9500;
         vic.vx = ((mv.knock && mv.knock.vx) || 6000) * atk.facing;
         vic.kdHard = mv.knock && mv.knock.type === 'hardDown';
         this.setState(atk, 'land', 12); // recovery lag after the slam
@@ -1421,7 +1425,7 @@ export class Sim {
         f.meter -= this.balance.meter.breakerCost;
         const atk = this.other(i);
         this.setState(f, f.y > 0 ? 'launched' : 'idle', 0);
-        if (f.y > 0) { f.vy = -3000; f.vx = 0; f.kdHard = false; }
+        if (f.y > 0) { f.vy = -4200; f.vx = 0; f.kdHard = false; }
         f.stunT = 0;
         f.invulnT = 22;
         this.resetCombo(f);
@@ -1543,7 +1547,7 @@ export class Sim {
       this.applyRules(wf, 'round_won', { flares_this_round: wf.flaresRound });
       const loser = this.other(winner);
       if (loser.state !== 'launched' && loser.state !== 'kd') {
-        loser.state = 'launched'; loser.vy = -6000; loser.vx = -loser.facing * 3000; loser.kdHard = true;
+        loser.state = 'launched'; loser.vy = -8200; loser.vx = -loser.facing * 3000; loser.kdHard = true;
       }
       this.emit({ t: 'roundEnd', winner, reason, final: this.finalRound });
     } else {
