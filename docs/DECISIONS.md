@@ -78,6 +78,18 @@ Bleeding; HEAD = inputs ghost (25f zero-buffer window after every hit taken). On
 per match; they persist across rounds. HEAD sunders exist in engine but no launch-pair
 character has one authored (matches the roster sheets).
 
+**D-017 · P6 opens with THE GAUNTLET (build plan: "do first").** v1 scope: 7-floor seeded
+towers (weekly seed = ISO week, or random), opponents drawn from the roster, CPU level
+ramps 1→3, ONE new stacking mutator revealed per floor from floor 2, a draft of 1-of-3
+boons after every win (boons persist for the run), profile records clears/best-floor and
+every fight still pays XP/mastery through the normal P4 path. The mutator engine is two
+generic Sim hooks — `opts.tuning` (global knobs: dmgPermille, bleedMul, meterMul,
+poolAcid, startTrauma, plus host-side balance clones for timer/rounds) and `opts.seatMods`
+(per-seat: dmgPermille, lifestealAdd, chipImmune, breakerCost, startMeter) — both plain
+data, both serialized into the match setup, so mutated/booned fights replay bit-identical.
+Mutators and boons live in `data/gauntlet/*.json` (schema-gated). Deferred: leaderboards,
+loot-item drops (P4 gear first), Gauntlet-only cosmetic titles.
+
 **D-016 · Schema v1.2 — additive (JOULE).** `rift_button.mechanic` gains `"bank"`
 (damage taken converts to Joules at `convertPermille`, cap `max`; Rift-hold = Absolute
 Armor stance that banks a full combo, force-exits at `maxHold` frames; grabs beat it).

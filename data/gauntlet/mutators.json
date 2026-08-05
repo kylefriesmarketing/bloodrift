@@ -1,0 +1,47 @@
+{
+  "note": "GAUNTLET floor mutators (D-017). `tuning` patches Sim opts.tuning; `balance` patches a host-side clone of balance/core.json. Stacking: one new mutator is revealed per floor from floor 2, and every active mutator applies to BOTH fighters.",
+  "mutators": [
+    {
+      "id": "deep_cuts",
+      "name": "Deep Cuts",
+      "desc": "Every wound starts lacerated — both fighters open at wound state 2.",
+      "tuning": { "startTrauma": 260 }
+    },
+    {
+      "id": "acid_pools",
+      "name": "Acid Pools",
+      "desc": "The blood on the floor has turned. Standing in a pool burns instead of paying.",
+      "tuning": { "poolAcid": 3 }
+    },
+    {
+      "id": "thin_blood",
+      "name": "Thin Blood",
+      "desc": "Bleeding drains twice as fast. Tourniquets are suddenly interesting.",
+      "tuning": { "bleedMul": 2000 }
+    },
+    {
+      "id": "lead_gloves",
+      "name": "Lead Gloves",
+      "desc": "Everything hits 20% harder. Everything.",
+      "tuning": { "dmgPermille": 1200 }
+    },
+    {
+      "id": "starved_rift",
+      "name": "The Starved Rift",
+      "desc": "Meter gain halved — the Rift keeps more of every drop.",
+      "tuning": { "meterMul": 500 }
+    },
+    {
+      "id": "short_fuse",
+      "name": "Short Fuse",
+      "desc": "45-second rounds. Say what you came to say.",
+      "balance": { "timerSec": 45 }
+    },
+    {
+      "id": "the_bell_tolls",
+      "name": "The Bell Tolls",
+      "desc": "One round decides it. No second chances on this floor.",
+      "balance": { "toWin": 1 }
+    }
+  ]
+}

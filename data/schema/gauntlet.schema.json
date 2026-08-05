@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "bloodrift.gauntlet.v1",
+  "title": "BLOODRIFT gauntlet data v1 (FROZEN 2026-08-05 — D-017)",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "mutators": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "desc"],
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "name": { "type": "string" },
+          "desc": { "type": "string" },
+          "tuning": {
+            "type": "object",
+            "properties": {
+              "dmgPermille": { "type": "integer", "minimum": 100 },
+              "bleedMul": { "type": "integer", "minimum": 100 },
+              "meterMul": { "type": "integer", "minimum": 0 },
+              "poolAcid": { "type": "integer", "minimum": 0 },
+              "startTrauma": { "type": "integer", "minimum": 0 }
+            }
+          },
+          "balance": {
+            "type": "object",
+            "properties": {
+              "timerSec": { "type": "integer", "minimum": 10 },
+              "toWin": { "type": "integer", "minimum": 1, "maximum": 3 }
+            }
+          }
+        }
+      }
+    },
+    "boons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "desc"],
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "name": { "type": "string" },
+          "desc": { "type": "string" },
+          "hpPermille": { "type": "integer", "minimum": 1000 },
+          "seatMods": {
+            "type": "object",
+            "properties": {
+              "dmgPermille": { "type": "integer", "minimum": 1000 },
+              "lifestealAdd": { "type": "integer", "minimum": 0 },
+              "startMeter": { "type": "integer", "minimum": 0 },
+              "breakerCost": { "type": "integer", "minimum": 0 },
+              "chipImmune": { "type": "boolean" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

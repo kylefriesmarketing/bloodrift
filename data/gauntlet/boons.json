@@ -1,0 +1,41 @@
+{
+  "note": "GAUNTLET boons (D-017). Drafted 1-of-3 after every won floor; they stack for the whole run. `seatMods` patches the PLAYER seat's Sim opts.seatMods (numeric fields add/multiply as marked).",
+  "boons": [
+    {
+      "id": "iron_skin",
+      "name": "Iron Skin",
+      "desc": "+12% max HP for the rest of the run.",
+      "hpPermille": 1120
+    },
+    {
+      "id": "sharpened",
+      "name": "Sharpened",
+      "desc": "+10% damage for the rest of the run.",
+      "seatMods": { "dmgPermille": 1100 }
+    },
+    {
+      "id": "leech_stitch",
+      "name": "Leech Stitch",
+      "desc": "Every hit you land heals 10% of its damage.",
+      "seatMods": { "lifestealAdd": 100 }
+    },
+    {
+      "id": "rifts_favor",
+      "name": "The Rift's Favor",
+      "desc": "Start every fight with a pint already in the bag.",
+      "seatMods": { "startMeter": 100 }
+    },
+    {
+      "id": "thick_skin",
+      "name": "Thick Skin",
+      "desc": "Chip damage can no longer touch you.",
+      "seatMods": { "chipImmune": true }
+    },
+    {
+      "id": "adrenal_line",
+      "name": "Adrenal Line",
+      "desc": "Transfusion breakers cost 1 pint instead of 2.",
+      "seatMods": { "breakerCost": 100 }
+    }
+  ]
+}

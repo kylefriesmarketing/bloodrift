@@ -26,12 +26,20 @@ export function bundle(id) {
 }
 
 export function makeSim(opts = {}) {
+  let balance = data('data/balance/core.json');
+  if (opts.balancePatch) {
+    balance = JSON.parse(JSON.stringify(balance));
+    if (opts.balancePatch.timerSec) balance.rounds.timerSec = opts.balancePatch.timerSec;
+    if (opts.balancePatch.toWin) balance.rounds.toWin = opts.balancePatch.toWin;
+  }
   const sim = new Sim({
     chars: [bundle(opts.p1 || 'zenith'), bundle(opts.p2 || 'graft')],
     arena: data('data/arenas/riftscar.json'),
-    balance: data('data/balance/core.json'),
+    balance,
     seed: opts.seed || 42,
-    cpu: opts.cpu || null
+    cpu: opts.cpu || null,
+    tuning: opts.tuning || null,
+    seatMods: opts.seatMods || null
   });
   if (opts.startMeter) {
     sim.fighters[0].meter = opts.startMeter[0] | 0;

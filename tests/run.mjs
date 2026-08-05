@@ -14,6 +14,9 @@ import {
   freshProfile, charProf, levelOf, masteryRank, buildMods, hydrateBundle,
   matchDelta, applyDelta
 } from '../engine/rpg/profile.mjs';
+import {
+  FLOORS, makeRun, makeRunState, boonOffer, boonsToMods, fightSetup, advance, recordRun
+} from '../engine/rpg/gauntlet.mjs';
 
 const results = [];
 function t(name, fn) {
@@ -738,6 +741,127 @@ t('p4: hydrated matches stay deterministic', () => {
     return out.join(',');
   };
   assertEq(play(), play(), 'mods must not desync replays');
+});
+
+// ---------------------------------------------------------------- 4e. P6 — THE GAUNTLET
+
+t('schema: gauntlet mutators + boons', () => {
+  const sch = data('data/schema/gauntlet.schema.json');
+  let errs = validate(sch, data('data/gauntlet/mutators.json'));
+  assert(errs.length === 0, 'mutators: ' + errs.join(' | '));
+  errs = validate(sch, data('data/gauntlet/boons.json'));
+  assert(errs.length === 0, 'boons: ' + errs.join(' | '));
+});
+
+t('gauntlet tuning: Lead Gloves (+20% dmg) and Deep Cuts (start lacerated)', () => {
+  const sim = makeSim({ tuning: { dmgPermille: 1200, startTrauma: 260 } });
+  assertEq(sim.fighters[0].woundState('ARMS'), 2, 'deep cuts: state 2 at start');
+  assertEq(sim.fighters[1].woundState('LEGS'), 2, 'both fighters');
+  assertEq(sim.fighters[1].bleedRegions.length, 0, 'preloaded trauma does not pre-bleed');
+  const [m0, m1] = masks(320);
+  hold(m0, INTRO, 205, B.R);
+  press(m0, 214, B.FP);
+  const evs = run(sim, m0, m1, 320);
+  const hit = findEv(evs, 'hit');
+  assertEq(hit.dmg, 36, 'jab 30 → 36 under Lead Gloves');
+});
+
+t('gauntlet tuning: Acid Pools burn instead of paying', () => {
+  const sim = makeSim({ tuning: { poolAcid: 3 } });
+  const [m0, m1] = masks(300);
+  motion(m0, 70, 'qcf', B.FP, 1);
+  const got = runUntil(sim, m0, m1, 300, 'hit');
+  assert(got, 'setup hit missing');
+  const hpAfterHit = sim.fighters[1].hp;
+  const evs = run(sim, null, null, 132);
+  const burns = countEv(evs.filter(e => e.who === 1), 'poolAcid');
+  assert(burns >= 3, 'pool should burn the man standing in it');
+  assertEq(countEv(evs, 'poolTick'), 0, 'no meter from acid');
+  assertEq(sim.fighters[1].hp, hpAfterHit - burns * 3, 'exact acid damage');
+});
+
+t('gauntlet boons: seat-only damage, lifesteal, chip immunity', () => {
+  // Sharpened: seat-0 +10%, seat-1 stock
+  let sim = makeSim({ seatMods: [{ dmgPermille: 1100 }, null] });
+  let [m0, m1] = masks(340);
+  hold(m0, INTRO, 205, B.R);
+  press(m0, 214, B.FP);
+  press(m1, 280, B.FP);
+  let evs = run(sim, m0, m1, 340);
+  assertEq(findEv(evs, 'hit', e => e.by === 0).dmg, 33, 'boon side 30 → 33');
+  assertEq(findEv(evs, 'hit', e => e.by === 1).dmg, 40, 'other side stock');
+  // Leech Stitch heals through a plain jab
+  sim = makeSim({ seatMods: [{ lifestealAdd: 100 }, null] });
+  run(sim, null, null, 70);
+  sim.fighters[0].hp = 900;
+  [m0, m1] = masks(340);
+  hold(m0, 0, 140, B.R);
+  press(m0, 150, B.FP);
+  evs = run(sim, m0, m1, 200);
+  assert(findEv(evs, 'drain', e => e.who === 0 && e.amt === 3), 'leech heal 10% of 30');
+  assertEq(sim.fighters[0].hp, 903, 'healed');
+  // Thick Skin: blocked sunlance chips nothing
+  sim = makeSim({ seatMods: [null, { chipImmune: true }] });
+  [m0, m1] = masks(300);
+  hold(m1, 0, 299, B.BL);
+  motion(m0, 70, 'qcf', B.FP, 1);
+  evs = run(sim, m0, m1, 300);
+  assert(findEv(evs, 'block'), 'sunlance not blocked');
+  assertEq(sim.fighters[1].hp, 1150, 'no chip through Thick Skin');
+});
+
+t('gauntlet: seeded towers are deterministic and stack mutators', () => {
+  const muts = data('data/gauntlet/mutators.json').mutators;
+  const boons = data('data/gauntlet/boons.json').boons;
+  const roster = ['zenith', 'graft', 'strigoi', 'joule', 'triage'];
+  const a = makeRun(20260805, 'zenith', roster, muts);
+  const b = makeRun(20260805, 'zenith', roster, muts);
+  assertEq(JSON.stringify(a), JSON.stringify(b), 'same seed, same tower');
+  const c = makeRun(20260806, 'zenith', roster, muts);
+  assert(JSON.stringify(a) !== JSON.stringify(c), 'different seed, different tower');
+  assert(a.floors.every(f => f.opp !== 'zenith'), 'never fight yourself');
+  assertEq(a.floors[0].mutatorId, null, 'floor 1 is clean');
+  assert(a.floors.slice(1).every(f => f.mutatorId), 'floors 2+ each add a mutator');
+  // stacking: floor N setup carries N-1 mutators
+  const st = makeRunState();
+  st.floor = 4;
+  const setup = fightSetup(a, st, muts);
+  assertEq(setup.activeMutators.length, 3, 'three mutators active on floor 4');
+  // boon flow
+  const offer = boonOffer(a, st, boons);
+  assert(offer.length === 3 && new Set(offer.map(x => x.id)).size === 3, '3 distinct boons offered');
+  const offer2 = boonOffer(a, st, boons);
+  assertEq(offer.map(x => x.id).join(','), offer2.map(x => x.id).join(','), 'offer is seeded');
+  const mods = boonsToMods(['sharpened', 'sharpened', 'iron_skin', 'thick_skin'], boons);
+  assertEq(mods.seatMods.dmgPermille, 1210, 'sharpened stacks multiplicatively');
+  assertEq(mods.hpPermille, 1120, 'iron skin');
+  assert(mods.seatMods.chipImmune, 'thick skin flag');
+  // advance + record
+  const st2 = makeRunState();
+  for (let f = 1; f <= FLOORS; f++) advance(st2, true);
+  assert(st2.cleared && st2.done && st2.bestFloor === FLOORS, 'full clear');
+  const p = freshProfile();
+  recordRun(p, 'zenith', st2, charProf);
+  assertEq(charProf(p, 'zenith').gauntlet.clears, 1, 'clear recorded');
+  assertEq(charProf(p, 'zenith').xp, 200, 'clear bonus XP');
+});
+
+t('gauntlet: a mutated + booned fight replays bit-identical', () => {
+  const play = () => {
+    const sim = makeSim({
+      seed: 999, cpu: [{ level: 2 }, { level: 3 }],
+      tuning: { dmgPermille: 1200, poolAcid: 3, startTrauma: 120 },
+      seatMods: [{ dmgPermille: 1100, lifestealAdd: 100, startMeter: 100 }, null],
+      balancePatch: { timerSec: 45 }
+    });
+    const out = [];
+    for (let f = 0; f < 2400; f++) {
+      sim.step(0, 0);
+      if (f % 80 === 0) out.push(sim.hash());
+    }
+    return out.join(',');
+  };
+  assertEq(play(), play(), 'gauntlet fight determinism');
 });
 
 // ---------------------------------------------------------------- 5. determinism

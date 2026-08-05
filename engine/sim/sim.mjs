@@ -241,6 +241,28 @@ export class Sim {
         if (opts.cpu[i]) this.fighters[i].ai = makeCpuState((opts.seed || 1) ^ (0x9e37 + i * 7919), opts.cpu[i].level || 1);
       }
     }
+    // Gauntlet mutator engine (D-017): global tuning knobs + per-seat boon mods.
+    // All plain data in opts — mutated fights replay bit-identical.
+    this.tuning = Object.assign({
+      dmgPermille: 1000,   // global damage multiplier
+      bleedMul: 1000,      // bleed drip multiplier
+      meterMul: 1000,      // all meter gains
+      poolAcid: 0,         // >0: pools DAMAGE (this much per tick) instead of paying meter
+      startTrauma: 0       // preload every region of BOTH fighters with this much trauma
+    }, opts.tuning || {});
+    this.seatMods = [
+      Object.assign({ dmgPermille: 1000, lifestealAdd: 0, chipImmune: false, breakerCost: 0, startMeter: 0 }, (opts.seatMods && opts.seatMods[0]) || {}),
+      Object.assign({ dmgPermille: 1000, lifestealAdd: 0, chipImmune: false, breakerCost: 0, startMeter: 0 }, (opts.seatMods && opts.seatMods[1]) || {})
+    ];
+    for (let i = 0; i < 2; i++) {
+      const f = this.fighters[i];
+      if (this.tuning.startTrauma > 0) {
+        for (const r of REGIONS) f.trauma[r] = this.tuning.startTrauma;
+      }
+      if (this.seatMods[i].startMeter > 0) {
+        f.meter = Math.min(this.balance.meter.max, f.meter + this.seatMods[i].startMeter);
+      }
+    }
     // P4 hydration: persistent signature state enters as plain data (Riftborn rules)
     if (opts.sig) {
       for (let i = 0; i < 2; i++) {
@@ -438,6 +460,7 @@ export class Sim {
   gainMeter(f, amt) {
     if (amt <= 0) return;
     if (f.sundered.BODY) amt = trunc(amt * 7, 10); // Sundered BODY: meter gain -30%
+    if (this.tuning.meterMul !== 1000) amt = trunc(amt * this.tuning.meterMul, 1000);
     f.meter = Math.min(this.balance.meter.max, f.meter + amt);
   }
 
@@ -1177,7 +1200,7 @@ export class Sim {
       const crouchBlock = tr.held(B.D);
       const guarded = mv.guard === 'mid' || (mv.guard === 'low' && crouchBlock) || (mv.guard === 'overhead' && !crouchBlock);
       if (guarded) {
-        const chip = mv.chip || 0;
+        let chip = this.seatMods[vic.id].chipImmune ? 0 : (mv.chip || 0);
         if (chip > 0) {
           const clamp = this.balance.bleed.chipClampHp;
           vic.hp = Math.max(clamp, vic.hp - chip);
@@ -1221,6 +1244,8 @@ export class Sim {
     const scaleIdx = Math.min(vic.comboHits, this.balance.comboScaling.length - 1);
     let dmg = trunc(baseDmg * this.balance.comboScaling[scaleIdx], 1000);
     if (counter) dmg = trunc(dmg * (1000 + this.balance.counterHit.damageBonusPermille), 1000);
+    if (this.tuning.dmgPermille !== 1000) dmg = trunc(dmg * this.tuning.dmgPermille, 1000);
+    if (this.seatMods[ai].dmgPermille !== 1000) dmg = trunc(dmg * this.seatMods[ai].dmgPermille, 1000);
     dmg = Math.max(1, dmg);
 
     this.damage(vic, dmg, 'hit', ai);
@@ -1234,9 +1259,10 @@ export class Sim {
     if (vmech === 'bank' && bcfg) {
       vic.joules = Math.min(bcfg.max || 300, vic.joules + trunc(dmg * (bcfg.convertPermille || 500), 1000));
     }
-    // drain identity (v1.1): lifesteal + meter theft
-    if (mv.lifesteal) {
-      const heal = trunc(dmg * mv.lifesteal, 1000);
+    // drain identity (v1.1): lifesteal + meter theft (boons can add lifesteal to a seat)
+    const effLifesteal = (mv.lifesteal || 0) + this.seatMods[ai].lifestealAdd;
+    if (effLifesteal > 0) {
+      const heal = trunc(dmg * effLifesteal, 1000);
       if (heal > 0 && atk.hp > 0) {
         atk.hp = Math.min(atk.hpMax, atk.hp + heal);
         this.emit({ t: 'drain', who: ai, amt: heal });
@@ -1489,6 +1515,8 @@ export class Sim {
       if (atk.grabT <= 0) {
         let dmg = Math.max(mv.grab.damageFloor, mv.damage - atk.mashCount * mv.grab.mashReduce);
         if (atk.sundered.ARMS && (mv.uses || 'ARMS') === 'ARMS') dmg = trunc(dmg * 800, 1000);
+        if (this.tuning.dmgPermille !== 1000) dmg = trunc(dmg * this.tuning.dmgPermille, 1000);
+        if (this.seatMods[i].dmgPermille !== 1000) dmg = trunc(dmg * this.seatMods[i].dmgPermille, 1000);
         this.damage(vic, dmg, 'hit', i);
         atk.stat.dmgDealt += dmg;
         if (vic.sundered.HEAD) vic.concussT = 25;
@@ -1554,9 +1582,10 @@ export class Sim {
   }
 
   breakerCostFor(f) {
-    const base = this.balance.meter.breakerCost;
+    let base = this.balance.meter.breakerCost;
+    if (this.seatMods[f.id].breakerCost > 0) base = Math.min(base, this.seatMods[f.id].breakerCost);
     for (const rule of (f.char.character.pool_interactions || [])) {
-      if (rule.trigger === 'breaker_cost_in_pool' && this.isInPool(f)) return rule.cost || 100;
+      if (rule.trigger === 'breaker_cost_in_pool' && this.isInPool(f)) return Math.min(base, rule.cost || 100);
     }
     return base;
   }
@@ -1633,8 +1662,15 @@ export class Sim {
         f.poolTickT++;
         if (f.poolTickT >= b.tickInterval) {
           f.poolTickT = 0;
-          this.gainMeter(f, trunc(b.tickMeter * amp, 1000));
-          this.emit({ t: 'poolTick', who: f.id });
+          if (this.tuning.poolAcid > 0) {
+            // "blood pools are acid" — the Rift's favor curdles
+            const clamp = this.balance.bleed.chipClampHp;
+            if (f.hp > clamp) { f.hp = Math.max(clamp, f.hp - this.tuning.poolAcid); f.lastCause = 'burn'; }
+            this.emit({ t: 'poolAcid', who: f.id, dmg: this.tuning.poolAcid });
+          } else {
+            this.gainMeter(f, trunc(b.tickMeter * amp, 1000));
+            this.emit({ t: 'poolTick', who: f.id });
+          }
         }
       } else f.poolTickT = 0;
     }
@@ -1647,7 +1683,9 @@ export class Sim {
       const n = f.bleedRegions.length;
       if (n > 0) {
         const incTotal = f.incisions.ARMS + f.incisions.BODY + f.incisions.LEGS + f.incisions.HEAD;
-        f.bleedAcc += n * this.balance.bleed.dripPer60 + incTotal * 4;
+        let drip = n * this.balance.bleed.dripPer60 + incTotal * 4;
+        if (this.tuning.bleedMul !== 1000) drip = trunc(drip * this.tuning.bleedMul, 1000);
+        f.bleedAcc += drip;
         while (f.bleedAcc >= 60) {
           f.bleedAcc -= 60;
           if (f.hp > 0) { f.hp -= 1; f.lastCause = 'bleed'; }
