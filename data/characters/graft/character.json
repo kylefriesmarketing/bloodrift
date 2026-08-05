@@ -58,7 +58,7 @@
       { "x": -36, "y": 50, "w": 72, "h": 210 }
     ]
   },
-  "throw": { "range": 100, "damage": 140, "techWindow": 10, "startup": 6 },
+  "throw": { "range": 50, "damage": 140, "techWindow": 10, "startup": 6 },
   "palette": {
     "primary": "#5a4a52",
     "secondary": "#2a1218",

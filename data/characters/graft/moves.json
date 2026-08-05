@@ -268,12 +268,12 @@
     "chip": 0,
     "meterGain": { "hit": 14, "block": 0 },
     "knock": { "type": "hardDown", "vx": 6000, "vy": -7000 },
-    "grab": { "range": 120, "cinematicFrames": 45, "mashReduce": 4, "damageFloor": 130, "airOk": false },
+    "grab": { "range": 60, "cinematicFrames": 45, "mashReduce": 4, "damageFloor": 130, "airOk": false },
     "variants": {
       "ex": {
         "cost": { "meter": 100 },
         "damage": 200,
-        "grab": { "range": 140, "cinematicFrames": 45, "mashReduce": 3, "damageFloor": 160, "airOk": false }
+        "grab": { "range": 72, "cinematicFrames": 45, "mashReduce": 3, "damageFloor": 160, "airOk": false }
       }
     },
     "tags": ["commandgrab"]
@@ -355,7 +355,7 @@
     "meterGain": { "hit": 0, "block": 0 },
     "cost": { "meter": 300 },
     "knock": { "type": "hardDown", "vx": 7000, "vy": -8000 },
-    "grab": { "range": 150, "cinematicFrames": 70, "mashReduce": 0, "damageFloor": 270, "airOk": false },
+    "grab": { "range": 80, "cinematicFrames": 70, "mashReduce": 0, "damageFloor": 270, "airOk": false },
     "armor": { "frames": [1, 12], "hits": 2 },
     "superFlash": 40,
     "tags": ["overdrive", "commandgrab", "cinematic"]
