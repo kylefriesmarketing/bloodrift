@@ -137,7 +137,10 @@
       "cooldown": { "type": "integer", "minimum": 0, "description": "v1.1 (D-014): frames between uses (rift_press moves)" },
       "cancels": { "type": "array", "items": { "type": "string", "enum": ["special", "overdrive"] } },
       "cancelWindow": { "type": "integer", "description": "frames after contact during which cancels are accepted" },
-      "cost": { "type": "object", "properties": { "meter": { "type": "integer" }, "debt": { "type": "integer" }, "joules": { "type": "integer" } } },
+      "cost": { "type": "object", "properties": { "meter": { "type": "integer" }, "debt": { "type": "integer" }, "joules": { "type": "integer" }, "hp": { "type": "integer", "description": "v1.3 (D-018): the move spends the user's own health (never below 1)" } } },
+      "requiresSet": { "type": "string", "description": "v1.3 (D-018): move only available in this graft-set/form ('power'|'finesse')" },
+      "selfBuff": { "type": "object", "properties": { "meterRegen": { "type": "integer" }, "dur": { "type": "integer" } }, "description": "v1.3 (D-018): timed self meter-regen (banners, howls, salvage)" },
+      "selfHeal": { "type": "integer", "description": "v1.3 (D-018): heal self at the active frame (Maintenance)" },
       "variants": {
         "type": "object",
         "properties": {

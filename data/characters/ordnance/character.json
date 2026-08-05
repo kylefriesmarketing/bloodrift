@@ -1,0 +1,99 @@
+{
+  "id": "ordnance",
+  "name": "ORDNANCE",
+  "title": "The Field Test",
+  "faction": "dominion",
+  "archetype": "artillery",
+  "difficulty": 2,
+  "stats": {
+    "hp": 1250,
+    "walkF": 2300,
+    "walkB": 2100,
+    "dashF": {
+      "speed": 5600,
+      "dur": 16,
+      "tail": 8
+    },
+    "dashB": {
+      "speed": 6000,
+      "dur": 16,
+      "tail": 6
+    },
+    "jumpVy": -23500,
+    "gravity": 1550,
+    "prejump": 6,
+    "weight": 5,
+    "width": 118,
+    "height": 305,
+    "crouchHeight": 205
+  },
+  "rift_button": {
+    "mechanic": "rift_special",
+    "config": {}
+  },
+  "rpg_hook": {
+    "id": "ordnance_hook",
+    "persistent": true,
+    "state": {},
+    "effects": [
+      {
+        "trigger": "on_execution",
+        "action": "grant_resource",
+        "resource": "ordnance.harvest",
+        "amount": 1,
+        "note": "P4+ signature persistence — see the roster doc for the full hook."
+      }
+    ]
+  },
+  "pool_interactions": [],
+  "wound_art": {
+    "arms": 3,
+    "legs": 3,
+    "body": 3,
+    "head": 3
+  },
+  "hurtboxes": {
+    "stand": [
+      {
+        "x": -38,
+        "y": 0,
+        "w": 76,
+        "h": 235
+      },
+      {
+        "x": -26,
+        "y": 235,
+        "w": 52,
+        "h": 70
+      }
+    ],
+    "crouch": [
+      {
+        "x": -40,
+        "y": 0,
+        "w": 80,
+        "h": 205
+      }
+    ],
+    "air": [
+      {
+        "x": -38,
+        "y": 50,
+        "w": 76,
+        "h": 215
+      }
+    ]
+  },
+  "throw": {
+    "range": 52,
+    "damage": 150,
+    "techWindow": 10,
+    "startup": 6
+  },
+  "palette": {
+    "primary": "#5a6266",
+    "secondary": "#23282c",
+    "accent": "#58c8e8",
+    "blood": "#d8b03a"
+  }
+}

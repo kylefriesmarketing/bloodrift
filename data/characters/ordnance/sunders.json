@@ -1,0 +1,54 @@
+{
+  "character": "ordnance",
+  "note": "P3 live — roster triggers adapted onto the generic `when` types (D-018 wave build).",
+  "sunders": [
+    {
+      "region": "ARMS",
+      "id": "measured_break",
+      "when": {
+        "type": "move_hits",
+        "move": "lance_protocol",
+        "count": 2
+      },
+      "trigger": {
+        "desc": "second Lance Protocol"
+      },
+      "cinematic": "TODO",
+      "flavor": "The rangefinder measures the break before making it — dotted-line overlay, then compliance."
+    },
+    {
+      "region": "LEGS",
+      "id": "pressure_wave",
+      "when": {
+        "type": "move_hits",
+        "move": "cordon",
+        "count": 2
+      },
+      "trigger": {
+        "desc": "second Cordon"
+      },
+      "cinematic": "TODO",
+      "flavor": "The blast's pressure wave crosses a knee in slow motion, annotated."
+    },
+    {
+      "region": "BODY",
+      "id": "contact_trial",
+      "when": {
+        "type": "move_hits",
+        "move": "registered_fire",
+        "count": 3
+      },
+      "trigger": {
+        "desc": "third Registered Fire"
+      },
+      "cinematic": "TODO",
+      "flavor": "The mortar muzzle pressed flat to the chest, filed as contact trial. The annotation is just \"✓\"."
+    }
+  ],
+  "debuffs_reference": {
+    "ARMS": "victim punch damage -20%, their throws tech twice as easily",
+    "LEGS": "victim loses dashes, move speed -15%",
+    "BODY": "victim meter gain -30%, Bleeding applied",
+    "HEAD": "victim inputs ghost briefly after every hit taken"
+  }
+}

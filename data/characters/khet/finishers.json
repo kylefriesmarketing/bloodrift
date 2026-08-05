@@ -1,0 +1,29 @@
+{
+  "character": "khet",
+  "note": "P3 content — the FEED THE RIFT window names executions[0].",
+  "executions": [
+    {
+      "id": "mummification_expedited",
+      "name": "Mummification, Expedited",
+      "cinematic": "TODO",
+      "script": "The wrappings leave him entirely and take the loser standing — four jars, four wet withdrawals, itemized on-screen in hieroglyph receipt-lines. The floor opens and shelves them in a wall of thousands of identical drawers."
+    },
+    {
+      "id": "scarab_estate",
+      "name": "The Scarab Estate",
+      "cinematic": "TODO",
+      "script": "He flicks one scarab at the loser's mouth. A held beat — then the swarm exits outward through every seam at once, assembling into a perfect scale model of his pyramid before dispersing."
+    }
+  ],
+  "desecration": {
+    "id": "late_fee",
+    "name": "Late Fee",
+    "unlock": "S-rank Audit",
+    "script": "The detonation keeps compounding past the bell — the numbers still ticking up over the fallen body, itemizing."
+  },
+  "overdrive": {
+    "id": "dynasty",
+    "name": "DYNASTY",
+    "script": "The arena floods with sand and his tomb surfaces — four courtier-mummies seize a limb apiece, and the sarcophagus lid closes for one full second of muffled bureaucracy."
+  }
+}

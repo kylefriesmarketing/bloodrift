@@ -1,0 +1,29 @@
+{
+  "character": "vyrm",
+  "note": "P3 content — the FEED THE RIFT window names executions[0].",
+  "executions": [
+    {
+      "id": "trade_in",
+      "name": "Trade-In",
+      "cinematic": "TODO",
+      "script": "The neck-collar opens. The camera is merciful about the middle of it — what it holds on is the old host folding to the floor like a coat, and the loser's body straightening, checking its new hands with a connoisseur's slow delight. It performs their victory pose. Flawlessly. A half-beat late."
+    },
+    {
+      "id": "puppet_show",
+      "name": "Puppet Show",
+      "cinematic": "TODO",
+      "script": "Filaments thread into the fallen loser — and stand them back up. The corpse bows. The corpse performs a shaky pirouette. The corpse walks itself to the arena's edge, waves goodbye with both hands, and steps off."
+    }
+  ],
+  "desecration": {
+    "id": "repossession",
+    "name": "Repossession",
+    "unlock": "S-rank Latch",
+    "script": "The back-latch at the bell keeps the merchandise — the opponent's body walking away under new management, its portrait replaced by static."
+  },
+  "overdrive": {
+    "id": "test_drive",
+    "name": "TEST DRIVE",
+    "script": "The parasite stops pretending — every limb at true spec simultaneously, ignoring joints' opinions, ending with the host resetting its own shoulders with a staple-gun, panting theatrically. It doesn't breathe. The panting is manners."
+  }
+}

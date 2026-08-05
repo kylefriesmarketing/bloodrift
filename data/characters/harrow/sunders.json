@@ -1,0 +1,54 @@
+{
+  "character": "harrow",
+  "note": "P3 live — roster triggers adapted onto the generic `when` types (D-018 wave build).",
+  "sunders": [
+    {
+      "region": "ARMS",
+      "id": "fence_post",
+      "when": {
+        "type": "move_hits",
+        "move": "riders_reach",
+        "count": 3
+      },
+      "trigger": {
+        "desc": "third Rider's Reach"
+      },
+      "cinematic": "TODO",
+      "flavor": "Saber through the forearm, pinning it to a fence-post that rises from the road-dirt."
+    },
+    {
+      "region": "LEGS",
+      "id": "horse_opinion",
+      "when": {
+        "type": "move_hits",
+        "move": "gallows_calls",
+        "count": 2
+      },
+      "trigger": {
+        "desc": "second Gallows Calls"
+      },
+      "cinematic": "TODO",
+      "flavor": "GALLOWS arrives exactly on cue — a cavalry-horse expressing an opinion about a knee."
+    },
+    {
+      "region": "BODY",
+      "id": "collar_flame",
+      "when": {
+        "type": "move_hits",
+        "move": "latch",
+        "count": 2
+      },
+      "trigger": {
+        "desc": "second Latch"
+      },
+      "cinematic": "TODO",
+      "flavor": "Held to the collar — to the flame — heat where a head's worth of it should not fit."
+    }
+  ],
+  "debuffs_reference": {
+    "ARMS": "victim punch damage -20%, their throws tech twice as easily",
+    "LEGS": "victim loses dashes, move speed -15%",
+    "BODY": "victim meter gain -30%, Bleeding applied",
+    "HEAD": "victim inputs ghost briefly after every hit taken"
+  }
+}

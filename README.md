@@ -5,7 +5,18 @@ in blood. Design docs in `docs/` are the spec ([GDD](docs/BLOODRIFT_01_GAME_DESI
 [Roster](docs/BLOODRIFT_02_ROSTER.md) · [Build plan](docs/BLOODRIFT_03_BUILD_PLAN.md));
 **this README is the milestone authority**; deviations live in [docs/DECISIONS.md](docs/DECISIONS.md).
 
-## Status (2026-08-05) — P0–P3 ✅ · P4 v1 ✅ · **WAVE 1 COMPLETE: 5 fighters** (ZENITH · TRIAGE · JOULE · GRAFT · STRIGOI)
+## Status (2026-08-05) — P0–P4 ✅ · **FULL 15-FIGHTER ROSTER** ✅ · Gauntlet core ✅ (tower UI pending)
+
+All three factions playable: **Vanguard** ZENITH · TRIAGE · CENTURION IX · JOULE · MARROW —
+**Court** STRIGOI · LYCAON · GRAFT · KHET · HARROW — **Dominion** FLUX · VESPRA · ORDNANCE ·
+NULL · VYRM. The back ten were composed by `tools/gen-roster.mjs` from lint-proven frame
+blocks + hand-specced signature specials (v1 kits — deepen per wave; the six full custom
+subsystems from BUILD_PLAN §4.3 are still owed and their identities currently run on the
+generic mechanics: sets/audit/rift-specials/drain). KHET's curses = Audit detonation,
+LYCAON changes forms, MARROW spends her own HP and walls with bone, HARROW's horse charges,
+ORDNANCE mines the floor, NULL teleports and consumes pools, VYRM staples himself back
+together. THE GAUNTLET's engine (seeded towers, stacking mutators, boon drafts) is tested
+and committed — the tower's menu UI is the next session's first hour.
 
 | Milestone | State | Proof |
 |---|---|---|

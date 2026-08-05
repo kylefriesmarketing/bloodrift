@@ -1,0 +1,29 @@
+{
+  "character": "ordnance",
+  "note": "P3 content — the FEED THE RIFT window names executions[0].",
+  "executions": [
+    {
+      "id": "field_test",
+      "name": "Field Test",
+      "cinematic": "TODO",
+      "script": "Pinned under one enormous foot, prototype rounds cycled one at a time — \"Thermic. Effective.\" (flash) \"Flechette. Effective.\" (flash) \"Rift-yield. …Recording.\" The last result is never shown. \"Trial concluded. Recommending adoption.\""
+    },
+    {
+      "id": "decommissioned",
+      "name": "Decommissioned",
+      "cinematic": "TODO",
+      "script": "It kneels — the only time it kneels — and performs, with terrible gentleness, the exact procedure the Dominion was performing on it when the Rift hit. It arranges the components in regulation configuration, stands, and salutes. Nothing about the salute is programmed. It checked."
+    }
+  ],
+  "desecration": {
+    "id": "live_fire",
+    "name": "Live Fire",
+    "unlock": "S-rank Cordon",
+    "script": "The mine placed at the bell simply proceeds with the trial — the annotation window opening early: TRIAL 413:"
+  },
+  "overdrive": {
+    "id": "all_systems",
+    "name": "ALL SYSTEMS TRIAL",
+    "script": "Every hardpoint fires in ripple sequence while the rangefinder holds steady-state through the smoke, logging. The final frame stamps: PATTERN 7 — PERFORMS AS DESIGNED."
+  }
+}

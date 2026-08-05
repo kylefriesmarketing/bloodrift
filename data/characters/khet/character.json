@@ -1,0 +1,102 @@
+{
+  "id": "khet",
+  "name": "KHET",
+  "title": "The Ledger of Ages",
+  "faction": "court",
+  "archetype": "curse-zoner",
+  "difficulty": 3,
+  "stats": {
+    "hp": 930,
+    "walkF": 3200,
+    "walkB": 3200,
+    "dashF": {
+      "speed": 8500,
+      "dur": 14,
+      "tail": 4
+    },
+    "dashB": {
+      "speed": 7800,
+      "dur": 14,
+      "tail": 5
+    },
+    "jumpVy": -26000,
+    "gravity": 1300,
+    "prejump": 4,
+    "weight": 3,
+    "width": 90,
+    "height": 260,
+    "crouchHeight": 175
+  },
+  "rift_button": {
+    "mechanic": "audit",
+    "config": {
+      "perStack": 14,
+      "auditCd": 200
+    }
+  },
+  "rpg_hook": {
+    "id": "khet_hook",
+    "persistent": true,
+    "state": {},
+    "effects": [
+      {
+        "trigger": "on_execution",
+        "action": "grant_resource",
+        "resource": "khet.harvest",
+        "amount": 1,
+        "note": "P4+ signature persistence — see the roster doc for the full hook."
+      }
+    ]
+  },
+  "pool_interactions": [],
+  "wound_art": {
+    "arms": 3,
+    "legs": 3,
+    "body": 3,
+    "head": 3
+  },
+  "hurtboxes": {
+    "stand": [
+      {
+        "x": -30,
+        "y": 0,
+        "w": 60,
+        "h": 200
+      },
+      {
+        "x": -20,
+        "y": 200,
+        "w": 40,
+        "h": 60
+      }
+    ],
+    "crouch": [
+      {
+        "x": -32,
+        "y": 0,
+        "w": 64,
+        "h": 175
+      }
+    ],
+    "air": [
+      {
+        "x": -30,
+        "y": 40,
+        "w": 60,
+        "h": 180
+      }
+    ]
+  },
+  "throw": {
+    "range": 45,
+    "damage": 130,
+    "techWindow": 10,
+    "startup": 5
+  },
+  "palette": {
+    "primary": "#c2a545",
+    "secondary": "#4a3c20",
+    "accent": "#3ec6b8",
+    "blood": "#8f0f22"
+  }
+}

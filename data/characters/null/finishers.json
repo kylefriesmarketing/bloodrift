@@ -1,0 +1,29 @@
+{
+  "character": "null",
+  "note": "P3 content — the FEED THE RIFT window names executions[0].",
+  "executions": [
+    {
+      "id": "spaghettification",
+      "name": "Spaghettification",
+      "cinematic": "TODO",
+      "script": "It offers its hand. When they don't take it (they never take it), the pull begins at their fingertips — a slow, silent, physically-accurate ribbon crossing the arena in a lazy spiral, entering the dark. The suit closes one button. The boots fall over."
+    },
+    {
+      "id": "the_wastage",
+      "name": "The Wastage",
+      "cinematic": "TODO",
+      "script": "It squeezes first — every drop exits in a shell of red mist that hangs like a second silhouette while the dry husk stands within, still aware. It drinks the silhouette, collapses the husk to a pearl, and files it inside the suit. There are rows of them."
+    }
+  ],
+  "desecration": {
+    "id": "closed_system",
+    "name": "Closed System",
+    "unlock": "S-rank Consume",
+    "script": "Its Consume simply doesn't stop at the bell — their final projectile, their last hope, curving mid-flight into the dark with everything else."
+  },
+  "overdrive": {
+    "id": "perihelion",
+    "name": "PERIHELION",
+    "script": "It opens the suit. One second of screen-wide pull — then everything returns as one compressed, ringing impact except the fraction it kept. The arena is noticeably cleaner afterward."
+  }
+}

@@ -86,7 +86,7 @@ export function cpuThink(sim, i) {
 
   // rift-button instincts: drain sips/tethers, the surgeon charts, the bank braces
   const mech = f.char.character.rift_button.mechanic;
-  if ((mech === 'drain' || mech === 'atlas') && f.drainCd <= 0 && gap < 240 && rng.chance(140)) {
+  if (['drain', 'atlas', 'audit', 'rift_special'].includes(mech) && f.drainCd <= 0 && gap < 260 && rng.chance(140)) {
     return B.RF;
   }
   if (mech === 'bank' && o.state === 'move' && gap < 200 && rng.chance(120)) {

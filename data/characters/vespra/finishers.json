@@ -1,0 +1,29 @@
+{
+  "character": "vespra",
+  "note": "P3 content — the FEED THE RIFT window names executions[0].",
+  "executions": [
+    {
+      "id": "inheritance",
+      "name": "Inheritance",
+      "cinematic": "TODO",
+      "script": "The brood carries them standing toward the Rift-scar as an honor guard while she explains, in her doubled voice, what an extraordinary gift they are about to become. The brood returns heavier. She counts them home by name."
+    },
+    {
+      "id": "royal_jelly",
+      "name": "Royal Jelly",
+      "cinematic": "TODO",
+      "script": "Two Porters cocoon the loser upright — a shimmering church-window chrysalis. She taps it once, like crystal. It sloshes. The hive drinks; she has, delicately, the first sip."
+    }
+  ],
+  "desecration": {
+    "id": "recital",
+    "name": "Recital",
+    "unlock": "S-rank Royal Decree",
+    "script": "The surge doesn't end at the bell — five broodlings mid-leap from five angles, and her four arms beginning, slowly, to applaud."
+  },
+  "overdrive": {
+    "id": "swarm_season",
+    "name": "SWARM SEASON",
+    "script": "Every egg hatches at once and the hive arrives — a screen-crossing wave that carries the opponent wall to wall while she watches, a mother at a recital."
+  }
+}

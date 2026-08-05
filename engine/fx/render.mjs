@@ -839,20 +839,20 @@ export class Renderer {
     const airborne = f.state === 'air' || f.state === 'launched' || f.state === 'prejump';
     const legCol = shade(pal.secondary, 14);
     const bootCol = shade(pal.secondary, -10);
-    const drawLeg = (hx, footX, footYy, lift, kick) => {
+    const drawLeg = (hx, footX, footYy, lift, tone = 0) => {
       // knee: midpoint pushed toward facing, more when lifted/bent
       const mx2 = (hx + footX) / 2 + face * (5 + lift * 0.6 + crouchK * 14);
       const my2 = (hipY + footYy) / 2 - lift * 0.25;
-      limb(cx, hx, hipY, mx2, my2, footX, footYy - lift, legW, legCol, outline);
+      limb(cx, hx, hipY, mx2, my2, footX, footYy - lift, legW, shadeCss(legCol, tone), outline);
       // boot
-      cx.fillStyle = bootCol;
+      cx.fillStyle = shadeCss(bootCol, tone);
       cx.strokeStyle = outline;
       cx.lineWidth = 2;
       rrs(cx, footX - legW * 0.55 + face * 3, footYy - lift - legW * 0.42, legW * 1.35, legW * 0.62, 3);
     };
     if (mv && useLimb === 'LEGS' && activeK > 0.2) {
       // kick: back leg plants, front leg extends toward the foe
-      drawLeg(-face * W * 0.28, -face * W * 0.42, 0, 0, false);
+      drawLeg(-face * W * 0.28, -face * W * 0.42, 0, 0, -20);
       const kl = W * 0.7 + activeK * W * 1.5;
       const kh = mv.guard === 'low' ? -legW * 0.6 : -legH * (0.7 + activeK * 0.5);
       const kneeX = face * kl * 0.45, kneeY = hipY * 0.55 + kh * 0.3 - 8 * (1 - activeK);
@@ -861,31 +861,53 @@ export class Renderer {
       rrs(cx, face * kl - legW * 0.6, kh - legW * 0.4, legW * 1.4, legW * 0.7, 3);
     } else if (airborne) {
       // tucked
-      drawLeg(-W * 0.28, -W * 0.34 - face * 8, -legH * 0.42, 0, false);
-      drawLeg(W * 0.28, W * 0.2 - face * 8, -legH * 0.3, 0, false);
+      drawLeg(-W * 0.28, -W * 0.34 - face * 8, -legH * 0.42, 0, -26);
+      drawLeg(W * 0.28, W * 0.2 - face * 8, -legH * 0.3, 0, 8);
     } else if (walking) {
       const ph = t * 0.23;
       const sA = Math.sin(ph), sB = Math.sin(ph + Math.PI);
-      drawLeg(-W * 0.28, -W * 0.28 + sA * 22, 0, Math.max(0, sA) * 11, false);
-      drawLeg(W * 0.28, W * 0.28 + sB * 22, 0, Math.max(0, sB) * 11, false);
+      drawLeg(-W * 0.28, -W * 0.28 + sA * 22, 0, Math.max(0, sA) * 11, -26);
+      drawLeg(W * 0.28, W * 0.28 + sB * 22, 0, Math.max(0, sB) * 11, 8);
     } else {
-      drawLeg(-W * 0.28, -W * 0.44, 0, 0, false);
-      drawLeg(W * 0.28, W * 0.44, 0, 0, false);
+      drawLeg(-W * 0.28, -W * 0.44, 0, 0, -26);
+      drawLeg(W * 0.28, W * 0.44, 0, 0, 8);
     }
 
-    // torso
+    // torso — lit like a cylinder (MK 2.5D read): bright core toward the moon,
+    // falloff to a dark far edge, hot rim line on top
+    const baseTone = shade(pal.primary, cid === 'zenith' ? -4 : 16);
     cx.strokeStyle = outline;
     cx.lineWidth = 3;
-    cx.fillStyle = justHit ? '#ff5a64' : shade(pal.primary, cid === 'zenith' ? -4 : 16);
+    if (justHit) {
+      cx.fillStyle = '#ff5a64';
+    } else {
+      const tg = cx.createLinearGradient(-torsoW / 2, 0, torsoW / 2, 0);
+      tg.addColorStop(0, shade(pal.primary, cid === 'zenith' ? 20 : 40));
+      tg.addColorStop(0.42, baseTone);
+      tg.addColorStop(1, shade(pal.primary, cid === 'zenith' ? -34 : -14));
+      cx.fillStyle = tg;
+    }
     rrs(cx, -torsoW / 2, torsoY - bodyH * 0.06 - breath * 0.5, torsoW, bodyH * 0.5 + breath * 0.5, 8);
-    cx.fillStyle = shade(pal.primary, cid === 'zenith' ? 14 : 34);
-    rr(cx, -torsoW / 2 + 3, torsoY - bodyH * 0.04 - breath * 0.5, torsoW - 6, bodyH * 0.2, 6);
-    cx.strokeStyle = 'rgba(255,240,220,0.28)';
-    cx.lineWidth = 1.6;
+    // chest plate with its own curve
+    {
+      const pg2 = cx.createLinearGradient(-torsoW / 2, 0, torsoW / 2, 0);
+      pg2.addColorStop(0, shade(pal.primary, cid === 'zenith' ? 34 : 54));
+      pg2.addColorStop(0.5, shade(pal.primary, cid === 'zenith' ? 14 : 34));
+      pg2.addColorStop(1, shade(pal.primary, cid === 'zenith' ? -12 : 6));
+      cx.fillStyle = pg2;
+      rr(cx, -torsoW / 2 + 3, torsoY - bodyH * 0.04 - breath * 0.5, torsoW - 6, bodyH * 0.2, 6);
+    }
+    cx.strokeStyle = 'rgba(255,240,220,0.34)';
+    cx.lineWidth = 1.8;
     cx.beginPath();
     cx.moveTo(-torsoW / 2 + 6, torsoY - bodyH * 0.05 - breath * 0.5);
     cx.lineTo(torsoW / 2 - 6, torsoY - bodyH * 0.05 - breath * 0.5);
     cx.stroke();
+    // belly shadow grounds the torso over the hips
+    cx.fillStyle = 'rgba(0,0,0,0.18)';
+    cx.beginPath();
+    cx.ellipse(0, torsoY + bodyH * 0.42, torsoW * 0.44, bodyH * 0.05, 0, 0, Math.PI * 2);
+    cx.fill();
 
     // per-character flourish
     if (cid === 'strigoi') {
@@ -1025,23 +1047,37 @@ export class Renderer {
       }
     } else {
       const armSwing = walking ? Math.sin(t * 0.23 + Math.PI) * 8 : Math.sin(t * 0.05 + f.id) * 1.5;
-      // far arm then near arm hanging with soft elbows
-      limb(cx, -torsoW * 0.42, shY, -torsoW * 0.5 - armSwing * 0.4, shY + bodyH * 0.17, -torsoW * 0.44 - armSwing, shY + bodyH * 0.32, armW, armCol, outline);
+      // far arm darker, near arm lit — the depth cue that sells 2.5D
+      limb(cx, -torsoW * 0.42, shY, -torsoW * 0.5 - armSwing * 0.4, shY + bodyH * 0.17, -torsoW * 0.44 - armSwing, shY + bodyH * 0.32, armW, shadeCss(armCol, -28), outline);
       fist(-torsoW * 0.44 - armSwing, shY + bodyH * 0.32, armW * 0.5);
-      limb(cx, torsoW * 0.42, shY, torsoW * 0.5 + armSwing * 0.4, shY + bodyH * 0.17, torsoW * 0.44 + armSwing, shY + bodyH * 0.32, armW, armCol, outline);
+      limb(cx, torsoW * 0.42, shY, torsoW * 0.5 + armSwing * 0.4, shY + bodyH * 0.17, torsoW * 0.44 + armSwing, shY + bodyH * 0.32, armW, shadeCss(armCol, 8), outline);
       fist(torsoW * 0.44 + armSwing, shY + bodyH * 0.32, armW * 0.5);
     }
 
-    // head
+    // head — a lit sphere, not a disc
     const headY = torsoY - headR * 0.8 - breath * 0.6;
     const isGraft = cid === 'graft';
+    const headBase = justHit ? '#ff6a72' : (isGraft ? '#9a8890' : cid === 'strigoi' ? '#ded6d8' : cid === 'triage' ? '#d8c2a8' : '#e5d5a8');
     cx.strokeStyle = outline;
     cx.lineWidth = 3;
-    cx.fillStyle = justHit ? '#ff6a72' : (isGraft ? '#9a8890' : cid === 'strigoi' ? '#ded6d8' : '#e5d5a8');
+    {
+      const hg = cx.createRadialGradient(
+        face * W * 0.06 - headR * 0.35, headY - headR * 0.4, headR * 0.1,
+        face * W * 0.06, headY, headR * 1.15);
+      hg.addColorStop(0, shade(headBase, 34));
+      hg.addColorStop(0.55, headBase);
+      hg.addColorStop(1, shade(headBase, -46));
+      cx.fillStyle = hg;
+    }
     cx.beginPath();
     cx.arc(face * W * 0.06, headY, headR, 0, Math.PI * 2);
     cx.fill();
     cx.stroke();
+    // specular
+    cx.fillStyle = 'rgba(255,255,255,0.35)';
+    cx.beginPath();
+    cx.ellipse(face * W * 0.06 - headR * 0.4, headY - headR * 0.45, headR * 0.16, headR * 0.1, -0.6, 0, Math.PI * 2);
+    cx.fill();
     if (cid === 'strigoi') {
       cx.fillStyle = '#c22a3a';
       cx.beginPath(); cx.arc(face * (W * 0.06 + headR * 0.35), headY - headR * 0.12, headR * 0.12, 0, Math.PI * 2); cx.fill();
@@ -1182,7 +1218,8 @@ export class Renderer {
   }
 }
 
-// two-segment limb: shoulder/hip → joint → extremity, outlined round-cap strokes
+// two-segment limb rendered as a lit cylinder: outline → base tube → bright core →
+// shaded underside. The core highlight is what sells the roundness.
 function limb(cx, x1, y1, x2, y2, x3, y3, w, col, outlineCol) {
   cx.lineCap = 'round';
   cx.lineJoin = 'round';
@@ -1192,8 +1229,31 @@ function limb(cx, x1, y1, x2, y2, x3, y3, w, col, outlineCol) {
   cx.strokeStyle = col;
   cx.lineWidth = w;
   cx.beginPath(); cx.moveTo(x1, y1); cx.lineTo(x2, y2); cx.lineTo(x3, y3); cx.stroke();
+  cx.strokeStyle = shadeCss(col, 26);
+  cx.lineWidth = Math.max(2, w * 0.42);
+  cx.beginPath();
+  cx.moveTo(x1 - w * 0.16, y1 - w * 0.18);
+  cx.lineTo(x2 - w * 0.16, y2 - w * 0.18);
+  cx.lineTo(x3 - w * 0.16, y3 - w * 0.18);
+  cx.stroke();
+  cx.strokeStyle = 'rgba(0,0,0,0.22)';
+  cx.lineWidth = Math.max(1.5, w * 0.3);
+  cx.beginPath();
+  cx.moveTo(x1 + w * 0.22, y1 + w * 0.2);
+  cx.lineTo(x2 + w * 0.22, y2 + w * 0.2);
+  cx.lineTo(x3 + w * 0.22, y3 + w * 0.2);
+  cx.stroke();
   cx.lineCap = 'butt';
   cx.lineJoin = 'miter';
+}
+
+// shade an rgb()/#hex css color by amt (helper for limb cores)
+function shadeCss(col, amt) {
+  if (col.startsWith('#')) return shade(col, amt);
+  const m = /rgb\((\d+),(\d+),(\d+)\)/.exec(col.replace(/\s/g, ''));
+  if (!m) return col;
+  const c = v => Math.max(0, Math.min(255, +v + amt));
+  return `rgb(${c(m[1])},${c(m[2])},${c(m[3])})`;
 }
 
 // rounded rect (fill)

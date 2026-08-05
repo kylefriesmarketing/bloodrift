@@ -1,0 +1,29 @@
+{
+  "character": "marrow",
+  "note": "P3 content — the FEED THE RIFT window names executions[0].",
+  "executions": [
+    {
+      "id": "donor_card",
+      "name": "Donor Card",
+      "cinematic": "TODO",
+      "script": "One open hand, and the skeleton answers — walking them forward one marionette step at a time until it simply steps out and stands beside her like a new recruit. She catalogs it on a wrist-slate."
+    },
+    {
+      "id": "iron_maiden",
+      "name": "Iron Maiden",
+      "cinematic": "TODO",
+      "script": "A gentle push on the sternum, and every bone blooms outward at once in a perfect symmetrical lattice. She circles it once. \"Load-bearing. Good bones.\""
+    }
+  ],
+  "desecration": {
+    "id": "restock",
+    "name": "Restock",
+    "unlock": "S-rank Spina",
+    "script": "The final spear pins them to her Reliquary Wall; she is already walking over to collect her ammunition."
+  },
+  "overdrive": {
+    "id": "cathedral",
+    "name": "CATHEDRAL",
+    "script": "A ribvault of colossal bone grows around the opponent and closes like a fist. It crumbles to reveal them crumpled in a rose window of their own blood."
+  }
+}

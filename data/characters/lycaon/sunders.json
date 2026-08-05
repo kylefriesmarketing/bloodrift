@@ -1,0 +1,53 @@
+{
+  "character": "lycaon",
+  "note": "P3 live — roster triggers adapted onto the generic `when` types (D-018 wave build).",
+  "sunders": [
+    {
+      "region": "ARMS",
+      "id": "scientific_rotation",
+      "when": {
+        "type": "parry_vs_uses",
+        "uses": "ARMS"
+      },
+      "trigger": {
+        "desc": "Old Discipline a punch"
+      },
+      "cinematic": "TODO",
+      "flavor": "The counter-fighter takes an over-extended arm and rotates it a scientific, awful amount."
+    },
+    {
+      "region": "LEGS",
+      "id": "ankle_taken",
+      "when": {
+        "type": "move_hits",
+        "move": "gutter_run",
+        "count": 3
+      },
+      "trigger": {
+        "desc": "third Gutter Run"
+      },
+      "cinematic": "TODO",
+      "flavor": "Ankle taken in jaws, shaken."
+    },
+    {
+      "region": "BODY",
+      "id": "bear_trap",
+      "when": {
+        "type": "move_hits",
+        "move": "throat_answer",
+        "count": 2
+      },
+      "trigger": {
+        "desc": "second Throat Answer"
+      },
+      "cinematic": "TODO",
+      "flavor": "Both paws through the guard — a bite the bone-cam frames like a closing bear-trap."
+    }
+  ],
+  "debuffs_reference": {
+    "ARMS": "victim punch damage -20%, their throws tech twice as easily",
+    "LEGS": "victim loses dashes, move speed -15%",
+    "BODY": "victim meter gain -30%, Bleeding applied",
+    "HEAD": "victim inputs ghost briefly after every hit taken"
+  }
+}

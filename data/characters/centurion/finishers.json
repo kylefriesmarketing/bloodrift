@@ -1,0 +1,29 @@
+{
+  "character": "centurion",
+  "note": "P3 content — the FEED THE RIFT window names executions[0].",
+  "executions": [
+    {
+      "id": "tenth_pedestal",
+      "name": "The Tenth Pedestal",
+      "cinematic": "TODO",
+      "script": "The ghosts hold the loser upright while Marcus plants the Lance at parade angle. Stone crawls up, petrifying them mid-defiance — a new statue for the Hall. The camera pulls back: there are many, many more than ten pedestals."
+    },
+    {
+      "id": "changing_guard",
+      "name": "Changing of the Guard",
+      "cinematic": "TODO",
+      "script": "The brass gauntlet of Centurion I, and the ghosts pile in — one punch with eight overlapping after-images takes the torso through the arena wall."
+    }
+  ],
+  "desecration": {
+    "id": "muster",
+    "name": "Muster",
+    "unlock": "S-rank Standard Bearer",
+    "script": "The banner un-plants itself in their chest, and the ghosts salute."
+  },
+  "overdrive": {
+    "id": "honor_guard",
+    "name": "THE HONOR GUARD",
+    "script": "All eight prior Centurions manifest in a ring; a century of technique in three seconds, finished with the plain human right cross he had before any of this."
+  }
+}

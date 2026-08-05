@@ -1,0 +1,29 @@
+{
+  "character": "lycaon",
+  "note": "P3 content — the FEED THE RIFT window names executions[0].",
+  "executions": [
+    {
+      "id": "the_old_way",
+      "name": "The Old Way",
+      "cinematic": "TODO",
+      "script": "Beast form. The pack-ghosts of every wolf he has ever led circle with him — then the screen is all fur and red. He stands at the center, human again, wiping his mouth with a king's economy. He always eats first; he never eats alone."
+    },
+    {
+      "id": "wishbone",
+      "name": "Wishbone",
+      "cinematic": "TODO",
+      "script": "One paw on each shoulder, jaws taking the collar. A single shake — the bone-cam shows cervical, and the wide shot completes the thought against the broken moon: make a wish."
+    }
+  ],
+  "desecration": {
+    "id": "short_leash",
+    "name": "Short Leash",
+    "unlock": "S-rank Gutter Run",
+    "script": "The low lope simply doesn't stop at the bell — a red streak exits frame, one boot left standing."
+  },
+  "overdrive": {
+    "id": "hunt_remembers",
+    "name": "THE HUNT REMEMBERS",
+    "script": "The lights die to moonlight. Three strobe-lit passes, and on the fourth he is simply behind them, resetting his cuffs like a king after a hunt."
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "character": "vespra",
+  "note": "P3 live — roster triggers adapted onto the generic `when` types (D-018 wave build).",
+  "sunders": [
+    {
+      "region": "ARMS",
+      "id": "hung_from",
+      "when": {
+        "type": "move_hits",
+        "move": "blade_court",
+        "count": 3
+      },
+      "trigger": {
+        "desc": "third Blade Court"
+      },
+      "cinematic": "TODO",
+      "flavor": "Two broodlings hang from the extended arm while a blade-limb comes down precisely at the joint."
+    },
+    {
+      "region": "LEGS",
+      "id": "caliper_care",
+      "when": {
+        "type": "move_hits",
+        "move": "acid_lay",
+        "count": 2
+      },
+      "trigger": {
+        "desc": "second Acid Lay"
+      },
+      "cinematic": "TODO",
+      "flavor": "Acid flash-eats the boot — chitin jaws meet bone with a caliper's care."
+    },
+    {
+      "region": "BODY",
+      "id": "thousand_decisions",
+      "when": {
+        "type": "move_hits",
+        "move": "the_lift",
+        "count": 2
+      },
+      "trigger": {
+        "desc": "second Lift"
+      },
+      "cinematic": "TODO",
+      "flavor": "She presses them against her thorax while the larvae mantle swarms across — one bone-camera second of a thousand small decisions."
+    }
+  ],
+  "debuffs_reference": {
+    "ARMS": "victim punch damage -20%, their throws tech twice as easily",
+    "LEGS": "victim loses dashes, move speed -15%",
+    "BODY": "victim meter gain -30%, Bleeding applied",
+    "HEAD": "victim inputs ghost briefly after every hit taken"
+  }
+}

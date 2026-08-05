@@ -1,0 +1,53 @@
+{
+  "character": "marrow",
+  "note": "P3 live — roster triggers adapted onto the generic `when` types (D-018 wave build).",
+  "sunders": [
+    {
+      "region": "ARMS",
+      "id": "snapped_cast",
+      "when": {
+        "type": "parry_vs_uses",
+        "uses": "ARMS"
+      },
+      "trigger": {
+        "desc": "Calcify a punch"
+      },
+      "cinematic": "TODO",
+      "flavor": "The counter cases the striking limb in bone — and then she snaps the cast."
+    },
+    {
+      "region": "LEGS",
+      "id": "ascending_spike",
+      "when": {
+        "type": "move_hits",
+        "move": "gravefield",
+        "count": 2
+      },
+      "trigger": {
+        "desc": "land the second Gravefield"
+      },
+      "cinematic": "TODO",
+      "flavor": "A spike through the heel — the bone-cam rides it up."
+    },
+    {
+      "region": "BODY",
+      "id": "spina_volley",
+      "when": {
+        "type": "move_hits",
+        "move": "spina",
+        "count": 3
+      },
+      "trigger": {
+        "desc": "land the third Spina"
+      },
+      "cinematic": "TODO",
+      "flavor": "A point-blank volley the camera follows through."
+    }
+  ],
+  "debuffs_reference": {
+    "ARMS": "victim punch damage -20%, their throws tech twice as easily",
+    "LEGS": "victim loses dashes, move speed -15%",
+    "BODY": "victim meter gain -30%, Bleeding applied",
+    "HEAD": "victim inputs ghost briefly after every hit taken"
+  }
+}

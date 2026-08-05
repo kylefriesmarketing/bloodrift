@@ -319,16 +319,52 @@ export class Hud {
         cx.fillStyle = '#c22a3a';
         cx.fillText('SANGUINE DRAW ready', x0, gy + 22);
       }
-    } else {
+    } else if (ch.rift_button.mechanic === 'graft_sets') {
+      const cfg = ch.rift_button.config || {};
+      const labels = cfg.labels || { power: 'POWER', finesse: 'FINESSE' };
+      const title = ch.id === 'graft' ? 'BORROWED HANDS' : ch.id === 'lycaon' ? 'THE CHANGE'
+        : ch.id === 'flux' ? 'THE SHIFTCORE' : ch.id === 'centurion' ? 'BEARER STANCES' : 'SETS';
       cx.font = '700 12px Georgia, serif';
       cx.fillStyle = '#b8434e';
-      cx.fillText(`BORROWED HANDS — ${f.gset.toUpperCase()}`, x0, gy - 8);
+      cx.fillText(`${title} — ${(labels[f.gset] || f.gset).toUpperCase()}`, x0, gy - 8);
       cx.fillStyle = 'rgba(0,0,0,0.6)';
       rr2(cx, side === 0 ? x0 : x0 - 180, gy, 180, 9, 3);
-      const gk = f.graftHp / (ch.rift_button.config.poolMax || 150);
+      const gk = f.graftHp / (cfg.poolMax || 150);
       if (gk > 0) {
         cx.fillStyle = '#8a5a62';
         rr2(cx, side === 0 ? x0 : x0 - 180 * gk, gy, 180 * gk, 9, 3);
+      }
+    } else if (ch.rift_button.mechanic === 'audit') {
+      const cdMax = ch.rift_button.config.auditCd || 200;
+      const ready = 1 - Math.min(1, f.drainCd / cdMax);
+      const opp = sim.fighters[1 - side];
+      const stacks = opp.incisions.ARMS + opp.incisions.BODY + opp.incisions.LEGS + opp.incisions.HEAD;
+      cx.font = '700 12px Georgia, serif';
+      cx.fillStyle = '#3ec6b8';
+      cx.fillText(`THE LEDGER — ${stacks} curse${stacks === 1 ? '' : 's'} recorded`, x0, gy - 8);
+      cx.fillStyle = 'rgba(0,0,0,0.6)';
+      rr2(cx, side === 0 ? x0 : x0 - 180, gy, 180, 9, 3);
+      if (ready > 0) {
+        cx.fillStyle = ready >= 1 ? '#3ec6b8' : '#1f6a62';
+        rr2(cx, side === 0 ? x0 : x0 - 180 * ready, gy, 180 * ready, 9, 3);
+      }
+      if (ready >= 1 && stacks > 0) {
+        cx.font = '700 11px Georgia, serif';
+        cx.fillStyle = '#3ec6b8';
+        cx.fillText('AUDIT ready — RIFT to collect', x0, gy + 22);
+      }
+    } else if (ch.rift_button.mechanic === 'rift_special') {
+      const rmv = f.char.moves.find(m => m.trigger.type === 'rift_press');
+      const cdMax = (rmv && rmv.cooldown) || 200;
+      const ready = 1 - Math.min(1, f.drainCd / cdMax);
+      cx.font = '700 12px Georgia, serif';
+      cx.fillStyle = '#c8a25a';
+      cx.fillText((rmv ? rmv.name : 'RIFT').toUpperCase(), x0, gy - 8);
+      cx.fillStyle = 'rgba(0,0,0,0.6)';
+      rr2(cx, side === 0 ? x0 : x0 - 180, gy, 180, 9, 3);
+      if (ready > 0) {
+        cx.fillStyle = ready >= 1 ? '#e8c87a' : '#7a683a';
+        rr2(cx, side === 0 ? x0 : x0 - 180 * ready, gy, 180 * ready, 9, 3);
       }
     }
     cx.restore();

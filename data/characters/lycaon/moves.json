@@ -1,0 +1,889 @@
+[
+  {
+    "id": "s_fp",
+    "name": "Crown Jab",
+    "input": "FP",
+    "kind": "normal",
+    "trigger": {
+      "type": "button",
+      "button": "FP",
+      "pos": "stand"
+    },
+    "limb_tag": "HEAD",
+    "uses": "ARMS",
+    "guard": "mid",
+    "frames": {
+      "startup": 7,
+      "active": 3,
+      "recovery": 11,
+      "hitstun": 18,
+      "blockstun": 11,
+      "hitstop": 5
+    },
+    "onHit": 5,
+    "onBlock": -2,
+    "damage": 28,
+    "chip": 2,
+    "meterGain": {
+      "hit": 5,
+      "block": 2
+    },
+    "knock": {
+      "type": "none"
+    },
+    "hitboxes": [
+      {
+        "frames": [
+          1,
+          3
+        ],
+        "x": 26,
+        "y": 196,
+        "w": 72,
+        "h": 34
+      }
+    ],
+    "cancels": [
+      "special",
+      "overdrive"
+    ],
+    "cancelWindow": 10
+  },
+  {
+    "id": "s_bp",
+    "name": "Huntsman Cross",
+    "input": "BP",
+    "kind": "normal",
+    "trigger": {
+      "type": "button",
+      "button": "BP",
+      "pos": "stand"
+    },
+    "limb_tag": "HEAD",
+    "uses": "ARMS",
+    "guard": "mid",
+    "frames": {
+      "startup": 10,
+      "active": 3,
+      "recovery": 15,
+      "hitstun": 21,
+      "blockstun": 14,
+      "hitstop": 7
+    },
+    "onHit": 4,
+    "onBlock": -3,
+    "damage": 46,
+    "chip": 3,
+    "meterGain": {
+      "hit": 6,
+      "block": 2
+    },
+    "knock": {
+      "type": "none"
+    },
+    "hitboxes": [
+      {
+        "frames": [
+          1,
+          3
+        ],
+        "x": 32,
+        "y": 186,
+        "w": 84,
+        "h": 40
+      }
+    ],
+    "cancels": [
+      "special",
+      "overdrive"
+    ],
+    "cancelWindow": 10
+  },
+  {
+    "id": "s_fk",
+    "name": "Boot of the Estate",
+    "input": "FK",
+    "kind": "normal",
+    "trigger": {
+      "type": "button",
+      "button": "FK",
+      "pos": "stand"
+    },
+    "limb_tag": "BODY",
+    "uses": "LEGS",
+    "guard": "mid",
+    "frames": {
+      "startup": 9,
+      "active": 3,
+      "recovery": 14,
+      "hitstun": 19,
+      "blockstun": 12,
+      "hitstop": 5
+    },
+    "onHit": 3,
+    "onBlock": -4,
+    "damage": 40,
+    "chip": 2,
+    "meterGain": {
+      "hit": 5,
+      "block": 2
+    },
+    "knock": {
+      "type": "none"
+    },
+    "hitboxes": [
+      {
+        "frames": [
+          1,
+          3
+        ],
+        "x": 34,
+        "y": 118,
+        "w": 88,
+        "h": 42
+      }
+    ],
+    "cancels": [
+      "special",
+      "overdrive"
+    ],
+    "cancelWindow": 10
+  },
+  {
+    "id": "s_bk",
+    "name": "Cloakline",
+    "input": "BK",
+    "kind": "normal",
+    "trigger": {
+      "type": "button",
+      "button": "BK",
+      "pos": "stand"
+    },
+    "limb_tag": "BODY",
+    "uses": "LEGS",
+    "guard": "mid",
+    "frames": {
+      "startup": 12,
+      "active": 4,
+      "recovery": 18,
+      "hitstun": 27,
+      "blockstun": 13,
+      "hitstop": 9
+    },
+    "onBlock": -8,
+    "damage": 65,
+    "chip": 4,
+    "meterGain": {
+      "hit": 8,
+      "block": 3
+    },
+    "knock": {
+      "type": "back",
+      "vx": 11000
+    },
+    "hitboxes": [
+      {
+        "frames": [
+          1,
+          4
+        ],
+        "x": 38,
+        "y": 148,
+        "w": 96,
+        "h": 50
+      }
+    ]
+  },
+  {
+    "id": "c_fp",
+    "name": "Low Court Claw",
+    "input": "d+FP",
+    "kind": "normal",
+    "trigger": {
+      "type": "button",
+      "button": "FP",
+      "pos": "crouch"
+    },
+    "limb_tag": "BODY",
+    "uses": "ARMS",
+    "guard": "mid",
+    "frames": {
+      "startup": 6,
+      "active": 2,
+      "recovery": 9,
+      "hitstun": 16,
+      "blockstun": 11,
+      "hitstop": 5
+    },
+    "onHit": 6,
+    "onBlock": 1,
+    "damage": 18,
+    "chip": 1,
+    "meterGain": {
+      "hit": 4,
+      "block": 1
+    },
+    "knock": {
+      "type": "none"
+    },
+    "hitboxes": [
+      {
+        "frames": [
+          1,
+          2
+        ],
+        "x": 24,
+        "y": 128,
+        "w": 64,
+        "h": 32
+      }
+    ],
+    "cancels": [
+      "special",
+      "overdrive"
+    ],
+    "cancelWindow": 9
+  },
+  {
+    "id": "c_bp",
+    "name": "Rising Vesper",
+    "input": "d+BP",
+    "kind": "normal",
+    "trigger": {
+      "type": "button",
+      "button": "BP",
+      "pos": "crouch"
+    },
+    "limb_tag": "HEAD",
+    "uses": "ARMS",
+    "guard": "mid",
+    "frames": {
+      "startup": 9,
+      "active": 4,
+      "recovery": 23,
+      "hitstun": 24,
+      "blockstun": 11,
+      "hitstop": 9
+    },
+    "onBlock": -15,
+    "damage": 75,
+    "chip": 4,
+    "meterGain": {
+      "hit": 8,
+      "block": 3
+    },
+    "knock": {
+      "type": "launch",
+      "vx": 1800,
+      "vy": -17300
+    },
+    "hitboxes": [
+      {
+        "frames": [
+          1,
+          4
+        ],
+        "x": 20,
+        "y": 138,
+        "w": 62,
+        "h": 128
+      }
+    ],
+    "tags": [
+      "antiair",
+      "launcher"
+    ]
+  },
+  {
+    "id": "c_fk",
+    "name": "Ankle Sip",
+    "input": "d+FK",
+    "kind": "normal",
+    "trigger": {
+      "type": "button",
+      "button": "FK",
+      "pos": "crouch"
+    },
+    "limb_tag": "LEGS",
+    "uses": "LEGS",
+    "guard": "low",
+    "frames": {
+      "startup": 8,
+      "active": 2,
+      "recovery": 11,
+      "hitstun": 16,
+      "blockstun": 11,
+      "hitstop": 5
+    },
+    "onHit": 4,
+    "onBlock": -1,
+    "damage": 24,
+    "chip": 1,
+    "meterGain": {
+      "hit": 4,
+      "block": 1
+    },
+    "knock": {
+      "type": "none"
+    },
+    "hitboxes": [
+      {
+        "frames": [
+          1,
+          2
+        ],
+        "x": 32,
+        "y": 28,
+        "w": 80,
+        "h": 32
+      }
+    ],
+    "cancels": [
+      "special",
+      "overdrive"
+    ],
+    "cancelWindow": 9
+  },
+  {
+    "id": "c_bk",
+    "name": "Lope Sweep",
+    "input": "d+BK",
+    "kind": "normal",
+    "trigger": {
+      "type": "button",
+      "button": "BK",
+      "pos": "crouch"
+    },
+    "limb_tag": "LEGS",
+    "uses": "LEGS",
+    "guard": "low",
+    "frames": {
+      "startup": 12,
+      "active": 3,
+      "recovery": 20,
+      "hitstun": 24,
+      "blockstun": 11,
+      "hitstop": 7
+    },
+    "onBlock": -11,
+    "damage": 55,
+    "chip": 3,
+    "meterGain": {
+      "hit": 7,
+      "block": 2
+    },
+    "knock": {
+      "type": "down",
+      "vx": 4200
+    },
+    "hitboxes": [
+      {
+        "frames": [
+          1,
+          3
+        ],
+        "x": 42,
+        "y": 18,
+        "w": 104,
+        "h": 30
+      }
+    ]
+  },
+  {
+    "id": "j_fp",
+    "name": "Air Claw",
+    "input": "j.FP",
+    "kind": "normal",
+    "trigger": {
+      "type": "button",
+      "button": "FP",
+      "pos": "air"
+    },
+    "limb_tag": "HEAD",
+    "uses": "ARMS",
+    "guard": "overhead",
+    "frames": {
+      "startup": 6,
+      "active": 7,
+      "recovery": 8,
+      "hitstun": 21,
+      "blockstun": 15,
+      "hitstop": 5
+    },
+    "damage": 38,
+    "chip": 2,
+    "meterGain": {
+      "hit": 5,
+      "block": 2
+    },
+    "knock": {
+      "type": "none"
+    },
+    "hitboxes": [
+      {
+        "frames": [
+          1,
+          7
+        ],
+        "x": 20,
+        "y": 78,
+        "w": 64,
+        "h": 58
+      }
+    ]
+  },
+  {
+    "id": "j_bk",
+    "name": "Gallows Heel",
+    "input": "j.BK",
+    "kind": "normal",
+    "trigger": {
+      "type": "button",
+      "button": "BK",
+      "pos": "air"
+    },
+    "limb_tag": "BODY",
+    "uses": "LEGS",
+    "guard": "overhead",
+    "frames": {
+      "startup": 9,
+      "active": 6,
+      "recovery": 9,
+      "hitstun": 23,
+      "blockstun": 17,
+      "hitstop": 7
+    },
+    "damage": 55,
+    "chip": 3,
+    "meterGain": {
+      "hit": 6,
+      "block": 2
+    },
+    "knock": {
+      "type": "none"
+    },
+    "hitboxes": [
+      {
+        "frames": [
+          1,
+          6
+        ],
+        "x": 28,
+        "y": 58,
+        "w": 84,
+        "h": 62
+      }
+    ]
+  },
+  {
+    "id": "velvet_2",
+    "name": "Pack (2)",
+    "input": "FP,FP",
+    "kind": "string_hit",
+    "trigger": {
+      "type": "chain",
+      "from": "s_fp",
+      "button": "FP",
+      "window": [
+        1,
+        16
+      ]
+    },
+    "limb_tag": "HEAD",
+    "uses": "ARMS",
+    "guard": "mid",
+    "frames": {
+      "startup": 6,
+      "active": 3,
+      "recovery": 13,
+      "hitstun": 19,
+      "blockstun": 11,
+      "hitstop": 5
+    },
+    "onHit": 4,
+    "onBlock": -4,
+    "damage": 22,
+    "chip": 2,
+    "meterGain": {
+      "hit": 5,
+      "block": 2
+    },
+    "knock": {
+      "type": "none"
+    },
+    "hitboxes": [
+      {
+        "frames": [
+          1,
+          3
+        ],
+        "x": 28,
+        "y": 196,
+        "w": 76,
+        "h": 36
+      }
+    ],
+    "cancels": [
+      "special",
+      "overdrive"
+    ],
+    "cancelWindow": 10
+  },
+  {
+    "id": "velvet_3",
+    "name": "Pack (ender)",
+    "input": "FP,FP,BP",
+    "kind": "string_hit",
+    "trigger": {
+      "type": "chain",
+      "from": "velvet_2",
+      "button": "BP",
+      "window": [
+        1,
+        16
+      ]
+    },
+    "limb_tag": "BODY",
+    "uses": "ARMS",
+    "guard": "mid",
+    "frames": {
+      "startup": 10,
+      "active": 3,
+      "recovery": 17,
+      "hitstun": 25,
+      "blockstun": 13,
+      "hitstop": 7
+    },
+    "onBlock": -6,
+    "damage": 50,
+    "chip": 4,
+    "meterGain": {
+      "hit": 7,
+      "block": 3
+    },
+    "knock": {
+      "type": "back",
+      "vx": 12000
+    },
+    "hitboxes": [
+      {
+        "frames": [
+          1,
+          3
+        ],
+        "x": 36,
+        "y": 176,
+        "w": 92,
+        "h": 46
+      }
+    ]
+  },
+  {
+    "id": "kings_measure",
+    "name": "King's Measure",
+    "input": "b,f+FK",
+    "kind": "special",
+    "trigger": {
+      "type": "motion",
+      "motion": "bf",
+      "button": "FK",
+      "pos": "stand"
+    },
+    "limb_tag": "BODY",
+    "uses": "ARMS",
+    "guard": "mid",
+    "frames": {
+      "startup": 10,
+      "active": 3,
+      "recovery": 17,
+      "hitstun": 25,
+      "blockstun": 12,
+      "hitstop": 7
+    },
+    "onHit": 6,
+    "onBlock": -7,
+    "damage": 62,
+    "chip": 4,
+    "meterGain": {
+      "hit": 10,
+      "block": 4
+    },
+    "knock": {
+      "type": "none"
+    },
+    "movement": [
+      {
+        "frames": [
+          1,
+          10
+        ],
+        "vx": 13000
+      }
+    ],
+    "hitboxes": [
+      {
+        "frames": [
+          1,
+          3
+        ],
+        "x": 30,
+        "y": 160,
+        "w": 92,
+        "h": 52
+      }
+    ],
+    "tags": [
+      "advance"
+    ],
+    "requiresSet": "power"
+  },
+  {
+    "id": "old_discipline",
+    "name": "Old Discipline",
+    "input": "qcb+BP",
+    "kind": "special",
+    "trigger": {
+      "type": "motion",
+      "motion": "qcb",
+      "button": "BP",
+      "pos": "stand"
+    },
+    "limb_tag": "BODY",
+    "uses": "ARMS",
+    "guard": "mid",
+    "frames": {
+      "startup": 3,
+      "active": 22,
+      "recovery": 18,
+      "hitstop": 0
+    },
+    "damage": 0,
+    "chip": 0,
+    "knock": {
+      "type": "none"
+    },
+    "parry": {
+      "frames": [
+        1,
+        22
+      ],
+      "vs": [
+        "mid",
+        "overhead"
+      ],
+      "staggerAdd": 16
+    },
+    "tags": [
+      "parry"
+    ],
+    "requiresSet": "power"
+  },
+  {
+    "id": "gutter_run",
+    "name": "Gutter Run",
+    "input": "b,f+FK",
+    "kind": "special",
+    "trigger": {
+      "type": "motion",
+      "motion": "bf",
+      "button": "FK",
+      "pos": "stand"
+    },
+    "limb_tag": "LEGS",
+    "uses": "ARMS",
+    "guard": "low",
+    "frames": {
+      "startup": 10,
+      "active": 3,
+      "recovery": 17,
+      "hitstun": 25,
+      "blockstun": 12,
+      "hitstop": 7
+    },
+    "onHit": 6,
+    "onBlock": -7,
+    "damage": 58,
+    "chip": 4,
+    "meterGain": {
+      "hit": 10,
+      "block": 4
+    },
+    "knock": {
+      "type": "none"
+    },
+    "movement": [
+      {
+        "frames": [
+          1,
+          10
+        ],
+        "vx": 13000
+      }
+    ],
+    "hitboxes": [
+      {
+        "frames": [
+          1,
+          3
+        ],
+        "x": 30,
+        "y": 30,
+        "w": 100,
+        "h": 44
+      }
+    ],
+    "tags": [
+      "advance"
+    ],
+    "requiresSet": "finesse"
+  },
+  {
+    "id": "throat_answer",
+    "name": "Throat Answer",
+    "input": "dp+FP",
+    "kind": "special",
+    "trigger": {
+      "type": "motion",
+      "motion": "dp",
+      "button": "FP",
+      "pos": "stand"
+    },
+    "limb_tag": "HEAD",
+    "uses": "ARMS",
+    "guard": "mid",
+    "frames": {
+      "startup": 7,
+      "active": 7,
+      "recovery": 30,
+      "hitstun": 26,
+      "blockstun": 10,
+      "hitstop": 9
+    },
+    "onBlock": -26,
+    "damage": 68,
+    "chip": 4,
+    "meterGain": {
+      "hit": 9,
+      "block": 3
+    },
+    "knock": {
+      "type": "launch",
+      "vx": 1000,
+      "vy": -16800
+    },
+    "invuln": {
+      "frames": [
+        1,
+        12
+      ],
+      "vs": "air"
+    },
+    "hitboxes": [
+      {
+        "frames": [
+          1,
+          7
+        ],
+        "x": 16,
+        "y": 84,
+        "w": 66,
+        "h": 190
+      }
+    ],
+    "tags": [
+      "antiair"
+    ],
+    "requiresSet": "finesse"
+  },
+  {
+    "id": "carrion_call",
+    "name": "Carrion Call",
+    "input": "qcb+FK",
+    "kind": "special",
+    "trigger": {
+      "type": "motion",
+      "motion": "qcb",
+      "button": "FK",
+      "pos": "stand"
+    },
+    "limb_tag": "BODY",
+    "uses": "BODY",
+    "guard": "mid",
+    "frames": {
+      "startup": 8,
+      "active": 2,
+      "recovery": 22,
+      "hitstop": 0
+    },
+    "damage": 0,
+    "chip": 0,
+    "knock": {
+      "type": "none"
+    },
+    "selfBuff": {
+      "meterRegen": 2,
+      "dur": 240
+    },
+    "tags": [
+      "buff"
+    ],
+    "requiresSet": "finesse"
+  },
+  {
+    "id": "hunt_remembers",
+    "name": "THE HUNT REMEMBERS",
+    "input": "TH+RF (3 pints)",
+    "kind": "overdrive",
+    "trigger": {
+      "type": "buttons",
+      "buttons": [
+        "TH",
+        "RF"
+      ]
+    },
+    "limb_tag": "BODY",
+    "uses": "BODY",
+    "guard": "mid",
+    "frames": {
+      "startup": 10,
+      "active": 4,
+      "recovery": 34,
+      "hitstun": 40,
+      "blockstun": 22,
+      "hitstop": 14
+    },
+    "onBlock": -15,
+    "damage": 235,
+    "chip": 55,
+    "lifesteal": 300,
+    "meterGain": {
+      "hit": 0,
+      "block": 0
+    },
+    "cost": {
+      "meter": 300
+    },
+    "knock": {
+      "type": "hardDown",
+      "vx": 4000,
+      "vy": -10500
+    },
+    "hitboxes": [
+      {
+        "frames": [
+          1,
+          4
+        ],
+        "x": -30,
+        "y": 20,
+        "w": 270,
+        "h": 300
+      }
+    ],
+    "superFlash": 40,
+    "tags": [
+      "overdrive",
+      "cinematic"
+    ]
+  }
+]

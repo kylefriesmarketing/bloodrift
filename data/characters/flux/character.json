@@ -1,0 +1,117 @@
+{
+  "id": "flux",
+  "name": "FLUX",
+  "title": "The Codex Thief",
+  "faction": "dominion",
+  "archetype": "form-cycle",
+  "difficulty": 4,
+  "stats": {
+    "hp": 940,
+    "walkF": 3800,
+    "walkB": 3400,
+    "dashF": {
+      "speed": 8200,
+      "dur": 14,
+      "tail": 4
+    },
+    "dashB": {
+      "speed": 8400,
+      "dur": 14,
+      "tail": 4
+    },
+    "jumpVy": -26500,
+    "gravity": 1250,
+    "prejump": 4,
+    "weight": 2,
+    "width": 82,
+    "height": 262,
+    "crouchHeight": 172
+  },
+  "rift_button": {
+    "mechanic": "graft_sets",
+    "config": {
+      "poolMax": 100,
+      "poolStart": 100,
+      "absorbHeal": 20,
+      "armorDamagePermille": 300,
+      "power": {
+        "dmgPermille": 1000,
+        "walkPermille": 850
+      },
+      "finesse": {
+        "walkPermille": 1250,
+        "throwStartupMinus": 0,
+        "longArmExtend": 0
+      },
+      "labels": {
+        "power": "KARRAK",
+        "finesse": "VELIX"
+      }
+    }
+  },
+  "rpg_hook": {
+    "id": "flux_hook",
+    "persistent": true,
+    "state": {},
+    "effects": [
+      {
+        "trigger": "on_execution",
+        "action": "grant_resource",
+        "resource": "flux.harvest",
+        "amount": 1,
+        "note": "P4+ signature persistence — see the roster doc for the full hook."
+      }
+    ]
+  },
+  "pool_interactions": [],
+  "wound_art": {
+    "arms": 3,
+    "legs": 3,
+    "body": 3,
+    "head": 3
+  },
+  "hurtboxes": {
+    "stand": [
+      {
+        "x": -27,
+        "y": 0,
+        "w": 54,
+        "h": 202
+      },
+      {
+        "x": -19,
+        "y": 202,
+        "w": 38,
+        "h": 60
+      }
+    ],
+    "crouch": [
+      {
+        "x": -29,
+        "y": 0,
+        "w": 58,
+        "h": 172
+      }
+    ],
+    "air": [
+      {
+        "x": -27,
+        "y": 40,
+        "w": 54,
+        "h": 182
+      }
+    ]
+  },
+  "throw": {
+    "range": 45,
+    "damage": 120,
+    "techWindow": 10,
+    "startup": 5
+  },
+  "palette": {
+    "primary": "#3a6a72",
+    "secondary": "#1a2a30",
+    "accent": "#58e8d8",
+    "blood": "#2ec8b0"
+  }
+}

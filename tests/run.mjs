@@ -28,7 +28,9 @@ const INTRO = 62; // fight phase begins ~frame 60; scripts act after this
 
 // ---------------------------------------------------------------- 1. schemas
 
-const ROSTER = ['zenith', 'graft', 'strigoi', 'joule', 'triage'];
+const ROSTER = ['zenith', 'triage', 'centurion', 'joule', 'marrow',
+  'strigoi', 'lycaon', 'graft', 'khet', 'harrow',
+  'flux', 'vespra', 'ordnance', 'null', 'vyrm'];
 
 t('schema: character.json (roster)', () => {
   const sch = data('data/schema/character.schema.json');
@@ -592,6 +594,22 @@ t('triage: Rounds charts the weak limb (+12% on tagged hits) and Clamp steals a 
   assertEq(sim.fighters[1].incisions.BODY, 1, 'clamp carves an incision');
   assertEq(sim.fighters[0].meter, 5 + 10 + 50, 'her meter: +5 jab, +10 clamp, +50 sampled');
   assert(sim.fighters[1].meter < 60, 'his meter was sampled');
+});
+
+t('roster: every fighter boots, fights ZENITH deterministically, and stays error-free', () => {
+  for (const c of ROSTER) {
+    if (c === 'zenith') continue;
+    const hashesOf = () => {
+      const sim = makeSim({ p1: c, p2: 'zenith', seed: 777, cpu: [{ level: 2 }, { level: 2 }] });
+      const out = [];
+      for (let f = 0; f < 1500; f++) {
+        sim.step(0, 0);
+        if (f % 150 === 0) out.push(sim.hash());
+      }
+      return out.join(',');
+    };
+    assertEq(hashesOf(), hashesOf(), `${c}: CPU determinism`);
+  }
 });
 
 t('w1: JOULE vs TRIAGE CPU mirror stays deterministic', () => {

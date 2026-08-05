@@ -1,0 +1,54 @@
+{
+  "character": "flux",
+  "note": "P3 live — roster triggers adapted onto the generic `when` types (D-018 wave build).",
+  "sunders": [
+    {
+      "region": "ARMS",
+      "id": "numbered_cuts",
+      "when": {
+        "type": "move_hits",
+        "move": "velix_rake",
+        "count": 3
+      },
+      "trigger": {
+        "desc": "third Velix Rake"
+      },
+      "cinematic": "TODO",
+      "flavor": "A six-slash instant the bone-cam only catches up to afterward, numbering the cuts."
+    },
+    {
+      "region": "LEGS",
+      "id": "crushed_to_geometry",
+      "when": {
+        "type": "move_hits",
+        "move": "karrak_shatter",
+        "count": 2
+      },
+      "trigger": {
+        "desc": "second Karrak Shatter"
+      },
+      "cinematic": "TODO",
+      "flavor": "A crystal fist closes around the thigh — the bone faceting."
+    },
+    {
+      "region": "BODY",
+      "id": "light_through",
+      "when": {
+        "type": "move_hits",
+        "move": "ionne_beam",
+        "count": 3
+      },
+      "trigger": {
+        "desc": "third Ionne Beam"
+      },
+      "cinematic": "TODO",
+      "flavor": "A beam threaded through the torso that the camera orbits — light where light should not be."
+    }
+  ],
+  "debuffs_reference": {
+    "ARMS": "victim punch damage -20%, their throws tech twice as easily",
+    "LEGS": "victim loses dashes, move speed -15%",
+    "BODY": "victim meter gain -30%, Bleeding applied",
+    "HEAD": "victim inputs ghost briefly after every hit taken"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "character": "flux",
+  "note": "P3 content — the FEED THE RIFT window names executions[0].",
+  "executions": [
+    {
+      "id": "assimilation_error",
+      "name": "Assimilation Error",
+      "cinematic": "TODO",
+      "script": "The SHIFTCORE tries to catalog them — their body cycles helplessly through half-versions of her forms, faster and faster, until the sequences collide. The core chimes politely: sample corrupted. Discarding."
+    },
+    {
+      "id": "field_salvage",
+      "name": "Field Salvage",
+      "cinematic": "TODO",
+      "script": "VELIX form, four cuts, and the loser is disassembled the way she'd strip a wreck — by resource value. She bags the one glowing sample she wanted. \"Nothing personal. Inventory.\""
+    }
+  ],
+  "desecration": {
+    "id": "wrong_form",
+    "name": "Wrong Form",
+    "unlock": "S-rank Panic Shift",
+    "script": "The defensive shift triggers offensively — their final hit passes through the tear and KARRAK's fist comes out of it."
+  },
+  "overdrive": {
+    "id": "full_catalog",
+    "name": "FULL CATALOG",
+    "script": "She shifts through every equipped form in 2.5 seconds — VELIX entry, KARRAK wall-splat, IONNE beam finish — ending human, smoking, her gray eye flickering through nine other species' pupils."
+  }
+}

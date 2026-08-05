@@ -1,0 +1,52 @@
+{
+  "character": "khet",
+  "note": "P3 live — roster triggers adapted onto the generic `when` types (D-018 wave build).",
+  "sunders": [
+    {
+      "region": "ARMS",
+      "id": "aged_wrist",
+      "when": {
+        "type": "move_hits",
+        "move": "dry_season",
+        "count": 4
+      },
+      "trigger": {
+        "desc": "fourth Dry Season"
+      },
+      "cinematic": "TODO",
+      "flavor": "The wrappings take the wrist and age it — four thousand years in four seconds."
+    },
+    {
+      "region": "LEGS",
+      "id": "locked_knee",
+      "when": {
+        "type": "move_hits",
+        "move": "wrapping_writ",
+        "count": 2
+      },
+      "trigger": {
+        "desc": "second Wrapping Writ"
+      },
+      "cinematic": "TODO",
+      "flavor": "Sand liquefies underfoot and refreezes mid-stride; the wrapping-yank resolves the disagreement."
+    },
+    {
+      "region": "BODY",
+      "id": "early_filing",
+      "when": {
+        "type": "hit_while_bleeding"
+      },
+      "trigger": {
+        "desc": "strike a Bleeding opponent"
+      },
+      "cinematic": "TODO",
+      "flavor": "One canopic jar unstoppers and takes its filing early. The jar seals with a stamp."
+    }
+  ],
+  "debuffs_reference": {
+    "ARMS": "victim punch damage -20%, their throws tech twice as easily",
+    "LEGS": "victim loses dashes, move speed -15%",
+    "BODY": "victim meter gain -30%, Bleeding applied",
+    "HEAD": "victim inputs ghost briefly after every hit taken"
+  }
+}

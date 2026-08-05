@@ -176,6 +176,7 @@ class Fighter {
       cc: this.concussT, lp: this.lowPunishable, dcd: this.drainCd,
       jl: this.joules, in2: [this.incisions.ARMS, this.incisions.BODY, this.incisions.LEGS, this.incisions.HEAD],
       mk: this.marked, mkT: this.markT, sh: this.stanceHeldT, sm: this.stanceMoveId,
+      rg: this.regenT || 0, ra: this.regenAmt || 0,
       pa: [this.pressAge.FP, this.pressAge.BP, this.pressAge.FK, this.pressAge.BK, this.pressAge.TH, this.pressAge.RF],
       dw: this.dashWant || null, lf: this.lastFwdTap, lb: this.lastBackTap, pd: this.prevDir,
       pv: this.pushVx || 0, ps: this.pushVxSelf || 0, wr: !!this.wakeRoll,
@@ -365,6 +366,7 @@ export class Sim {
     if (f.concussT > 0) f.concussT--;
     if (f.drainCd > 0) f.drainCd--;
     if (f.markT > 0) { f.markT--; if (f.markT === 0) f.marked = null; }
+    if (f.regenT > 0) { f.regenT--; if (f.regenT % 20 === 0) this.gainMeter(f, f.regenAmt || 0); }
     if (f.sundered.LEGS) f.dashWant = null; // Sundered LEGS: no dashes
 
     switch (f.state) {
@@ -497,6 +499,39 @@ export class Sim {
       }
       return false;
     }
+    // KHET — Audit: detonate every curse carved into the opponent, itemized
+    if (mech.mechanic === 'audit') {
+      if (tr.held(B.TH)) return false;
+      if (!this.buffered(i, 'RF', 2) || f.drainCd > 0) return false;
+      this.consume(i, 'RF');
+      const cfg = mech.config || {};
+      f.drainCd = cfg.auditCd || 180;
+      const opp = this.other(i);
+      const stacks = opp.incisions.ARMS + opp.incisions.BODY + opp.incisions.LEGS + opp.incisions.HEAD;
+      if (stacks > 0) {
+        const dmg = stacks * (cfg.perStack || 14);
+        this.damage(opp, Math.min(opp.hp - 0, dmg), 'hit', i);
+        for (const r of REGIONS) opp.incisions[r] = 0;
+        this.gainMeter(f, 8 + stacks * 2);
+        this.bloodEvent(opp, Math.min(60, dmg), 2);
+        this.hitstopT = Math.max(this.hitstopT, 8);
+        this.emit({ t: 'audit', who: i, stacks, dmg });
+      }
+      return false;
+    }
+    // generic rift-special: the Rift button fires this character's rift_press move
+    if (mech.mechanic === 'rift_special') {
+      if (tr.held(B.TH)) return false;
+      if (!this.buffered(i, 'RF', 2) || f.drainCd > 0) return false;
+      const mv = f.char.moves.find(m => m.trigger.type === 'rift_press');
+      if (!mv) return false;
+      if (mv.cost && mv.cost.meter && f.meter < mv.cost.meter) return false;
+      this.consume(i, 'RF');
+      if (mv.cost && mv.cost.meter) f.meter -= mv.cost.meter;
+      f.drainCd = mv.cooldown || 180;
+      this.startMove(i, mv.id, null);
+      return true;
+    }
     // TRIAGE — Rounds: a diagnostic glance that marks the most-ruined limb for +damage
     if (mech.mechanic === 'atlas') {
       if (tr.held(B.TH)) return false;
@@ -595,7 +630,8 @@ export class Sim {
       for (const b of ['FP', 'BP', 'FK', 'BK', 'TH']) {
         if (!this.buffered(i, b, 6)) continue;
         const mv = list.find(m => m.kind === 'special' && m.trigger.type === 'motion' &&
-          m.trigger.motion === motion && m.trigger.button === b);
+          m.trigger.motion === motion && m.trigger.button === b &&
+          (!m.requiresSet || m.requiresSet === f.gset));
         if (mv) {
           this.consume(i, b);
           const variant = this.pickVariant(i, mv);
@@ -701,6 +737,14 @@ export class Sim {
     f.counterable = true;
     f.projSpawned = false;
     f.facts.muses[id] = (f.facts.muses[id] || 0) + 1; // mastery XP ledger (P4)
+    // MARROW spends herself: hp costs on base moves (never below 1)
+    if (mv.cost && mv.cost.hp) f.hp = Math.max(1, f.hp - mv.cost.hp);
+    // banners/howls: timed self meter-regen
+    if (mv.selfBuff && mv.selfBuff.meterRegen) {
+      f.regenT = mv.selfBuff.dur || 300;
+      f.regenAmt = mv.selfBuff.meterRegen;
+      this.emit({ t: 'selfBuff', who: i, move: id });
+    }
     this.emit({ t: 'moveStart', who: i, move: id, variant });
   }
 
@@ -741,6 +785,11 @@ export class Sim {
         this.emit({ t: 'cleanse', who: i, region: cured });
         if (f.moveVar === 'ex') this.gainMeter(f, 50);
       }
+    }
+    // VYRM's Maintenance and kin: self-heal at the active frame
+    if (mv.selfHeal && f.moveF === fr.startup + 1) {
+      f.hp = Math.min(f.hpMax, f.hp + mv.selfHeal);
+      this.emit({ t: 'drain', who: i, amt: mv.selfHeal });
     }
 
     // grab connect check during active window

@@ -1,0 +1,53 @@
+{
+  "character": "centurion",
+  "note": "P3 live — roster triggers adapted onto the generic `when` types (D-018 wave build).",
+  "sunders": [
+    {
+      "region": "ARMS",
+      "id": "paper_cutter",
+      "when": {
+        "type": "absorb_punish",
+        "absorbs": 3
+      },
+      "trigger": {
+        "desc": "armor through 3 hits, then punish"
+      },
+      "cinematic": "TODO",
+      "flavor": "The Aegis rim comes down on a braced elbow like a paper-cutter."
+    },
+    {
+      "region": "LEGS",
+      "id": "pinned_standard",
+      "when": {
+        "type": "move_hits",
+        "move": "harvest_trip",
+        "count": 2
+      },
+      "trigger": {
+        "desc": "land the second Harvest Trip"
+      },
+      "cinematic": "TODO",
+      "flavor": "The Lance pins a foot to the arena floor — bone-cam of the pin."
+    },
+    {
+      "region": "BODY",
+      "id": "collarbone_hooks",
+      "when": {
+        "type": "move_hits",
+        "move": "shield_rush",
+        "count": 3
+      },
+      "trigger": {
+        "desc": "land the third Shield Rush"
+      },
+      "cinematic": "TODO",
+      "flavor": "Twin Hooks set under the collarbones, and pulled."
+    }
+  ],
+  "debuffs_reference": {
+    "ARMS": "victim punch damage -20%, their throws tech twice as easily",
+    "LEGS": "victim loses dashes, move speed -15%",
+    "BODY": "victim meter gain -30%, Bleeding applied",
+    "HEAD": "victim inputs ghost briefly after every hit taken"
+  }
+}

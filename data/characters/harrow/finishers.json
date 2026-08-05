@@ -1,0 +1,29 @@
+{
+  "character": "harrow",
+  "note": "P3 content — the FEED THE RIFT window names executions[0].",
+  "executions": [
+    {
+      "id": "one_more_bandolier",
+      "name": "One More for the Bandolier",
+      "cinematic": "TODO",
+      "script": "He takes the head with the saber in one ceremonial arc and holds it up to his lantern-flame to look at it — the flame has no eyes and it is definitely looking. The others greet it."
+    },
+    {
+      "id": "company",
+      "name": "Company",
+      "cinematic": "TODO",
+      "script": "He doesn't take their head cleanly — he swaps it. His body walks off wearing their horrified face; his laughing head rides their stumbling body in circles. The Court finds this one hilarious."
+    }
+  ],
+  "desecration": {
+    "id": "kicked_it",
+    "name": "Kicked It",
+    "unlock": "S-rank Deadhead",
+    "script": "The planted Head, kicked one time too many, simply finishes it — the body still crossing the screen at a sprint, hands out: drop it. Drop it."
+  },
+  "overdrive": {
+    "id": "toll_road",
+    "name": "THE TOLL ROAD",
+    "script": "The background becomes a midnight crossroads. GALLOWS makes three full passes, the Head calling the strikes like a carnival barker."
+  }
+}

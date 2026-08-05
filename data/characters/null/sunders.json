@@ -1,0 +1,53 @@
+{
+  "character": "null",
+  "note": "P3 live — roster triggers adapted onto the generic `when` types (D-018 wave build).",
+  "sunders": [
+    {
+      "region": "ARMS",
+      "id": "tide_lines",
+      "when": {
+        "type": "move_hits",
+        "move": "tidal_hand",
+        "count": 3
+      },
+      "trigger": {
+        "desc": "third Tidal Hand"
+      },
+      "cinematic": "TODO",
+      "flavor": "Gravity disagrees along the limb's length — stress fractures propagating in slow tide-lines."
+    },
+    {
+      "region": "LEGS",
+      "id": "somewhere_else",
+      "when": {
+        "type": "move_hits",
+        "move": "well",
+        "count": 2
+      },
+      "trigger": {
+        "desc": "second Well"
+      },
+      "cinematic": "TODO",
+      "flavor": "A micro-Well at a planted ankle for exactly one step — a knee arriving somewhere the shin hasn't."
+    },
+    {
+      "region": "BODY",
+      "id": "learning_tides",
+      "when": {
+        "type": "pools_drunk",
+        "drinks": 3
+      },
+      "trigger": {
+        "desc": "Consume three pools, then land a hit"
+      },
+      "cinematic": "TODO",
+      "flavor": "It embraces them, and the suit's chest-tear faces them — ribs learning about tides."
+    }
+  ],
+  "debuffs_reference": {
+    "ARMS": "victim punch damage -20%, their throws tech twice as easily",
+    "LEGS": "victim loses dashes, move speed -15%",
+    "BODY": "victim meter gain -30%, Bleeding applied",
+    "HEAD": "victim inputs ghost briefly after every hit taken"
+  }
+}
