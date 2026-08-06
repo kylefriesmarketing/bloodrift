@@ -17,8 +17,17 @@ import {
 
 const $ = id => document.getElementById(id);
 
+// Build stamp — shown on the menu. GitHub Pages caches assets for ~10 minutes, so a
+// stale tab will display an OLD number here: that's the tell to hard-refresh, rather
+// than wondering why a change "didn't deploy".
+export const BUILD = '2026-08-05.4';
+
 // ---------------- data
-async function j(u) { const r = await fetch(u); if (!r.ok) throw new Error(u + ' → ' + r.status); return r.json(); }
+async function j(u) {
+  const r = await fetch(u + (u.includes('?') ? '&' : '?') + 'v=' + BUILD);
+  if (!r.ok) throw new Error(u + ' → ' + r.status);
+  return r.json();
+}
 
 export const CHARS = ['zenith', 'triage', 'centurion', 'joule', 'marrow',
   'strigoi', 'lycaon', 'graft', 'khet', 'harrow',
@@ -455,6 +464,8 @@ async function boot() {
       document.querySelectorAll('[data-lvl]').forEach(x => x.classList.toggle('sel', x === b));
     };
   });
+  const stamp = $('buildstamp');
+  if (stamp) stamp.textContent = 'build ' + BUILD;
   $('loading').style.display = 'none';
   $('menu-inner').style.display = 'block';
   requestAnimationFrame(frame);
