@@ -5,7 +5,8 @@
     "rollCost": 100,
     "breakerCost": 200,
     "overdriveCost": 300,
-    "takeDamagePerHundred": 8
+    "takeDamagePerHundred": 8,
+    "blockDefenderGain": 4
   },
   "comboScaling": [1000, 1000, 900, 800, 700, 600, 500, 400, 350, 300],
   "trauma": {

@@ -78,6 +78,29 @@ Bleeding; HEAD = inputs ghost (25f zero-buffer window after every hit taken). On
 per match; they persist across rounds. HEAD sunders exist in engine but no launch-pair
 character has one authored (matches the roster sheets).
 
+**D-020 · The CPU is a reactive fighter, and blocking now pays.** `engine/sim/cpu.mjs` is a
+priority ladder — anti-air → whiff-punish → block-on-reaction → okizeme → overdrive →
+close-range mixups → footsies → full-screen — with every reactive branch gated behind a
+per-level reaction lag. It still "plays the controller" (specials go through the real motion
+parser) and still runs on its own seeded stream, so CPU matches replay identically.
+- ⚠️ **The reaction gate must key on THREAT IDENTITY, not `o.state`.** Keyed on raw state it
+  reset every few frames (idle↔walk flicker), so the timer never expired and the AI never
+  blocked or punished at all. Measured before/after: L2-vs-L1 win rate 43% → 82%.
+- ⚠️ `comboHits` lives on the VICTIM. Reading the opponent's counter meant the AI never used
+  a single Transfusion breaker in a full benchmark (0.0/match).
+- **Skill ladder is verified by measurement, not vibes** (28 mirrored matches per pair):
+  L3 beats L1 86%, L3 beats L2 79%, L2 beats L1 82%. TIMID also *hesitates* — it stands
+  still in bursts — because an easy setting should give the player turns, not just miss more.
+- **Balance finding that came out of the benchmark**: a blocking AI could not out-perform a
+  mashing one, because defence was pure loss (chip damage + lost tempo + no reward) and the
+  2-pint Transfusion comeback was unreachable while under pressure. Defenders now gain
+  `meter.blockDefenderGain` (4 centipints) per blocked hit. Re-measured: L3-vs-L2 61% → 71%.
+- Impact FX are now hit-type-specific (the sim tags each hit `kind`: punch/kick/proj/grab/
+  super + a direction): punches throw a tight star and straight streaks, kicks sweep a
+  crescent along the swing, projectiles burst radially, grabs collapse rings inward.
+  Audio is layered to match — body tone + surface crack + a wet layer above 45 damage —
+  over a tension bed that tightens as the closest fighter nears death.
+
 **D-019 · The art layer is data + three view modules.** `data/looks.json` (schema-free by
 design — it is pure presentation, and the sim never reads it) holds each fighter's `build`
 proportions and an ordered `parts` list; `engine/fx/body.mjs` interprets them into an

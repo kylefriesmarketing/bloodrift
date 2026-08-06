@@ -104,15 +104,17 @@ export class Renderer {
       switch (e.t) {
         case 'hit': case 'grabHit': {
           const vic = sim.fighters[e.who];
-          this.spark(e.x ?? vic.x / SCALE, (e.y ?? 130), '#fff', 9 + Math.min(14, (e.dmg || 20) / 8));
-          this.shake(Math.min(13, 3 + (e.dmg || 20) / 14));
-          if ((e.dmg || 0) >= 60) {
+          const hx = e.x ?? vic.x / SCALE, hy = e.y ?? 130;
+          const dmg = e.dmg || 20;
+          const kind = e.kind || (e.t === 'grabHit' ? 'grab' : 'punch');
+          const dir = e.dir || 1;
+          this.impact(hx, hy, dmg, kind, dir);
+          this.shake(Math.min(13, 3 + dmg / 14));
+          if (dmg >= 60) {
             this.punch(0.05);
-            // impact mist
             for (let k = 0; k < 3; k++) {
               this.parts.push({
-                type: 'mist', x: (e.x ?? vic.x / SCALE) + (Math.random() - 0.5) * 30,
-                y: (e.y ?? 130) + (Math.random() - 0.5) * 30,
+                type: 'mist', x: hx + (Math.random() - 0.5) * 30, y: hy + (Math.random() - 0.5) * 30,
                 vx: (Math.random() - 0.5) * 0.6, vy: 0.5 + Math.random() * 0.5,
                 r: 16 + Math.random() * 18, life: 34, max: 34
               });
@@ -205,6 +207,47 @@ export class Renderer {
           type: 'slash', x: wx, y: wy, a, col: Math.random() < 0.5 ? '#fff' : '#ff2135',
           len: 14 + Math.random() * 26, life: 7, max: 7
         });
+      }
+    }
+  }
+
+  // an impact reads differently depending on what hit you — this is most of "feel"
+  impact(wx, wy, dmg, kind, dir) {
+    const heavy = Math.min(1, dmg / 90);
+    if (kind === 'kick') {
+      // wide arcing crescent along the swing
+      this.parts.push({ type: 'crescent', x: wx, y: wy, a: dir > 0 ? -0.5 : Math.PI + 0.5, dir,
+        r: 26 + heavy * 34, life: 11, max: 11, col: '#fff2d8' });
+      this.spark(wx, wy, '#ffe6c0', 7 + heavy * 8);
+    } else if (kind === 'proj') {
+      // radial burst — energy dumping into a body
+      for (let k = 0; k < 8; k++) {
+        const a = (k / 8) * Math.PI * 2 + Math.random() * 0.4;
+        this.parts.push({ type: 'shard', x: wx, y: wy, vx: Math.cos(a) * (2 + heavy * 4),
+          vy: Math.sin(a) * (2 + heavy * 4), life: 13, max: 13, col: '#ffd08a' });
+      }
+      this.spark(wx, wy, '#ffca7a', 9 + heavy * 10);
+    } else if (kind === 'grab') {
+      // compression: rings collapsing inward, no spray
+      for (let k = 0; k < 3; k++) {
+        this.parts.push({ type: 'implode', x: wx, y: wy - 10 + k * 14, r: 46 - k * 8, life: 15, max: 15, col: '#c2444e' });
+      }
+    } else if (kind === 'super') {
+      this.parts.push({ type: 'crescent', x: wx, y: wy, a: dir > 0 ? -0.7 : Math.PI + 0.7, dir,
+        r: 70, life: 16, max: 16, col: '#ffffff' });
+      for (let k = 0; k < 14; k++) {
+        const a = (k / 14) * Math.PI * 2;
+        this.parts.push({ type: 'shard', x: wx, y: wy, vx: Math.cos(a) * 7, vy: Math.sin(a) * 7,
+          life: 18, max: 18, col: '#ff8a94' });
+      }
+      this.spark(wx, wy, '#fff', 22);
+    } else {
+      // punch: tight star, straight impact lines along the blow
+      this.spark(wx, wy, '#fff', 8 + heavy * 10);
+      for (let k = 0; k < 3; k++) {
+        this.parts.push({ type: 'shard', x: wx, y: wy,
+          vx: dir * (3 + Math.random() * 5 + heavy * 3), vy: (Math.random() - 0.5) * 3.5,
+          life: 10, max: 10, col: '#ffffff' });
       }
     }
   }
@@ -561,6 +604,40 @@ export class Renderer {
         cx.lineWidth = 2.5;
         cx.beginPath();
         cx.arc(W2S(p.x), Y2S(p.y), p.r * (1.6 - k) * 1.25 * S, 0, Math.PI * 2);
+        cx.stroke();
+        cx.globalAlpha = 1;
+      } else if (p.type === 'crescent') {
+        // a swung arc that widens and fades — sells kicks and supers
+        const k = p.life / p.max;
+        cx.strokeStyle = p.col;
+        cx.globalAlpha = k * 0.9;
+        cx.lineWidth = (2 + 7 * k) * S;
+        cx.beginPath();
+        cx.arc(W2S(p.x), Y2S(p.y), p.r * (1.5 - k * 0.5) * S,
+          p.a - 0.95 * (1.3 - k), p.a + 0.95 * (1.3 - k));
+        cx.stroke();
+        cx.globalAlpha = 1;
+      } else if (p.type === 'shard') {
+        // a hard streak flying off the point of contact
+        p.x += p.vx; p.y += p.vy;
+        p.vx *= 0.9; p.vy *= 0.9;
+        const k = p.life / p.max;
+        cx.strokeStyle = p.col;
+        cx.globalAlpha = k;
+        cx.lineWidth = 2.4 * S;
+        cx.beginPath();
+        cx.moveTo(W2S(p.x), Y2S(p.y));
+        cx.lineTo(W2S(p.x - p.vx * 2.2), Y2S(p.y - p.vy * 2.2));
+        cx.stroke();
+        cx.globalAlpha = 1;
+      } else if (p.type === 'implode') {
+        // rings collapsing inward — the sound of something being squeezed
+        const k = p.life / p.max;
+        cx.strokeStyle = p.col;
+        cx.globalAlpha = (1 - k) * 0.7;
+        cx.lineWidth = 3 * S;
+        cx.beginPath();
+        cx.arc(W2S(p.x), Y2S(p.y), p.r * k * S, 0, Math.PI * 2);
         cx.stroke();
         cx.globalAlpha = 1;
       } else if (p.type === 'slash') {

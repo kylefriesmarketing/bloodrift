@@ -1269,6 +1269,10 @@ export class Sim {
         vic.stunT = Math.max(vic.stunT, mv.frames.blockstun || 12);
         this.applyPushback(vic, atk, mv, 'block');
         this.gainMeter(atk, (mv.meterGain && mv.meterGain.block) || 0);
+        // holding guard earns meter too — otherwise defence is pure loss (chip + lost
+        // tempo + no reward) and the Transfusion comeback valve is unreachable exactly
+        // when you need it. Measured: a blocking AI couldn't out-perform a mashing one.
+        this.gainMeter(vic, this.balance.meter.blockDefenderGain || 0);
         // "every blocked string leaks a little life to him" — chip lifesteal
         if (mv.lifesteal && chip > 0 && atk.hp > 0) {
           const heal = trunc(chip * mv.lifesteal, 1000);
@@ -1413,7 +1417,10 @@ export class Sim {
 
     this.emit({
       t: 'hit', who: vic.id, by: ai, move: mv.id, dmg, counter,
-      combo: vic.comboHits, x: trunc(vic.x, SCALE), y: impactY, region
+      combo: vic.comboHits, x: trunc(vic.x, SCALE), y: impactY, region,
+      // view hints so the fx layer can tell a boot from a fireball from a fist
+      kind: proj ? 'proj' : (mv.uses === 'LEGS' ? 'kick' : mv.kind === 'overdrive' ? 'super' : 'punch'),
+      dir: Math.sign(vic.x - atk.x) || atk.facing
     });
 
     // sunder triggers ride on the landed hit

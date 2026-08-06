@@ -13,7 +13,8 @@
         "max": { "type": "integer" }, "exCost": { "type": "integer" },
         "rollCost": { "type": "integer" }, "breakerCost": { "type": "integer" },
         "overdriveCost": { "type": "integer" },
-        "takeDamagePerHundred": { "type": "integer", "description": "centipints gained per 100 damage taken" }
+        "takeDamagePerHundred": { "type": "integer", "description": "centipints gained per 100 damage taken" },
+        "blockDefenderGain": { "type": "integer", "description": "centipints the DEFENDER gains per blocked hit — makes guarding a real option" }
       }
     },
     "comboScaling": { "type": "array", "items": { "type": "integer" }, "description": "per-mille damage multiplier by combo hit index; last entry repeats" },

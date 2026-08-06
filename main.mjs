@@ -285,7 +285,7 @@ function stepOnce() {
   const m1 = mode === '2p' ? maskOf(1) : 0;
   sim.step(m0, m1);
   afterStep();
-  if (sim.ev.length) sfx.consume(sim.ev);
+  sfx.consume(sim.ev, sim);
 }
 
 // shared post-step event processing — the ONLY place match results are recorded
