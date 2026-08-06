@@ -6,9 +6,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { validate } from './validator.mjs';
 import {
-  root, data, makeSim, masks, hold, press, motion, run, runUntil,
+  root, data, bundle, makeSim, masks, hold, press, motion, run, runUntil,
   findEv, countEv, assertEq, assert, B
 } from './harness.mjs';
+import { buildMoveList } from '../engine/ui/movelist.mjs';
 import { Sim } from '../engine/sim/sim.mjs';
 import {
   freshProfile, charProf, levelOf, masteryRank, buildMods, hydrateBundle,
@@ -924,6 +925,25 @@ t('regression: nobody holds a grounded state at altitude, roster-wide', () => {
   }
   assertEq(violations, 0, `floating fighters: ${worst}`);
   assert(longestAir < 150, `airborne for ${longestAir} frames — someone is stuck`);
+});
+
+// ---------------------------------------------------------------- 4g. command list
+
+t('command list: every fighter documents itself', () => {
+  for (const c of ROSTER) {
+    const html = buildMoveList(bundle(c), 0);
+    const ch = data(`data/characters/${c}/character.json`);
+    assert(html.includes(ch.name), `${c}: name missing`);
+    assert(html.includes('SPECIALS'), `${c}: no specials section`);
+    assert(html.includes('OVERDRIVE'), `${c}: no overdrive section`);
+    assert(html.includes('🩸'), `${c}: rift button unexplained`);
+    // every move in the data must appear by name
+    for (const mv of data(`data/characters/${c}/moves.json`)) {
+      assert(html.includes(mv.name), `${c}: "${mv.name}" missing from the command list`);
+    }
+    // and every entry must show the actual keys, not just notation
+    assert(/ml-keys/.test(html), `${c}: no key hints`);
+  }
 });
 
 // ---------------------------------------------------------------- 5. determinism

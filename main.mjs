@@ -14,13 +14,14 @@ import {
   FLOORS, weeklySeed, makeRun, makeRunState, boonOffer, boonsToMods,
   fightSetup, advance, recordRun
 } from './engine/rpg/gauntlet.mjs';
+import { buildMoveList } from './engine/ui/movelist.mjs';
 
 const $ = id => document.getElementById(id);
 
 // Build stamp — shown on the menu. GitHub Pages caches assets for ~10 minutes, so a
 // stale tab will display an OLD number here: that's the tell to hard-refresh, rather
 // than wondering why a change "didn't deploy".
-export const BUILD = '2026-08-05.4';
+export const BUILD = '2026-08-05.5';
 
 // ---------------- data
 async function j(u) {
@@ -87,6 +88,12 @@ addEventListener('keydown', e => {
   keys.add(k);
   if (['arrowleft', 'arrowright', 'arrowup', 'arrowdown', ' '].includes(k)) e.preventDefault();
   sfx.ensure();
+  if ($('movelist').style.display === 'block') {
+    if (k === 'escape' || k === 'enter') hideMoveList();
+    return;
+  }
+  if (morgueKey(k)) return;
+  if (k === 'm' && sim) { showMoveList(); return; }
   if (k === 'enter') onEnter();
   if (k === 'escape') onEscape();
 });
@@ -108,6 +115,20 @@ let slowmo = 0;
 let acc = 0, lastT = 0;
 const evRing = [];
 
+// ---------------- THE MORGUE (training)
+const DUMMY = [
+  { id: 'stand', label: 'STAND', mask: () => 0 },
+  { id: 'block', label: 'BLOCK ALL', mask: () => B.BL },
+  { id: 'crouch', label: 'CROUCH-BLOCK', mask: () => B.BL | B.D },
+  { id: 'crouch0', label: 'CROUCH', mask: () => B.D },
+  { id: 'jump', label: 'JUMP', mask: t => (t % 90 < 6 ? B.U : 0) },
+  { id: 'cpu', label: 'CPU (rift-fed)', mask: () => 0 }
+];
+const training = {
+  dummy: 0, infMeter: true, boxes: false, autoHeal: true,
+  adv: null, advKind: '', maxCombo: 0, maxDmg: 0, t: 0
+};
+
 function resetView() {
   sim._recorded = false;
   ren.reset();
@@ -119,6 +140,7 @@ function resetView() {
 }
 
 function newMatch(seed) {
+  const morgueCpu = mode === 'morgue' && DUMMY[training.dummy].id === 'cpu';
   sim = new Sim({
     chars: [bundleOf(sel.p1), bundleOf(sel.p2)],
     arena: DATA.arena,
@@ -127,10 +149,34 @@ function newMatch(seed) {
     sig: [sigOf(sel.p1), sigOf(sel.p2)],
     cpu: mode === 'watch' ? [{ level: cpuLevel }, { level: cpuLevel }]
       : mode === 'cpu' ? [null, { level: cpuLevel }]
-        : null
+        : morgueCpu ? [null, { level: 3 }]
+          : null
   });
   resetView();
+  if (mode === 'morgue') {
+    training.adv = null; training.maxCombo = 0; training.maxDmg = 0; training.t = 0;
+    ren.debugBoxes = training.boxes;
+    renderMorgueHud();
+  }
 }
+
+function morgueKey(k) {
+  if (mode !== 'morgue' || !sim) return false;
+  if (k === '1') { training.dummy = (training.dummy + 1) % DUMMY.length; newMatch(); return true; }
+  if (k === '2') { training.infMeter = !training.infMeter; if (!training.infMeter) sim.fighters[0].meter = 0; renderMorgueHud(); return true; }
+  if (k === '3') { training.boxes = !training.boxes; ren.debugBoxes = training.boxes; renderMorgueHud(); return true; }
+  if (k === '4') { training.autoHeal = !training.autoHeal; renderMorgueHud(); return true; }
+  if (k === '5') { newMatch(); return true; }
+  return false;
+}
+
+// ---------------- command list
+function showMoveList() {
+  $('ml-body').innerHTML = buildMoveList(bundleOf(sel.p1), 0);
+  $('movelist').style.display = 'block';
+  $('movelist').scrollTop = 0;
+}
+function hideMoveList() { $('movelist').style.display = 'none'; }
 
 // ---------------- THE GAUNTLET (P6, D-017)
 let gauntlet = null; // { run, state } (+ state._pendingBoon)
@@ -289,12 +335,69 @@ function recordMatch() {
   renderPickers();
 }
 
-function stepOnce() {
-  const m0 = (mode === '2p' || mode === 'cpu') ? maskOf(0) : 0;
-  const m1 = mode === '2p' ? maskOf(1) : 0;
+// ov0/ov1 let the test hooks drive the exact same path the game loop uses
+function stepOnce(ov0, ov1) {
+  const m0 = ov0 !== undefined ? ov0
+    : (mode === '2p' || mode === 'cpu' || mode === 'morgue') ? maskOf(0) : 0;
+  let m1 = ov1 !== undefined ? ov1 : mode === '2p' ? maskOf(1) : 0;
+  if (mode === 'morgue') {
+    training.t++;
+    if (ov1 === undefined) m1 = DUMMY[training.dummy].mask(training.t);
+    if (training.infMeter) sim.fighters[0].meter = sim.balance.meter.max;
+    if (training.autoHeal && sim.fighters[1].hp < sim.fighters[1].hpMax && sim.fighters[1].comboHits === 0
+      && sim.fighters[1].state !== 'hitstun' && sim.fighters[1].state !== 'launched') {
+      sim.fighters[1].hp = Math.min(sim.fighters[1].hpMax, sim.fighters[1].hp + 6);
+      sim.fighters[0].hp = Math.min(sim.fighters[0].hpMax, sim.fighters[0].hp + 6);
+    }
+    sim.timer = sim.balance.rounds.timerSec; // the Morgue has no clock
+  }
   sim.step(m0, m1);
   afterStep();
   sfx.consume(sim.ev, sim);
+  if (mode === 'morgue') trainingTrack();
+}
+
+// live frame-advantage readout: at contact, compare how long each side stays busy
+function trainingTrack() {
+  for (const e of sim.ev) {
+    if (e.t !== 'hit' && e.t !== 'block') continue;
+    const atk = sim.fighters[e.t === 'hit' ? 1 - e.who : 1 - e.who];
+    const vic = sim.fighters[e.who];
+    let atkBusy = 0;
+    if (atk.state === 'move' && atk.moveId) {
+      const mv = atk.char.movesById[atk.moveId];
+      if (mv && mv.frames) atkBusy = (mv.frames.startup + mv.frames.active + mv.frames.recovery) - atk.moveF;
+    }
+    const vicBusy = vic.stunT || 0;
+    training.adv = vicBusy - atkBusy;
+    training.advKind = e.t === 'hit' ? 'on hit' : 'on block';
+  }
+  const d = sim.fighters[1];
+  if (d.comboHits > training.maxCombo) { training.maxCombo = d.comboHits; training.maxDmg = d.comboDmg; }
+  else if (d.comboHits === training.maxCombo && d.comboDmg > training.maxDmg) training.maxDmg = d.comboDmg;
+  renderMorgueHud();
+}
+
+function renderMorgueHud() {
+  const el = $('morgue-hud');
+  if (!el) return;
+  const f = sim.fighters[0], d = sim.fighters[1];
+  let mvLine = '—';
+  if (f.state === 'move' && f.moveId) {
+    const mv = f.char.movesById[f.moveId];
+    if (mv && mv.frames) {
+      const { startup, active, recovery } = mv.frames;
+      const phase = f.moveF <= startup ? 'startup' : f.moveF <= startup + active ? 'ACTIVE' : 'recovery';
+      mvLine = `<b>${mv.name}</b> ${startup}/${active}/${recovery} — frame ${f.moveF} (${phase})`;
+    }
+  } else mvLine = `<b>${f.state}</b>`;
+  const advTxt = training.adv === null ? '—'
+    : `<span style="color:${training.adv >= 0 ? '#6fd88a' : '#e8646e'}">${training.adv >= 0 ? '+' : ''}${training.adv}</span> ${training.advKind}`;
+  el.innerHTML =
+    `${mvLine}<br>` +
+    `advantage <span class="mg-adv">${advTxt}</span> &nbsp;·&nbsp; combo <b>${d.comboHits}</b> (${d.comboDmg}) &nbsp;·&nbsp; best <b>${training.maxCombo}</b> (${training.maxDmg})<br>` +
+    `dummy <b>${DUMMY[training.dummy].label}</b> &nbsp;·&nbsp; meter ${training.infMeter ? '<b>∞</b>' : 'normal'} &nbsp;·&nbsp; boxes ${training.boxes ? '<b>on</b>' : 'off'}<br>` +
+    `<span class="mg-keys">1 dummy · 2 meter · 3 hitboxes · 4 heal · 5 reset · ESC menu</span>`;
 }
 
 // shared post-step event processing — the ONLY place match results are recorded
@@ -359,6 +462,7 @@ function onEscape() {
     if ($('gauntlet').style.display === 'flex') toMenu(); // tower keeps its place
     return;
   }
+  if (mode === 'morgue') { toMenu(); return; }
   if (sim.matchOver) {
     if (sim._gauntlet) resolveGauntletFight();
     else toMenu();
@@ -370,10 +474,13 @@ function onEscape() {
 
 function toMenu() {
   sim = null;
+  mode = null;
   $('menu').style.display = 'flex';
   $('stage').style.display = 'none';
   $('pause').style.display = 'none';
   $('gauntlet').style.display = 'none';
+  $('morgue-hud').style.display = 'none';
+  if (ren) ren.debugBoxes = false;
   renderPickers();
 }
 
@@ -381,6 +488,7 @@ function startMode(m) {
   mode = m;
   $('menu').style.display = 'none';
   $('stage').style.display = 'block';
+  $('morgue-hud').style.display = m === 'morgue' ? 'block' : 'none';
   newMatch();
 }
 
@@ -440,6 +548,9 @@ async function boot() {
   $('m-cpu').onclick = () => startMode('cpu');
   $('m-2p').onclick = () => startMode('2p');
   $('m-watch').onclick = () => startMode('watch');
+  $('m-morgue').onclick = () => startMode('morgue');
+  $('m-moves').onclick = showMoveList;
+  $('ml-close').onclick = hideMoveList;
   $('m-tempered').onclick = () => { tempered = !tempered; saveProfile(); renderPickers(); };
   // the tower
   try {
@@ -489,10 +600,11 @@ async function boot() {
       newMatch(opts.seed);
       return true;
     },
-    step(n = 1, m0 = 0, m1 = 0) {
-      for (let k = 0; k < n; k++) stepOnce0(m0, m1);
+    step(n = 1, m0 = 0, m1) {
+      for (let k = 0; k < n; k++) stepOnce(m0, m1);
       return sim.frame;
     },
+    training,
     state() {
       if (!sim) return null;
       const [a, b] = sim.fighters;
@@ -525,10 +637,6 @@ async function boot() {
     },
     gEnd() { endGauntlet(); return true; }
   };
-  function stepOnce0(m0, m1) {
-    sim.step(m0, m1);
-    afterStep();
-  }
 }
 
 boot().catch(e => {

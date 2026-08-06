@@ -66,6 +66,40 @@
   #pause h2 { letter-spacing: 0.3em; color: var(--blood); margin-bottom: 12px; }
   #pause .controls { border: none; }
 
+  #movelist {
+    display: none; position: absolute; inset: 0; z-index: 8; overflow-y: auto;
+    background: rgba(6,5,8,0.95); padding: 26px 30px;
+  }
+  #ml-body { max-width: 980px; margin: 0 auto; }
+  .ml-head { font-size: 26px; letter-spacing: 0.1em; margin-bottom: 4px; }
+  .ml-head i { color: #9a8f80; font-size: 15px; font-style: italic; }
+  .ml-arch { float: right; font-size: 13px; color: #c9a227; letter-spacing: 0.1em; }
+  .ml-rift { background: rgba(255,33,53,0.08); border-left: 3px solid var(--blood); padding: 8px 12px; margin: 12px 0 18px; font-size: 13.5px; color: #d8ccb8; }
+  .ml-sec { color: var(--blood); font-size: 12px; letter-spacing: 0.28em; margin: 18px 0 6px; border-bottom: 1px solid rgba(255,33,53,0.25); padding-bottom: 3px; }
+  .ml-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .ml-tbl tr { border-bottom: 1px solid rgba(232,220,200,0.07); }
+  .ml-tbl td { padding: 5px 8px; vertical-align: top; }
+  .ml-name { color: var(--bone); width: 22%; }
+  .ml-in { width: 26%; }
+  .ml-not { color: #c9a227; font-size: 12.5px; }
+  .ml-keys { color: #7e8a99; font-size: 11.5px; letter-spacing: 0.06em; }
+  .ml-num { text-align: center; width: 7%; color: #b8ac98; font-variant-numeric: tabular-nums; }
+  .ml-plus { color: #6fd88a; }
+  .ml-bad { color: #e8646e; }
+  .ml-props { color: #8a8074; font-size: 11.5px; font-style: italic; }
+  .ml-foot { margin: 22px 0 10px; font-size: 12px; color: #6a6258; text-align: center; }
+  #ml-close { display: block; margin: 6px auto 0; }
+
+  #morgue-hud {
+    display: none; position: absolute; left: 50%; transform: translateX(-50%); top: 108px;
+    z-index: 4; background: rgba(8,6,10,0.72); border: 1px solid rgba(232,220,200,0.16);
+    padding: 8px 14px; font-size: 12px; color: #b8ac98; text-align: center; line-height: 1.65;
+    pointer-events: none; min-width: 430px; font-variant-numeric: tabular-nums;
+  }
+  #morgue-hud b { color: #ffcf6a; }
+  #morgue-hud .mg-adv { font-size: 15px; }
+  #morgue-hud .mg-keys { color: #6a6258; font-size: 10.5px; letter-spacing: 0.1em; }
+
   #gauntlet {
     display: none; position: absolute; inset: 0; z-index: 5; overflow-y: auto;
     background:
@@ -99,14 +133,20 @@
 </head>
 <body>
 <div id="wrap">
+  <div id="movelist">
+    <div id="ml-body"></div>
+    <button id="ml-close">↩ CLOSE (ESC)</button>
+  </div>
+
   <div id="stage">
     <canvas id="cv" width="1280" height="720"></canvas>
+    <div id="morgue-hud"></div>
     <div id="pause">
       <h2>— PAUSED —</h2>
       <div class="controls">
         <div class="side"><b>P1 (left)</b><br>WASD move &nbsp;·&nbsp; T/Y punches &nbsp;·&nbsp; G/H kicks<br>R throw &nbsp;·&nbsp; F block &nbsp;·&nbsp; V rift</div>
         <div class="side"><b>P2 (right)</b><br>Arrows move &nbsp;·&nbsp; I/O punches &nbsp;·&nbsp; K/L kicks<br>U throw &nbsp;·&nbsp; J block &nbsp;·&nbsp; N rift</div>
-        <div class="side"><b>System</b><br>EX: hold block + special<br>Rift: ZENITH flare-hold · GRAFT set/wall · STRIGOI drink/tether<br>Overdrive: throw+rift @ 3 pints &nbsp;·&nbsp; Breaker: block+throw in hitstun<br>Final KO: Rift executes — or spare them</div>
+        <div class="side"><b>System</b><br>EX: hold block + special<br>Rift: your signature button — see the command list<br>Overdrive: throw+rift @ 3 pints &nbsp;·&nbsp; Breaker: block+throw in hitstun<br>Final KO: Rift executes — or spare them<br><b>M</b> — command list, any time</div>
       </div>
       <div class="foot">ESC to resume</div>
     </div>
@@ -141,7 +181,9 @@
         <button id="m-cpu">FIGHT — P1 vs CPU</button>
         <button id="m-gauntlet">🗼 THE GAUNTLET — climb 7 floors</button>
         <button id="m-2p">2P — local versus</button>
+        <button id="m-morgue">🔪 THE MORGUE — training</button>
         <button id="m-watch">WATCH — CPU vs CPU</button>
+        <button id="m-moves" style="font-size:14px">📖 COMMAND LIST — P1's moves</button>
       </div>
       <div class="lvls">
         <span>CPU</span>

@@ -42,7 +42,15 @@ Serve (ES modules need http):
 "C:\Users\kylef\tools\node\node.exe" bloodrift/serve.mjs 8423
 ```
 
-→ http://localhost:8423/ — pick any pairing of ZENITH / GRAFT / STRIGOI; modes: vs CPU, 2P local, CPU watch.
+→ http://localhost:8423/ — pick any pairing from the 15; modes: vs CPU, THE GAUNTLET,
+2P local, **THE MORGUE** (training), CPU watch. **Press M at any time for the command
+list** — every fighter's moves with notation, the actual keyboard keys, damage, startup
+and frame advantage, generated from their own data.
+
+**THE MORGUE** (training): `1` cycles the dummy (stand / block / crouch-block / crouch /
+jump / rift-fed CPU), `2` infinite meter, `3` hitbox + hurtbox view, `4` auto-heal,
+`5` reset. The panel shows your current move's startup/active/recovery, which frame
+you're on, live frame advantage on hit and on block, and your best combo.
 Controls are on the menu and pause screen (P1: WASD + T/Y/G/H, R throw, F block, V rift).
 EX = hold block through a special. Flare = hold rift (ZENITH). Overdrive = throw+rift at
 3 pints. Transfusion breaker = block+throw in hitstun. **After the final KO: Rift button

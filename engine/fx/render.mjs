@@ -211,6 +211,46 @@ export class Renderer {
     }
   }
 
+  // training-mode box view: blue hurtboxes, red active hitboxes, yellow pushboxes
+  drawBoxes(cx, sim, W2S, Y2S, S) {
+    const box = (wx, wy, w, h, stroke, fill) => {
+      const x = W2S(wx), y = Y2S(wy + h);
+      cx.fillStyle = fill;
+      cx.fillRect(x, y, w * S, h * S);
+      cx.strokeStyle = stroke;
+      cx.lineWidth = 1.5;
+      cx.strokeRect(x, y, w * S, h * S);
+    };
+    for (const f of sim.fighters) {
+      const fx = f.x / SCALE, fy = f.y / SCALE;
+      // pushbox
+      box(fx - f.stats.width / 2, fy, f.stats.width, f.stats.height, 'rgba(255,214,90,0.7)', 'rgba(255,214,90,0.05)');
+      // hurtboxes
+      for (const b of sim.hurtboxesOf(f)) {
+        const bx = fx + f.facing * b.x - (f.facing < 0 ? b.w : 0);
+        box(bx, fy + b.y, b.w, b.h, 'rgba(90,170,255,0.85)', 'rgba(90,170,255,0.16)');
+      }
+      // active hitboxes
+      if (f.state === 'move' && f.moveId && !f.hitDone) {
+        const mv = resolveMove(f.char, f.moveId, f.moveVar);
+        const fr = mv.frames;
+        const rel = f.moveF - fr.startup;
+        if (mv.hitboxes && rel >= 1 && rel <= fr.active) {
+          for (const hb of mv.hitboxes) {
+            if (rel < hb.frames[0] || rel > hb.frames[1]) continue;
+            const bx = mv.atOpponent
+              ? sim.fighters[1 - f.id].x / SCALE + hb.x
+              : fx + f.facing * hb.x - (f.facing < 0 ? hb.w : 0);
+            box(bx, hb.y, hb.w, hb.h, 'rgba(255,60,80,0.95)', 'rgba(255,60,80,0.26)');
+          }
+        }
+      }
+    }
+    for (const p of sim.projectiles) {
+      box(p.x / SCALE - p.w / 2, p.y / SCALE - p.h / 2, p.w, p.h, 'rgba(255,120,60,0.9)', 'rgba(255,120,60,0.22)');
+    }
+  }
+
   // an impact reads differently depending on what hit you — this is most of "feel"
   impact(wx, wy, dmg, kind, dir) {
     const heavy = Math.min(1, dmg / 90);
@@ -533,6 +573,9 @@ export class Renderer {
         cx.restore();
       }
     }
+
+    // ---------- hitbox / hurtbox view (THE MORGUE)
+    if (this.debugBoxes) this.drawBoxes(cx, sim, W2S, Y2S, S);
 
     // ---------- particles
     this.parts = this.parts.filter(p => { p.life--; return p.life > 0; });
