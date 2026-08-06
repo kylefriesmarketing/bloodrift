@@ -65,6 +65,36 @@
   }
   #pause h2 { letter-spacing: 0.3em; color: var(--blood); margin-bottom: 12px; }
   #pause .controls { border: none; }
+
+  #gauntlet {
+    display: none; position: absolute; inset: 0; z-index: 5; overflow-y: auto;
+    background:
+      radial-gradient(ellipse at 50% 115%, rgba(255,33,53,0.16), transparent 55%),
+      var(--ash);
+    align-items: center; justify-content: center;
+  }
+  #g-inner { max-width: 900px; padding: 30px 24px; text-align: center; margin: 0 auto; }
+  #g-inner h1 { font-size: 46px; letter-spacing: 0.2em; text-shadow: 0 0 26px rgba(255,33,53,0.5); margin-bottom: 4px; }
+  #g-sub { font-style: italic; color: #9a8f80; margin-bottom: 20px; font-size: 13px; }
+  #g-floors { display: flex; flex-direction: column-reverse; gap: 5px; margin: 0 auto 18px; max-width: 620px; }
+  .g-floor {
+    display: flex; justify-content: space-between; gap: 14px; padding: 7px 16px;
+    border: 1px solid rgba(232,220,200,0.14); font-size: 14px; color: #8a8074; text-align: left;
+  }
+  .g-floor .g-mut { color: #6a6258; font-style: italic; font-size: 12.5px; }
+  .g-floor.cur { border-color: var(--blood); color: var(--bone); background: rgba(255,33,53,0.07); }
+  .g-floor.cur .g-mut { color: #d88a92; }
+  .g-floor.won { opacity: 0.45; text-decoration: line-through; }
+  #g-boons { font-size: 13px; color: #b8a88a; margin-bottom: 16px; min-height: 18px; }
+  #g-draft { display: none; gap: 10px; justify-content: center; margin-bottom: 18px; flex-wrap: wrap; }
+  .g-card {
+    width: 220px; padding: 14px; border: 1px solid rgba(232,220,200,0.25); cursor: pointer;
+    background: rgba(255,255,255,0.03); text-align: center; font-family: inherit; color: var(--bone);
+  }
+  .g-card:hover { border-color: var(--blood); box-shadow: 0 0 22px rgba(255,33,53,0.25); }
+  .g-card b { display: block; font-size: 16px; letter-spacing: 0.08em; margin-bottom: 6px; color: #ffcf6a; }
+  .g-card span { font-size: 12.5px; color: #9a8f80; line-height: 1.5; }
+  #g-result { display: none; font-size: 26px; letter-spacing: 0.2em; margin-bottom: 14px; }
 </style>
 </head>
 <body>
@@ -82,6 +112,22 @@
     </div>
   </div>
 
+  <div id="gauntlet">
+    <div id="g-inner">
+      <h1>THE <span style="color:var(--blood)">GAUNTLET</span></h1>
+      <div id="g-sub"></div>
+      <div id="g-result"></div>
+      <div id="g-floors"></div>
+      <div id="g-boons"></div>
+      <div id="g-draft"></div>
+      <div class="btns">
+        <button id="g-fight">⚔ FIGHT</button>
+        <button id="g-back" style="font-size:14px">↩ menu (the tower keeps your place)</button>
+        <button id="g-abandon" style="font-size:13px;opacity:0.8">✖ abandon the run</button>
+      </div>
+    </div>
+  </div>
+
   <div id="menu">
     <div id="loading">OPENING THE RIFT…</div>
     <div id="menu-inner">
@@ -93,6 +139,7 @@
       </div>
       <div class="btns">
         <button id="m-cpu">FIGHT — P1 vs CPU</button>
+        <button id="m-gauntlet">🗼 THE GAUNTLET — climb 7 floors</button>
         <button id="m-2p">2P — local versus</button>
         <button id="m-watch">WATCH — CPU vs CPU</button>
       </div>

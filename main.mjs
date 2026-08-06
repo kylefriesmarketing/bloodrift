@@ -10,6 +10,10 @@ import {
   PROFILE_KEY, freshProfile, charProf, levelOf, masteryRank,
   buildMods, hydrateBundle, matchDelta, applyDelta
 } from './engine/rpg/profile.mjs';
+import {
+  FLOORS, weeklySeed, makeRun, makeRunState, boonOffer, boonsToMods,
+  fightSetup, advance, recordRun
+} from './engine/rpg/gauntlet.mjs';
 
 const $ = id => document.getElementById(id);
 
@@ -30,6 +34,8 @@ async function loadData() {
   }));
   DATA.arena = await j('data/arenas/riftscar.json');
   DATA.balance = await j('data/balance/core.json');
+  DATA.gmut = await j('data/gauntlet/mutators.json');
+  DATA.gboon = await j('data/gauntlet/boons.json');
 }
 // ---------------- profile (P4 v1 — Riftborn hydration, Tempered strips it)
 let profile = freshProfile();
@@ -92,6 +98,16 @@ let slowmo = 0;
 let acc = 0, lastT = 0;
 const evRing = [];
 
+function resetView() {
+  sim._recorded = false;
+  ren.reset();
+  hud.reset();
+  slowmo = 0;
+  acc = 0;
+  evRing.length = 0;
+  paused = false;
+}
+
 function newMatch(seed) {
   sim = new Sim({
     chars: [bundleOf(sel.p1), bundleOf(sel.p2)],
@@ -103,13 +119,155 @@ function newMatch(seed) {
       : mode === 'cpu' ? [null, { level: cpuLevel }]
         : null
   });
-  sim._recorded = false;
-  ren.reset();
-  hud.reset();
-  slowmo = 0;
-  acc = 0;
-  evRing.length = 0;
-  paused = false;
+  resetView();
+}
+
+// ---------------- THE GAUNTLET (P6, D-017)
+let gauntlet = null; // { run, state } (+ state._pendingBoon)
+const GKEY = 'br-gauntlet-run';
+
+function saveGauntlet() {
+  try {
+    if (gauntlet) localStorage.setItem(GKEY, JSON.stringify({ run: gauntlet.run, state: gauntlet.state }));
+    else localStorage.removeItem(GKEY);
+  } catch { /* session-only */ }
+}
+
+function startGauntlet() {
+  gauntlet = { run: makeRun(weeklySeed(), sel.p1, CHARS, DATA.gmut.mutators), state: makeRunState() };
+  saveGauntlet();
+  showTower();
+}
+
+function showTower() {
+  $('menu').style.display = 'none';
+  $('stage').style.display = 'none';
+  $('pause').style.display = 'none';
+  $('gauntlet').style.display = 'flex';
+  renderTower();
+}
+
+function renderTower() {
+  const g = gauntlet;
+  const st = g.state;
+  const player = DATA[g.run.player].c.name;
+  $('g-sub').textContent = `${player} climbs the weekly tower · seed ${g.run.seed.toString(16)} · best floor ${charProf(profile, g.run.player).gauntlet ? charProf(profile, g.run.player).gauntlet.bestFloor : 0}`;
+
+  // ladder (rendered bottom-up by column-reverse)
+  const fl = $('g-floors');
+  fl.innerHTML = '';
+  const byId = Object.fromEntries(DATA.gmut.mutators.map(m => [m.id, m]));
+  for (const f of g.run.floors) {
+    const row = document.createElement('div');
+    row.className = 'g-floor' + (f.floor === st.floor && !st.done ? ' cur' : '') + (f.floor < st.floor || (st.done && st.cleared) ? ' won' : '');
+    const revealed = f.floor <= st.floor;
+    const mut = f.mutatorId && revealed ? (byId[f.mutatorId] ? byId[f.mutatorId].name : f.mutatorId) : (f.mutatorId ? '?' : 'a clean fight');
+    row.innerHTML = `<span>FLOOR ${f.floor} — <b>${DATA[f.opp].c.name}</b> <span style="opacity:.6">(${['', 'timid', 'hungry', 'rift-fed'][f.cpuLevel]})</span></span><span class="g-mut">${mut}</span>`;
+    fl.appendChild(row);
+  }
+
+  // active mutators + owned boons
+  const setup = st.done ? null : fightSetup(g.run, st, DATA.gmut.mutators);
+  const boonNames = st.boons.map(id => (DATA.gboon.boons.find(b => b.id === id) || { name: id }).name);
+  $('g-boons').innerHTML =
+    (setup && setup.activeMutators.length ? `<div style="color:#d88a92">active: ${setup.activeMutators.map(m => `${m.name} — ${m.desc}`).join('  ·  ')}</div>` : '') +
+    (boonNames.length ? `<div>your boons: ${boonNames.join(' · ')}</div>` : '<div style="opacity:.6">no boons yet — win a floor, draft one</div>');
+
+  // draft
+  const draft = $('g-draft');
+  draft.innerHTML = '';
+  if (st._pendingBoon && !st.done) {
+    const offer = boonOffer(g.run, st, DATA.gboon.boons);
+    draft.style.display = 'flex';
+    for (const b of offer) {
+      const card = document.createElement('button');
+      card.className = 'g-card';
+      card.innerHTML = `<b>${b.name}</b><span>${b.desc}</span>`;
+      card.onclick = () => {
+        st.boons.push(b.id);
+        st._pendingBoon = false;
+        saveGauntlet();
+        renderTower();
+      };
+      draft.appendChild(card);
+    }
+  } else draft.style.display = 'none';
+
+  // result / actions
+  const res = $('g-result');
+  if (st.done) {
+    res.style.display = 'block';
+    res.style.color = st.cleared ? '#ffcf6a' : '#ff2135';
+    res.textContent = st.cleared ? '🗼 THE TOWER IS CLEARED — the Rift is impressed' : `FELL ON FLOOR ${st.floor} — best: ${st.bestFloor}`;
+    $('g-fight').style.display = 'none';
+    $('g-abandon').textContent = '↩ RETURN';
+  } else {
+    res.style.display = 'none';
+    $('g-fight').style.display = st._pendingBoon ? 'none' : '';
+    $('g-fight').textContent = `⚔ FIGHT FLOOR ${st.floor} — ${DATA[g.run.floors[st.floor - 1].opp].c.name}`;
+    $('g-abandon').textContent = '✖ abandon the run';
+  }
+}
+
+function fightFloor() {
+  const g = gauntlet;
+  if (!g || g.state.done || g.state._pendingBoon) return;
+  const setup = fightSetup(g.run, g.state, DATA.gmut.mutators);
+  const bm = boonsToMods(g.state.boons, DATA.gboon.boons);
+  mode = 'cpu';
+  sel.p2 = setup.opp; // recordMatch + HUD read the real pairing
+  let pb = bundleOf(sel.p1);
+  if (bm.hpPermille !== 1000) {
+    const c2 = { ...pb.character, stats: { ...pb.character.stats, hp: Math.trunc(pb.character.stats.hp * bm.hpPermille / 1000) } };
+    pb = makeCharBundle(c2, pb.moves, DATA[sel.p1].s, DATA[sel.p1].f);
+  }
+  const balance = JSON.parse(JSON.stringify(DATA.balance));
+  if (setup.balancePatch.timerSec) balance.rounds.timerSec = setup.balancePatch.timerSec;
+  if (setup.balancePatch.toWin) balance.rounds.toWin = setup.balancePatch.toWin;
+  sim = new Sim({
+    chars: [pb, bundleOf(setup.opp)],
+    arena: DATA.arena,
+    balance,
+    seed: setup.seed,
+    sig: [sigOf(sel.p1), sigOf(setup.opp)],
+    cpu: [null, { level: setup.cpuLevel }],
+    tuning: setup.tuning,
+    seatMods: [bm.seatMods, null]
+  });
+  resetView();
+  sim._gauntlet = true;
+  $('gauntlet').style.display = 'none';
+  $('stage').style.display = 'block';
+  hud.say(`FLOOR ${setup.floor}`, setup.activeMutators.map(m => m.name).join(' · ') || 'a clean fight', '#c9a227', 100);
+}
+
+function resolveGauntletFight() {
+  const won = sim.winner === 0;
+  advance(gauntlet.state, won);
+  if (gauntlet.state.done) {
+    recordRun(profile, gauntlet.run.player, gauntlet.state, charProf);
+    saveProfile();
+    gauntlet.state._pendingBoon = false;
+    saveGauntlet();
+    localStorage.removeItem(GKEY);
+  } else if (won) {
+    gauntlet.state._pendingBoon = true;
+    saveGauntlet();
+  }
+  sim = null;
+  renderPickers();
+  showTower();
+}
+
+function endGauntlet() {
+  if (gauntlet && !gauntlet.state.done && gauntlet.state.bestFloor > 0) {
+    recordRun(profile, gauntlet.run.player, gauntlet.state, charProf);
+    saveProfile();
+  }
+  gauntlet = null;
+  saveGauntlet();
+  renderPickers();
+  toMenu();
 }
 
 function recordMatch() {
@@ -166,8 +324,9 @@ function frame(tNow) {
     cx.fillStyle = '#e8dcc8';
     cx.strokeStyle = 'rgba(0,0,0,0.8)';
     cx.lineWidth = 4;
-    cx.strokeText('ENTER — rematch      ESC — menu', 640, 470);
-    cx.fillText('ENTER — rematch      ESC — menu', 640, 470);
+    const line = sim._gauntlet ? 'ENTER — back to the tower' : 'ENTER — rematch      ESC — menu';
+    cx.strokeText(line, 640, 470);
+    cx.fillText(line, 640, 470);
   }
 }
 
@@ -180,11 +339,21 @@ setInterval(() => {
 // ---------------- menu wiring
 function onEnter() {
   if (!sim) return;
-  if (sim.matchOver) newMatch();
+  if (sim.matchOver) {
+    if (sim._gauntlet) resolveGauntletFight();
+    else newMatch();
+  }
 }
 function onEscape() {
-  if (!sim) return;
-  if (sim.matchOver) { toMenu(); return; }
+  if (!sim) {
+    if ($('gauntlet').style.display === 'flex') toMenu(); // tower keeps its place
+    return;
+  }
+  if (sim.matchOver) {
+    if (sim._gauntlet) resolveGauntletFight();
+    else toMenu();
+    return;
+  }
   paused = !paused;
   $('pause').style.display = paused ? 'flex' : 'none';
 }
@@ -194,6 +363,8 @@ function toMenu() {
   $('menu').style.display = 'flex';
   $('stage').style.display = 'none';
   $('pause').style.display = 'none';
+  $('gauntlet').style.display = 'none';
+  renderPickers();
 }
 
 function startMode(m) {
@@ -220,6 +391,12 @@ function renderPickers() {
   // ruleset + carried-state line
   const tb = $('m-tempered');
   if (tb) tb.textContent = tempered ? '⚖ TEMPERED — normalized, nothing carries' : '🩸 RIFTBORN — your scars come with you';
+  const gb = $('m-gauntlet');
+  if (gb) {
+    gb.textContent = (gauntlet && !gauntlet.state.done)
+      ? `🗼 RESUME THE TOWER — floor ${gauntlet.state.floor} as ${DATA[gauntlet.run.player] ? DATA[gauntlet.run.player].c.name : gauntlet.run.player}`
+      : '🗼 THE GAUNTLET — climb 7 floors';
+  }
   const line = $('prof-line');
   if (line) {
     if (tempered) { line.textContent = 'ranked-legal ruleset · profiles untouched'; }
@@ -254,6 +431,23 @@ async function boot() {
   $('m-2p').onclick = () => startMode('2p');
   $('m-watch').onclick = () => startMode('watch');
   $('m-tempered').onclick = () => { tempered = !tempered; saveProfile(); renderPickers(); };
+  // the tower
+  try {
+    const saved = localStorage.getItem(GKEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.run && parsed.state && !parsed.state.done) gauntlet = parsed;
+      else localStorage.removeItem(GKEY);
+    }
+  } catch { /* fresh */ }
+  $('m-gauntlet').onclick = () => {
+    if (gauntlet && !gauntlet.state.done) showTower();
+    else startGauntlet();
+  };
+  $('g-fight').onclick = fightFloor;
+  $('g-back').onclick = toMenu;
+  $('g-abandon').onclick = endGauntlet;
+  renderPickers(); // refresh labels now that a saved tower may have loaded
   document.querySelectorAll('[data-lvl]').forEach(b => {
     b.onclick = () => {
       cpuLevel = +b.dataset.lvl;
@@ -302,7 +496,22 @@ async function boot() {
     },
     hash() { return sim ? sim.hash() : 0; },
     evs: evRing,
-    draw() { if (sim) { ren.draw(sim); hud.draw(ren.cx, sim); } return true; }
+    draw() { if (sim) { ren.draw(sim); hud.draw(ren.cx, sim); } return true; },
+    // gauntlet test hooks
+    get gauntlet() { return gauntlet; },
+    gStart(p1) { if (p1) sel.p1 = p1; startGauntlet(); return gauntlet.run; },
+    gFight() { fightFloor(); return !!(sim && sim._gauntlet); },
+    gResolve() { resolveGauntletFight(); return { floor: gauntlet.state.floor, done: gauntlet.state.done, cleared: gauntlet.state.cleared, pending: !!gauntlet.state._pendingBoon }; },
+    gPick(idx) {
+      const offer = boonOffer(gauntlet.run, gauntlet.state, DATA.gboon.boons);
+      const b = offer[idx || 0];
+      gauntlet.state.boons.push(b.id);
+      gauntlet.state._pendingBoon = false;
+      saveGauntlet();
+      renderTower();
+      return b.id;
+    },
+    gEnd() { endGauntlet(); return true; }
   };
   function stepOnce0(m0, m1) {
     sim.step(m0, m1);

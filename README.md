@@ -18,8 +18,11 @@ subsystems from BUILD_PLAN §4.3 are still owed and their identities currently r
 generic mechanics: sets/audit/rift-specials/drain). KHET's curses = Audit detonation,
 LYCAON changes forms, MARROW spends her own HP and walls with bone, HARROW's horse charges,
 ORDNANCE mines the floor, NULL teleports and consumes pools, VYRM staples himself back
-together. THE GAUNTLET's engine (seeded towers, stacking mutators, boon drafts) is tested
-and committed — the tower's menu UI is the next session's first hour.
+together. **THE GAUNTLET IS FULLY PLAYABLE** from the menu: weekly seeded 7-floor towers,
+one stacking mutator revealed per floor, 1-of-3 boon drafts after each win, runs persist
+across reloads (menu button becomes RESUME), falls and clears both record to the profile
+(best floor, clears, XP). ESC from the tower keeps your place; ✖ abandons and banks what
+you earned.
 
 | Milestone | State | Proof |
 |---|---|---|
