@@ -1,0 +1,29 @@
+{
+  "character": "sovereign",
+  "note": "P3 content — the FEED THE RIFT window names executions[0].",
+  "executions": [
+    {
+      "id": "fully_vested",
+      "name": "Fully Vested",
+      "cinematic": "TODO",
+      "script": "He shakes their hand. The gold seams run UP their arm, and what walks away from the handshake is him, wearing their silhouette for one second before it sloughs off. The husk keeps standing because nobody told it it could stop."
+    },
+    {
+      "id": "terms",
+      "name": "Terms",
+      "cinematic": "TODO",
+      "script": "He hands them a page. They read it. The camera never shows the page. Whatever it says, they do it to themselves, methodically, while he checks his watch — and he does not watch. He is already looking at the next opponent."
+    }
+  ],
+  "desecration": {
+    "id": "called_in",
+    "name": "Called In",
+    "unlock": "S-rank Margin Call",
+    "script": "The armoured backhand continues past the bell; the freeze-frame is his hand out, palm up, waiting to be paid."
+  },
+  "overdrive": {
+    "id": "hostile_takeover",
+    "name": "HOSTILE TAKEOVER",
+    "script": "The arena lights come up like a boardroom. Eleven seconds of documented, itemised violence from a man who does not loosen his tie, ending with a chair, a signature, and a stamp. The stamp is the hit."
+  }
+}

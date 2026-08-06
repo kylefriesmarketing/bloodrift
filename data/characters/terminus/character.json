@@ -1,0 +1,102 @@
+{
+  "id": "terminus",
+  "name": "TERMINUS",
+  "title": "The Long Hour",
+  "faction": "apex",
+  "archetype": "juggernaut-escalation",
+  "difficulty": 2,
+  "stats": {
+    "hp": 1280,
+    "walkF": 2250,
+    "walkB": 2000,
+    "dashF": {
+      "speed": 5600,
+      "dur": 16,
+      "tail": 8
+    },
+    "dashB": {
+      "speed": 6000,
+      "dur": 16,
+      "tail": 6
+    },
+    "jumpVy": -23500,
+    "gravity": 1550,
+    "prejump": 6,
+    "weight": 5,
+    "width": 124,
+    "height": 312,
+    "crouchHeight": 205
+  },
+  "rift_button": {
+    "mechanic": "bank",
+    "config": {
+      "convertPermille": 620,
+      "max": 300
+    }
+  },
+  "rpg_hook": {
+    "id": "terminus_hook",
+    "persistent": true,
+    "state": {},
+    "effects": [
+      {
+        "trigger": "on_execution",
+        "action": "grant_resource",
+        "resource": "terminus.harvest",
+        "amount": 1,
+        "note": "P4+ signature persistence — see the roster doc for the full hook."
+      }
+    ]
+  },
+  "pool_interactions": [],
+  "wound_art": {
+    "arms": 3,
+    "legs": 3,
+    "body": 3,
+    "head": 3
+  },
+  "hurtboxes": {
+    "stand": [
+      {
+        "x": -38,
+        "y": 0,
+        "w": 76,
+        "h": 235
+      },
+      {
+        "x": -26,
+        "y": 235,
+        "w": 52,
+        "h": 70
+      }
+    ],
+    "crouch": [
+      {
+        "x": -40,
+        "y": 0,
+        "w": 80,
+        "h": 205
+      }
+    ],
+    "air": [
+      {
+        "x": -38,
+        "y": 50,
+        "w": 76,
+        "h": 215
+      }
+    ]
+  },
+  "throw": {
+    "range": 52,
+    "damage": 150,
+    "techWindow": 10,
+    "startup": 6
+  },
+  "palette": {
+    "primary": "#6b5a48",
+    "secondary": "#2e2721",
+    "accent": "#ff9a3c",
+    "blood": "#ff2135"
+  }
+}

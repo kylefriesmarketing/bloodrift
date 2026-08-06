@@ -1,0 +1,54 @@
+{
+  "character": "chorus",
+  "note": "P3 live — roster triggers adapted onto the generic `when` types (D-018 wave build).",
+  "sunders": [
+    {
+      "region": "ARMS",
+      "id": "it_agrees",
+      "when": {
+        "type": "move_hits",
+        "move": "descant",
+        "count": 4
+      },
+      "trigger": {
+        "desc": "land the fourth Descant"
+      },
+      "cinematic": "TODO",
+      "flavor": "She asks the arm to stop belonging to them, and it agrees."
+    },
+    {
+      "region": "LEGS",
+      "id": "which_leg",
+      "when": {
+        "type": "move_hits",
+        "move": "round_phrase",
+        "count": 3
+      },
+      "trigger": {
+        "desc": "land the third Round"
+      },
+      "cinematic": "TODO",
+      "flavor": "Mid-stride she changes which leg they think is forward — the bone-cam shows the disagreement."
+    },
+    {
+      "region": "BODY",
+      "id": "resonance",
+      "when": {
+        "type": "move_hits",
+        "move": "cue",
+        "count": 2
+      },
+      "trigger": {
+        "desc": "land the second Cue"
+      },
+      "cinematic": "TODO",
+      "flavor": "Four hundred voices at once, at range, and the ribcage resonates apart."
+    }
+  ],
+  "debuffs_reference": {
+    "ARMS": "victim punch damage -20%, their throws tech twice as easily",
+    "LEGS": "victim loses dashes, move speed -15%",
+    "BODY": "victim meter gain -30%, Bleeding applied",
+    "HEAD": "victim inputs ghost briefly after every hit taken"
+  }
+}

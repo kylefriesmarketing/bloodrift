@@ -1,0 +1,52 @@
+{
+  "character": "sovereign",
+  "note": "P3 live — roster triggers adapted onto the generic `when` types (D-018 wave build).",
+  "sunders": [
+    {
+      "region": "ARMS",
+      "id": "hour_hand",
+      "when": {
+        "type": "parry_vs_uses",
+        "uses": "ARMS"
+      },
+      "trigger": {
+        "desc": "parry with Due Diligence"
+      },
+      "cinematic": "TODO",
+      "flavor": "He takes the wrist, reads the watch, and breaks the arm at the hour hand."
+    },
+    {
+      "region": "LEGS",
+      "id": "kept_walking",
+      "when": {
+        "type": "absorb_punish",
+        "absorbs": 2
+      },
+      "trigger": {
+        "desc": "armour through a hit, then punish"
+      },
+      "cinematic": "TODO",
+      "flavor": "Margin Call at the knee — and he keeps walking."
+    },
+    {
+      "region": "BODY",
+      "id": "foreclosed",
+      "when": {
+        "type": "move_hits",
+        "move": "foreclosure",
+        "count": 2
+      },
+      "trigger": {
+        "desc": "land the second Foreclosure"
+      },
+      "cinematic": "TODO",
+      "flavor": "Two fingers to the sternum, and the bone-cam shows ribs giving way in the shape of a hand."
+    }
+  ],
+  "debuffs_reference": {
+    "ARMS": "victim punch damage -20%, their throws tech twice as easily",
+    "LEGS": "victim loses dashes, move speed -15%",
+    "BODY": "victim meter gain -30%, Bleeding applied",
+    "HEAD": "victim inputs ghost briefly after every hit taken"
+  }
+}

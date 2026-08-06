@@ -1,0 +1,29 @@
+{
+  "character": "halflight",
+  "note": "P3 content — the FEED THE RIFT window names executions[0].",
+  "executions": [
+    {
+      "id": "the_call",
+      "name": "The Call",
+      "cinematic": "TODO",
+      "script": "She restages it: she puts them exactly where her people were, gives them the same defensible, arithmetic, correct choice — and then makes the decision the Vanguard made, out loud, in their voice."
+    },
+    {
+      "id": "honourably",
+      "name": "Honourably",
+      "cinematic": "TODO",
+      "script": "She kills them the right way. Clean, fast, respectful, by the book — the book she still knows by heart. She closes their eyes. Then she takes the medal."
+    }
+  ],
+  "desecration": {
+    "id": "recanted",
+    "name": "Recanted",
+    "unlock": "S-rank Recant",
+    "script": "The thrown medal does not knock them down, it goes through; the freeze-frame is the medal spinning on the floor and her already walking."
+  },
+  "overdrive": {
+    "id": "conviction",
+    "name": "CONVICTION",
+    "script": "Both halves at once for four seconds, alternating hero and villain technique. BRIGHT ends with her catching them. DARK ends with her not."
+  }
+}

@@ -15,13 +15,14 @@ import {
   fightSetup, advance, recordRun
 } from './engine/rpg/gauntlet.mjs';
 import { buildMoveList } from './engine/ui/movelist.mjs';
+import { introFor, buildCodex } from './engine/ui/story.mjs';
 
 const $ = id => document.getElementById(id);
 
 // Build stamp — shown on the menu. GitHub Pages caches assets for ~10 minutes, so a
 // stale tab will display an OLD number here: that's the tell to hard-refresh, rather
 // than wondering why a change "didn't deploy".
-export const BUILD = '2026-08-05.5';
+export const BUILD = '2026-08-05.6';
 
 // ---------------- data
 async function j(u) {
@@ -30,9 +31,29 @@ async function j(u) {
   return r.json();
 }
 
-export const CHARS = ['zenith', 'triage', 'centurion', 'joule', 'marrow',
-  'strigoi', 'lycaon', 'graft', 'khet', 'harrow',
-  'flux', 'vespra', 'ordnance', 'null', 'vyrm'];
+export const CHARS = [
+  'zenith', 'triage', 'centurion', 'joule', 'marrow',            // THE VANGUARD — heroes
+  'sovereign', 'terminus', 'halflight', 'chorus', 'kestrel',     // THE APEX — villains
+  'strigoi', 'lycaon', 'graft', 'khet', 'harrow',                // THE MIDNIGHT COURT — monsters
+  'flux', 'vespra', 'ordnance', 'null', 'vyrm'                   // THE SPIRAL DOMINION — aliens
+];
+
+// four powers, four mutually exclusive win conditions, one hungry referee
+export const FACTIONS = {
+  vanguard: { name: 'THE VANGUARD', kind: 'HEROES', col: '#c9a227',
+    line: 'What is left of Earth\'s heroes. They buried most of their own the day the Rift opened.',
+    wants: 'wants the Rift CLOSED, whatever it costs them' },
+  apex: { name: 'THE APEX', kind: 'VILLAINS', col: '#d4af37',
+    line: 'The people who beat the Vanguard. On Convergence morning they had already won — then reality interrupted.',
+    wants: 'wants the Rift to PAY OUT — to give back the world they had taken' },
+  court: { name: 'THE MIDNIGHT COURT', kind: 'MONSTERS', col: '#b03040',
+    line: 'The old predators of the hidden realm, delighted that the walls are down.',
+    wants: 'wants the Rift OPEN forever — it runs on blood, and so do they' },
+  dominion: { name: 'THE SPIRAL DOMINION', kind: 'ALIENS', col: '#3ec6b8',
+    line: 'An invading armada severed from its empire — castaways with a fleet\'s worth of grudge.',
+    wants: 'wants the Rift REOPENED — a way home, or a throne here' }
+};
+const FACTION_ORDER = ['vanguard', 'apex', 'court', 'dominion'];
 const DATA = {};
 async function loadData() {
   await Promise.all(CHARS.map(async id => {
@@ -47,6 +68,7 @@ async function loadData() {
   DATA.gmut = await j('data/gauntlet/mutators.json');
   DATA.gboon = await j('data/gauntlet/boons.json');
   DATA.looks = await j('data/looks.json');
+  DATA.story = await j('data/story.json');
 }
 // ---------------- profile (P4 v1 — Riftborn hydration, Tempered strips it)
 let profile = freshProfile();
@@ -88,10 +110,15 @@ addEventListener('keydown', e => {
   keys.add(k);
   if (['arrowleft', 'arrowright', 'arrowup', 'arrowdown', ' '].includes(k)) e.preventDefault();
   sfx.ensure();
+  if ($('codex').style.display === 'block') {
+    if (k === 'escape' || k === 'enter') hideCodex();
+    return;
+  }
   if ($('movelist').style.display === 'block') {
     if (k === 'escape' || k === 'enter') hideMoveList();
     return;
   }
+  if (k === 'c') { showCodex(); return; }
   if (morgueKey(k)) return;
   if (k === 'm' && sim) { showMoveList(); return; }
   if (k === 'enter') onEnter();
@@ -153,6 +180,7 @@ function newMatch(seed) {
           : null
   });
   resetView();
+  showIntro();
   if (mode === 'morgue') {
     training.adv = null; training.maxCombo = 0; training.maxDmg = 0; training.t = 0;
     ren.debugBoxes = training.boxes;
@@ -169,6 +197,32 @@ function morgueKey(k) {
   if (k === '5') { newMatch(); return true; }
   return false;
 }
+
+// ---------------- story
+function showIntro() {
+  const bar = $('intro-bar');
+  if (!bar || mode === 'morgue') return;
+  const ex = introFor(DATA.story, sel.p1, sel.p2, DATA[sel.p1].c, DATA[sel.p2].c);
+  const side = (who, align) => {
+    const ch = DATA[who.id].c;
+    const col = FACTIONS[ch.faction].col;
+    return `<div class="ib-line" style="text-align:${align}">
+      <span class="ib-who" style="color:${col}">${ch.name}</span> &nbsp;<i>“${who.line}”</i></div>`;
+  };
+  bar.innerHTML = side(ex.a, 'left') + side(ex.b, 'right');
+  bar.style.display = 'block';
+  bar.style.opacity = '1';
+  clearTimeout(showIntro._t1); clearTimeout(showIntro._t2);
+  showIntro._t1 = setTimeout(() => { bar.style.transition = 'opacity 0.7s'; bar.style.opacity = '0'; }, 2600);
+  showIntro._t2 = setTimeout(() => { bar.style.display = 'none'; bar.style.transition = ''; }, 3400);
+}
+
+function showCodex() {
+  $('cx-body').innerHTML = buildCodex(DATA.story, FACTIONS, CHARS, DATA);
+  $('codex').style.display = 'block';
+  $('codex').scrollTop = 0;
+}
+function hideCodex() { $('codex').style.display = 'none'; }
 
 // ---------------- command list
 function showMoveList() {
@@ -496,15 +550,41 @@ function renderPickers() {
   for (const seat of ['p1', 'p2']) {
     const holder = $(`pick-${seat}`);
     holder.innerHTML = '';
-    for (const id of CHARS) {
-      const b = document.createElement('button');
-      const cp = charProf(profile, id);
-      b.textContent = tempered ? DATA[id].c.name : `${DATA[id].c.name} · LV${levelOf(cp.xp)}`;
-      b.title = `${DATA[id].c.title} — ${cp.wins}W/${cp.matches - cp.wins}L · ${cp.executions} fed to the Rift`;
-      b.classList.toggle('sel', sel[seat] === id);
-      b.onclick = () => { sel[seat] = id; renderPickers(); };
-      holder.appendChild(b);
+    for (const fk of FACTION_ORDER) {
+      const fac = FACTIONS[fk];
+      const members = CHARS.filter(id => DATA[id].c.faction === fk);
+      if (!members.length) continue;
+      const grp = document.createElement('span');
+      grp.className = 'fac-grp';
+      const lbl = document.createElement('span');
+      lbl.className = 'fac-lbl';
+      lbl.style.color = fac.col;
+      lbl.textContent = fac.kind;
+      lbl.title = `${fac.name} — ${fac.line}`;
+      grp.appendChild(lbl);
+      for (const id of members) {
+        const b = document.createElement('button');
+        const cp = charProf(profile, id);
+        const ch = DATA[id].c;
+        b.textContent = tempered ? ch.name : `${ch.name} · LV${levelOf(cp.xp)}`;
+        b.title = `${ch.title}\n${ch.archetype} · difficulty ${'★'.repeat(ch.difficulty || 1)}\n${cp.wins}W/${cp.matches - cp.wins}L · ${cp.executions} fed to the Rift`;
+        b.style.borderColor = sel[seat] === id ? fac.col : '';
+        b.classList.toggle('sel', sel[seat] === id);
+        b.onclick = () => { sel[seat] = id; renderPickers(); };
+        grp.appendChild(b);
+      }
+      holder.appendChild(grp);
     }
+  }
+  // who you picked, and why they are here
+  for (const seat of ['p1', 'p2']) {
+    const el = $(`who-${seat}`);
+    if (!el) continue;
+    const ch = DATA[sel[seat]].c;
+    const fac = FACTIONS[ch.faction];
+    el.innerHTML = `<b style="color:${fac.col}">${ch.name}</b> <i>${ch.title}</i> — ${ch.archetype}
+      ${'★'.repeat(ch.difficulty || 1)}<span style="opacity:.35">${'★'.repeat(5 - (ch.difficulty || 1))}</span>
+      <span style="color:${fac.col};opacity:.8"> · ${fac.name}</span>`;
   }
   // ruleset + carried-state line
   const tb = $('m-tempered');
@@ -551,6 +631,8 @@ async function boot() {
   $('m-morgue').onclick = () => startMode('morgue');
   $('m-moves').onclick = showMoveList;
   $('ml-close').onclick = hideMoveList;
+  $('m-codex').onclick = showCodex;
+  $('cx-close').onclick = hideCodex;
   $('m-tempered').onclick = () => { tempered = !tempered; saveProfile(); renderPickers(); };
   // the tower
   try {

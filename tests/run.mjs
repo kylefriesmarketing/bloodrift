@@ -10,6 +10,7 @@ import {
   findEv, countEv, assertEq, assert, B
 } from './harness.mjs';
 import { buildMoveList } from '../engine/ui/movelist.mjs';
+import { introFor } from '../engine/ui/story.mjs';
 import { Sim } from '../engine/sim/sim.mjs';
 import {
   freshProfile, charProf, levelOf, masteryRank, buildMods, hydrateBundle,
@@ -29,9 +30,12 @@ const INTRO = 62; // fight phase begins ~frame 60; scripts act after this
 
 // ---------------------------------------------------------------- 1. schemas
 
-const ROSTER = ['zenith', 'triage', 'centurion', 'joule', 'marrow',
-  'strigoi', 'lycaon', 'graft', 'khet', 'harrow',
-  'flux', 'vespra', 'ordnance', 'null', 'vyrm'];
+const ROSTER = [
+  'zenith', 'triage', 'centurion', 'joule', 'marrow',            // heroes
+  'sovereign', 'terminus', 'halflight', 'chorus', 'kestrel',     // villains
+  'strigoi', 'lycaon', 'graft', 'khet', 'harrow',                // monsters
+  'flux', 'vespra', 'ordnance', 'null', 'vyrm'                   // aliens
+];
 
 t('schema: character.json (roster)', () => {
   const sch = data('data/schema/character.schema.json');
@@ -944,6 +948,50 @@ t('command list: every fighter documents itself', () => {
     // and every entry must show the actual keys, not just notation
     assert(/ml-keys/.test(html), `${c}: no key hints`);
   }
+});
+
+// ---------------------------------------------------------------- 4h. story + factions
+
+t('factions: four powers, five fighters each', () => {
+  const byFac = {};
+  for (const c of ROSTER) {
+    const f = data(`data/characters/${c}/character.json`).faction;
+    (byFac[f] = byFac[f] || []).push(c);
+  }
+  assertEq(Object.keys(byFac).sort().join(','), 'apex,court,dominion,vanguard', 'four factions');
+  for (const [f, list] of Object.entries(byFac)) assertEq(list.length, 5, `${f} roster size`);
+});
+
+t('story: every pairing of the whole roster says something', () => {
+  const story = data('data/story.json');
+  const chars = {};
+  for (const c of ROSTER) chars[c] = data(`data/characters/${c}/character.json`);
+  let personal = 0, total = 0;
+  for (const a of ROSTER) {
+    for (const b of ROSTER) {
+      const ex = introFor(story, a, b, chars[a], chars[b]);
+      total++;
+      assert(ex.a.line && ex.a.line !== '…', `${a} vs ${b}: no line for ${a}`);
+      assert(ex.b.line && ex.b.line !== '…', `${a} vs ${b}: no line for ${b}`);
+      assertEq(ex.a.id, a, 'line attributed to the right seat');
+      if (ex.personal) personal++;
+    }
+  }
+  assertEq(total, 400, 'all 20x20 pairings covered');
+  assert(personal >= 50, `expected written rivalries on both orders, got ${personal}`);
+});
+
+t('story: a written rivalry gives each fighter THEIR line, both seat orders', () => {
+  const story = data('data/story.json');
+  const z = data('data/characters/zenith/character.json');
+  const s = data('data/characters/sovereign/character.json');
+  const a = introFor(story, 'zenith', 'sovereign', z, s);
+  const b = introFor(story, 'sovereign', 'zenith', s, z);
+  assert(a.personal && b.personal, 'zenith/sovereign is a written rivalry');
+  assert(a.a.line.includes('buried'), `zenith should accuse: got "${a.a.line}"`);
+  assert(a.b.line.includes('account'), `sovereign should be cold: got "${a.b.line}"`);
+  assertEq(a.a.line, b.b.line, 'zenith says the same thing from either seat');
+  assertEq(a.b.line, b.a.line, 'sovereign likewise');
 });
 
 // ---------------------------------------------------------------- 5. determinism

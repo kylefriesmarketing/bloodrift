@@ -78,6 +78,30 @@ Bleeding; HEAD = inputs ghost (25f zero-buffer window after every hit taken). On
 per match; they persist across rounds. HEAD sunders exist in engine but no launch-pair
 character has one authored (matches the roster sheets).
 
+**D-021 · A fourth faction: THE APEX (villains). Roster 15 → 20.** Design doc:
+`docs/BLOODRIFT_04_THE_APEX.md`. The original bible has heroes, monsters and aliens — but
+the Vanguard "buried most of their roster the day of the Convergence" and nobody in the game
+put them there. The Apex are the people who beat the heroes and had their victory interrupted
+by the Rift. Four powers now hold four mutually exclusive win conditions over one wound:
+close it (Vanguard) / make it pay out (Apex) / keep it open forever (Court) / reopen the way
+home (Dominion). ZENITH ↔ SOVEREIGN becomes the roster's central rivalry.
+- Fighters: SOVEREIGN (mastermind/counter · Holdings), TERMINUS (juggernaut/escalation ·
+  Countdown), HALFLIGHT (dual hero+villain moveset · the Confession, which permanently
+  *erodes one half* based on your Execute/Spare record), CHORUS (telepath · Known — she
+  learns your most-used move account-wide), KESTREL (mercenary · Contract/Fee — the only
+  progression that can go backwards). Hooks were chosen to be new SHAPES, not more
+  collect-from-the-defeated variants, of which the roster already had four.
+- `data/story.json` is the story surface: codex text plus pre-fight exchanges. Rivalries are
+  keyed by the two ids **sorted alphabetically**, and the faction-pair fallback table is keyed
+  by **sorted faction** — so line order follows the key, not the seats. ⚠️ Getting that
+  backwards silently hands a fighter the *other* one's line; the test asserts both seat
+  orders give each fighter their own words, and that all 400 pairings say something.
+- ⚠️ TERMINUS never speaks. Its "lines" are bracketed stage directions, not "…", because an
+  ellipsis renders as an empty bar.
+- The roster generator is now the source of truth for the 15 composed fighters: hand-editing
+  their character.json is a change that vanishes on the next `node tools/gen-roster.mjs`
+  (MARROW's palette fix was silently reverted exactly this way — the fix belongs in the tool).
+
 **D-020 · The CPU is a reactive fighter, and blocking now pays.** `engine/sim/cpu.mjs` is a
 priority ladder — anti-air → whiff-punish → block-on-reaction → okizeme → overdrive →
 close-range mixups → footsies → full-screen — with every reactive branch gated behind a

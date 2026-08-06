@@ -1,0 +1,51 @@
+{
+  "character": "kestrel",
+  "note": "P3 live — roster triggers adapted onto the generic `when` types (D-018 wave build).",
+  "sunders": [
+    {
+      "region": "ARMS",
+      "id": "guide_cut",
+      "when": {
+        "type": "move_hits",
+        "move": "severance",
+        "count": 2
+      },
+      "trigger": {
+        "desc": "land the second Severance"
+      },
+      "cinematic": "TODO",
+      "flavor": "Monofilament takes the arm at a joint she picked earlier — the bone-cam shows the guide cut she left."
+    },
+    {
+      "region": "LEGS",
+      "id": "from_a_whiff",
+      "when": {
+        "type": "punish_blocked_low"
+      },
+      "trigger": {
+        "desc": "block a low, then punish"
+      },
+      "cinematic": "TODO",
+      "flavor": "Collections at the ankle, from behind, on a whiff."
+    },
+    {
+      "region": "BODY",
+      "id": "businesslike",
+      "when": {
+        "type": "hit_while_bleeding",
+        "move": "severance"
+      },
+      "trigger": {
+        "desc": "Severance a Bleeding opponent"
+      },
+      "cinematic": "TODO",
+      "flavor": "She gets inside the guard and the camera stays close and businesslike."
+    }
+  ],
+  "debuffs_reference": {
+    "ARMS": "victim punch damage -20%, their throws tech twice as easily",
+    "LEGS": "victim loses dashes, move speed -15%",
+    "BODY": "victim meter gain -30%, Bleeding applied",
+    "HEAD": "victim inputs ghost briefly after every hit taken"
+  }
+}

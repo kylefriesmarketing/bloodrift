@@ -1,0 +1,29 @@
+{
+  "character": "chorus",
+  "note": "P3 content — the FEED THE RIFT window names executions[0].",
+  "executions": [
+    {
+      "id": "encore",
+      "name": "Encore",
+      "cinematic": "TODO",
+      "script": "She asks them to sing. They do — beautifully, in a voice that is not theirs and never was — and they keep going after they should have stopped, and after they should have been able to."
+    },
+    {
+      "id": "four_hundred",
+      "name": "Four Hundred",
+      "cinematic": "TODO",
+      "script": "She lets the others have a turn. The camera stays on her face, pleasant and attentive, occasionally correcting a tempo, while behind her the sound does something the visuals never show."
+    }
+  ],
+  "desecration": {
+    "id": "perfect_pitch",
+    "name": "Perfect Pitch",
+    "unlock": "S-rank Descant",
+    "script": "The note lands and the opponent's HUD portrait joins the choir; the freeze-frame is the portrait singing."
+  },
+  "overdrive": {
+    "id": "tutti",
+    "name": "TUTTI",
+    "script": "The arena fills with four hundred half-there figures in concert dress, and they sing the opponent’s name, and the opponent’s own body performs the piece. She conducts."
+  }
+}

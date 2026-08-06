@@ -9,7 +9,7 @@
     "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
     "name": { "type": "string" },
     "title": { "type": "string" },
-    "faction": { "type": "string", "enum": ["vanguard", "court", "dominion"] },
+    "faction": { "type": "string", "enum": ["vanguard", "apex", "court", "dominion"] },
     "archetype": { "type": "string" },
     "difficulty": { "type": "integer", "minimum": 1, "maximum": 5 },
     "stats": {

@@ -6,6 +6,64 @@
     "parts": []
   },
   "looks": {
+    "sovereign": {
+      "build": { "shoulder": 1.14, "waist": 0.66, "limb": 1.02, "head": 0.98, "neck": 1.05 },
+      "skin": "#c8a888",
+      "parts": [
+        { "type": "coat", "layer": "back", "col": "#1a1a20", "len": 0.92, "collar": true, "lining": "#d4af37" },
+        { "type": "pauldrons", "col": "#2b2b31", "size": 1.05 },
+        { "type": "chestplate", "style": "plate", "col": "#2b2b31" },
+        { "type": "harness", "col": "#d4af37" },
+        { "type": "crown", "col": "#d4af37", "shards": 3 },
+        { "type": "eyes", "col": "#d4af37", "glow": true },
+        { "type": "hair", "col": "#20201c", "style": "slick" }
+      ]
+    },
+    "terminus": {
+      "build": { "shoulder": 1.42, "waist": 0.92, "limb": 1.26, "head": 0.8, "neck": 0.5, "hunch": 0.08 },
+      "skin": "#6b5a48",
+      "parts": [
+        { "type": "pods", "layer": "back", "col": "#4a3f34", "accent": "#ff9a3c" },
+        { "type": "capacitor", "layer": "back", "col": "#ff9a3c", "src": "joules" },
+        { "type": "beamplate", "col": "#2e2721" },
+        { "type": "chestplate", "style": "chassis", "col": "#6b5a48", "wet": "#ff7a2c" },
+        { "type": "staples", "col": "#8a7a62" },
+        { "type": "rangefinder", "col": "#ff9a3c" }
+      ]
+    },
+    "halflight": {
+      "build": { "shoulder": 1.04, "waist": 0.64, "limb": 1.02, "head": 0.96, "neck": 1.05 },
+      "skin": "#d8b898",
+      "parts": [
+        { "type": "cape", "layer": "back", "col": "#3a3020", "len": 0.8, "tatter": 3 },
+        { "type": "pauldrons", "col": "#8a7a5c", "size": 1.0 },
+        { "type": "chestplate", "style": "plate", "col": "#8a7a5c" },
+        { "type": "cross", "col": "#d4af37" },
+        { "type": "hair", "col": "#2a2018", "style": "tied" }
+      ]
+    },
+    "chorus": {
+      "build": { "shoulder": 1.2, "waist": 0.56, "limb": 0.98, "head": 0.94, "neck": 1.3 },
+      "skin": "#d0c4c8",
+      "parts": [
+        { "type": "ghosts", "layer": "back", "col": "#b8a0d8" },
+        { "type": "wings", "layer": "back", "col": "#20202c", "sheen": "#b8a0d8" },
+        { "type": "coat", "layer": "back", "col": "#101018", "len": 0.98, "collar": true, "lining": "#3a2a48" },
+        { "type": "chestplate", "style": "plate", "col": "#20202c" },
+        { "type": "eyes", "col": "#e8e0f8", "glow": true },
+        { "type": "hair", "col": "#14141c", "style": "tied" }
+      ]
+    },
+    "kestrel": {
+      "build": { "shoulder": 0.98, "waist": 0.66, "limb": 1.0, "head": 0.95, "neck": 1 },
+      "skin": "#c8a082",
+      "parts": [
+        { "type": "harness", "col": "#2a2a30" },
+        { "type": "filaments", "col": "#d4af37" },
+        { "type": "visor", "col": "#22222a", "glow": "#d4af37", "hotGlow": "#ffd97a" },
+        { "type": "hair", "col": "#3a2a1c", "style": "tied" }
+      ]
+    },
     "zenith": {
       "build": { "shoulder": 1.12, "waist": 0.66, "limb": 1.04, "head": 1, "neck": 1 },
       "skin": "#e5d5a8",

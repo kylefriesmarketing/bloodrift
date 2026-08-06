@@ -1,0 +1,29 @@
+{
+  "character": "kestrel",
+  "note": "P3 content — the FEED THE RIFT window names executions[0].",
+  "executions": [
+    {
+      "id": "invoiced",
+      "name": "Invoiced",
+      "cinematic": "TODO",
+      "script": "She kills them efficiently and without cruelty — then goes through their effects, takes exactly what she is owed, counts it, and leaves the rest. She has never once taken more."
+    },
+    {
+      "id": "kited",
+      "name": "Kited",
+      "cinematic": "TODO",
+      "script": "The monofilament goes around them and around the nearest architecture, and she walks away holding the other end, and the arena does the rest as she takes up the slack. She does not look back."
+    }
+  ],
+  "desecration": {
+    "id": "overdue",
+    "name": "Overdue",
+    "unlock": "S-rank Invoice",
+    "script": "The thrown knife lands and keeps collecting past the bell; the freeze-frame is a receipt."
+  },
+  "overdrive": {
+    "id": "paid_in_full",
+    "name": "PAID IN FULL",
+    "script": "She produces an itemised bill and collects it, once per line, at a speed the camera has to slow down to explain. The last line is always the same, and the camera lets you read it."
+  }
+}

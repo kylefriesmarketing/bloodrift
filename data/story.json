@@ -1,0 +1,68 @@
+{
+  "note": "Story surface: codex text + pre-fight intro exchanges. `rivalries` is keyed by the two ids sorted alphabetically and joined with ':'; each entry is [line spoken by the alphabetically-first fighter, line spoken by the second]. Anything unwritten falls back to the faction-pair table, so every one of the 400 pairings says something.",
+  "rift": {
+    "title": "THE RIFT",
+    "body": "The Spiral Dominion opened a Harvest Rift over Earth to strip-mine one reality. It malfunctioned and braided three: the heroes' Earth, the hidden Midnight Country, and a severed shard of the invading armada. Cities now end in cliffs of alien hull. Cathedrals stand fused into skyscrapers. The moon is wrong.\n\nThe Rift did not die. It is a wound that clots and reopens, and it drinks. Blood spilled near a Rift-scar does not dry — it crawls toward the wound. Whoever feeds it is favoured: power, resurrection, rewritten flesh.\n\nArmies fed it too fast and birthed the thing called CONFLUX. So now it is champions. Duels at the scars, witnessed by four powers, where every wound is a wager and every Execution is a tithe.\n\nThe Rift keeps score in blood. It does not care whose."
+  },
+  "factionOrder": ["vanguard", "apex", "court", "dominion"],
+  "factions": {
+    "vanguard": {
+      "body": "Earth's surviving hero coalition — not shiny anymore. They buried most of their roster the day of the Convergence, and the five who still fight are the ones willing to get ugly: a dying sun-god, a battlefield surgeon with a kill list, the ninth bearer of a cursed mantle, a demolition man who eats pain, and a woman whose power is her own skeleton.\n\nThey want the Rift closed. They know what it will cost. They have already started paying.",
+      "theme": "what heroism costs when the cameras are gone"
+    },
+    "apex": {
+      "body": "The people who beat the Vanguard. Not schemers — winners. On the morning of the Convergence the Apex had them: the Vanguard's dead were their work, hours old, and the paperwork was already filed. Then a hole opened in causality and buried their victory under monsters and aliens who had never heard of them.\n\nThey are not here to conquer the Rift. They are here to make it give the win back. Every duel at a scar is a hostile takeover.",
+      "theme": "the interrupted victory — the world was already ours"
+    },
+    "court": {
+      "body": "The old predators of the hidden realm, delighted that the walls are down. Classical monsters played as apex aristocracy rather than jump-scares: a vampire warlord, the first werewolf, a flesh golem who considers a body a rough draft, a pharaoh who conquered death by accounting, and a headless rider owed a head.\n\nThey understand the Rift best, because they have always run on blood-economies. They want it open forever.",
+      "theme": "the old world eats the new"
+    },
+    "dominion": {
+      "body": "The invaders, now castaways. The Rift severed this armada-shard from the empire, and its champions fight to reopen the way home — or to rule what is left. Five wildly different species and technologies, including a renegade salvager wearing stolen alien forms, an empress spending her own children, a weapons platform still running its final field test, and a thing from the rim of a dead galaxy that the Dominion was carrying as cargo.",
+      "theme": "the harvest, harvested"
+    }
+  },
+  "factionPairs": {
+    "apex:vanguard": ["You put your people in the ground. I merely filed it.", "You buried them between meetings."],
+    "court:vanguard": ["Neither does your sun, little hero. Yet here we both are.", "Whatever you are, you don't belong here."],
+    "dominion:vanguard": ["Your consent was never a required field.", "You opened this. You end it."],
+    "apex:court": ["I bought your country twice over.", "And I ate the men who sold it to you. We are not so different, except that I am older and you are lunch."],
+    "apex:dominion": ["You cost me a planet I had already closed on.", "Your claim is noted. Your claim is not recognised."],
+    "court:dominion": ["Something in you is warm. That is all I need to know.", "Biological. Predictable. Catalogued."],
+    "vanguard:vanguard": ["We don't have to do this.", "The Rift disagrees. Hands up."],
+    "apex:apex": ["You're overextended.", "I'm diversified. There's a difference, and you're about to learn it."],
+    "court:court": ["The Court sends its regards.", "The Court sends whoever it can spare. Clearly."],
+    "dominion:dominion": ["Designation?", "Irrelevant. Only the outcome is logged."]
+  },
+  "rivalries": {
+    "sovereign:zenith": ["Your account has been open a very long time.", "You buried my friends between meetings."],
+    "null:zenith": ["You are a sun. I am what suns fall into. This is not cruelty; it is appetite.", "Then choke on it."],
+    "strigoi:zenith": ["Starlight in the blood. I have waited six hundred years for this vintage.", "It'll burn all the way down."],
+    "halflight:zenith": ["You taught me the hold I'm going to use on you.", "…Ione."],
+    "graft:triage": ["Doctor. I have brought my own referral.", "You are not a colleague. You are a case file."],
+    "triage:vyrm": ["I can still get it out of you alive. Hold still.", "She says that every time. It's almost affection."],
+    "halflight:triage": ["You signed the order that made it defensible.", "I signed forty that night. Tell me which one made you this."],
+    "centurion:ordnance": ["Bearer, ninth. Three predecessors terminated. Rating: incomplete.", "Say their names properly or don't say them."],
+    "centurion:khet": ["A dynasty of one century. Adorable.", "It's nine lifetimes. It's enough."],
+    "centurion:terminus": ["You killed the Third in seventy-four.", "(it does not answer. the vents open.)"],
+    "joule:lycaon": ["Prey should not thank you for the bite. It is a theological problem.", "Ain't prey. Just slow. Hit me again, I'm listening."],
+    "joule:vespra": ["You carried three of my children out of a collapse because they were hurt.", "They were heavy and they were scared. Anybody would've."],
+    "joule:terminus": ["Big fella. You don't gotta keep going, y'know.", "(it keeps going.)"],
+    "harrow:marrow": ["I take the heads. You take the rest. There is no dispute here.", "There's one skull between us and you know exactly which."],
+    "khet:marrow": ["Materials.", "Dry old bones with delusions of dynasty. Same to you."],
+    "kestrel:marrow": ["You want the monofilament. Name a price.", "You want a femur. Name yours."],
+    "flux:strigoi": ["Your blood rewrote itself while I was drinking it. It was appalling. Do it again.", "Get your own genome, Count."],
+    "lycaon:vespra": ["Pack. Hive. Two theories of family as a weapon.", "Mine eats. Yours obeys. Mine is honest."],
+    "graft:kestrel": ["I could pay you in parts. Excellent parts.", "Coin. I've explained this. Coin."],
+    "khet:null": ["You consumed one of my jars. That was a filing.", "It was a compliment. I have no language that survives you."],
+    "harrow:vyrm": ["The head you want is on my bandolier and it is screaming about you.", "It always did talk. Best-looking body I ever wore, though."],
+    "chorus:harrow": ["Your collection hums when I'm near. It wants to join.", "It wants nothing. Heads don't want. …Shut up, all of you."],
+    "chorus:flux": ["One mind, nine bodies. How lonely.", "Four hundred minds, one body. How crowded."],
+    "chorus:vyrm": ["We are in the same business, worm. Yours is crude.", "Mine leaves them standing. Yours leaves them singing. Crude is subjective."],
+    "kestrel:sovereign": ["Forty minutes before the world broke, and I have never been paid.", "Invoice my office.  …You are my office. Yes."],
+    "halflight:sovereign": ["I didn't recruit you. You applied.", "I know what I am. Do you?"],
+    "null:terminus": ["You grow. I consume. We have done this for nine hours before, and neither of us noticed the sun.", "(it has already started walking.)"],
+    "flux:ordnance": ["Property recovery directive: the SHIFTCORE is Dominion materiel. Return it.", "Counter-offer: come and take it, Pattern Seven."]
+  }
+}

@@ -109,6 +109,162 @@ const finFile = (character, ex1, ex2, des, od) => ({
 });
 
 const CHARS = [
+  // ---------------------------------------------------------------- THE APEX (villains)
+  {
+    id: 'sovereign', name: 'SOVEREIGN', title: 'The Man Who Won', faction: 'apex',
+    archetype: 'mastermind-counter', difficulty: 3, base: 'zenith', dmgMul: 1.02,
+    stats: { hp: 1020, walkF: 3300, walkB: 3100 },
+    mech: {
+      mechanic: 'graft_sets',
+      config: {
+        poolMax: 110, poolStart: 110, absorbHeal: 26, armorDamagePermille: 240,
+        power: { dmgPermille: 1060, walkPermille: 940 }, finesse: { walkPermille: 1080, throwStartupMinus: 1, longArmExtend: 30 },
+        labels: { power: 'INDEMNITY', finesse: 'FORECLOSURE' }
+      }
+    },
+    palette: { primary: '#2b2b31', secondary: '#141418', accent: '#d4af37', blood: '#ff2135' },
+    names: { s_fp: 'Notice', s_bp: 'Margin Call', s_bk: 'Severance Pay', c_bp: 'Golden Parachute', c_bk: 'Undercut', duty_2: 'Due Process (2)', duty_3: 'Due Process (ender)' },
+    specials: [
+      T.fireball('liquidate', 'Liquidate', { patch: { damage: 68, chip: 13, projectile: { speed: 9500, life: 125, w: 42, h: 20, y: 145, durability: 1 } } }),
+      Object.assign(T.rush('margin_call', 'Margin Call'), { armor: { frames: [1, 14], hits: 1 }, armorSet: 'power', damage: 74 }),
+      T.parry('due_diligence', 'Due Diligence'),
+      T.grab('foreclosure', 'Foreclosure', { patch: { damage: 150, grab: { range: 58, cinematicFrames: 42, mashReduce: 3, damageFloor: 118, airOk: false } } }),
+      T.antiair('golden_parachute', 'Golden Parachute', { input: 'dp+FK', patch: { trigger: { type: 'motion', motion: 'dp', button: 'FK', pos: 'stand' }, damage: 72 } }),
+      T.odStrike('hostile_takeover', 'HOSTILE TAKEOVER', { patch: { damage: 258 } })
+    ],
+    sunders: [
+      sunder('ARMS', 'hour_hand', { type: 'parry_vs_uses', uses: 'ARMS' }, 'parry with Due Diligence', 'He takes the wrist, reads the watch, and breaks the arm at the hour hand.'),
+      sunder('LEGS', 'kept_walking', { type: 'absorb_punish', absorbs: 2 }, 'armour through a hit, then punish', 'Margin Call at the knee — and he keeps walking.'),
+      sunder('BODY', 'foreclosed', { type: 'move_hits', move: 'foreclosure', count: 2 }, 'land the second Foreclosure', 'Two fingers to the sternum, and the bone-cam shows ribs giving way in the shape of a hand.')
+    ],
+    fins: finFile('sovereign',
+      ['fully_vested', 'Fully Vested', 'He shakes their hand. The gold seams run UP their arm, and what walks away from the handshake is him, wearing their silhouette for one second before it sloughs off. The husk keeps standing because nobody told it it could stop.'],
+      ['terms', 'Terms', 'He hands them a page. They read it. The camera never shows the page. Whatever it says, they do it to themselves, methodically, while he checks his watch — and he does not watch. He is already looking at the next opponent.'],
+      ['called_in', 'Called In', 'S-rank Margin Call', 'The armoured backhand continues past the bell; the freeze-frame is his hand out, palm up, waiting to be paid.'],
+      ['hostile_takeover', 'HOSTILE TAKEOVER', 'The arena lights come up like a boardroom. Eleven seconds of documented, itemised violence from a man who does not loosen his tie, ending with a chair, a signature, and a stamp. The stamp is the hit.'])
+  },
+  {
+    id: 'terminus', name: 'TERMINUS', title: 'The Long Hour', faction: 'apex',
+    archetype: 'juggernaut-escalation', difficulty: 2, base: 'joule', dmgMul: 1.04,
+    stats: { hp: 1280, walkF: 2250, walkB: 2000, width: 124, height: 312 },
+    mech: { mechanic: 'bank', config: { convertPermille: 620, max: 300 } },
+    palette: { primary: '#6b5a48', secondary: '#2e2721', accent: '#ff9a3c', blood: '#ff2135' },
+    names: { s_fp: 'Piston', s_bp: 'Rivet', s_fk: 'Tread', s_bk: 'Sundown', c_bp: 'Overpressure', c_bk: 'Fissure', site_2: 'Grind (2)', site_3: 'Grind (ender)' },
+    specials: [
+      Object.assign(T.rush('grind', 'Grind', { patch: { damage: 92 } }), { armor: { frames: [1, 20], hits: 2 } }),
+      T.quake('sundown', 'Sundown', { patch: { damage: 82 } }),
+      T.grab('press', 'Press', { patch: { damage: 170, grab: { range: 62, cinematicFrames: 52, mashReduce: 4, damageFloor: 130, airOk: false } } }),
+      T.antiair('overpressure', 'Overpressure', { input: 'dp+BP', patch: { trigger: { type: 'motion', motion: 'dp', button: 'BP', pos: 'stand' }, damage: 80 } }),
+      stance('the_hour', 'The Hour', { enter: 5, exit: 12, maxHold: 80, absorbProjectiles: false, absorbHeal: 0, armorPool: false }),
+      T.odStrike('terminal_velocity', 'TERMINAL VELOCITY', { patch: { damage: 272 } })
+    ],
+    sunders: [
+      sunder('ARMS', 'and_waits', { type: 'absorb_punish', absorbs: 3 }, 'absorb three, then punish', 'It closes a hand around the forearm and waits.'),
+      sunder('LEGS', 'did_not_stop', { type: 'move_hits', move: 'grind', count: 2 }, 'land the second Grind', 'The walking shoulder does not stop at the leg.'),
+      sunder('BODY', 'pressure_vessel', { type: 'move_hits', move: 'press', count: 2 }, 'land the second Press', 'Press, held, while the escalation ticks over on-screen.')
+    ],
+    fins: finFile('terminus',
+      ['long_hour', 'Long Hour', 'It sets them down, sits facing them, and waits. The round timer appears and runs. It does nothing. The loser tries to crawl. The timer hits zero and so do they — the only Execution where the winner never touches the loser at all.'],
+      ['overpressure_x', 'Overpressure', 'It embraces them and opens every vent inward. One frame of a person becoming a pressure vessel, and then the arena is very bright and very quiet, and there is a shadow on the wall behind where it stood.'],
+      ['still_standing', 'Still Standing', 'S-rank Grind', 'The advance continues past the bell; the freeze-frame is the far arena wall.'],
+      ['terminal_velocity', 'TERMINAL VELOCITY', 'Every vent opens at once. It walks — just walks — through the entire arena, and the camera stays behind it, and whatever was in the way is behind it too.'])
+  },
+  {
+    id: 'halflight', name: 'HALFLIGHT', title: 'The Turned', faction: 'apex',
+    archetype: 'dual-moveset', difficulty: 4, base: 'strigoi', dmgMul: 1.0,
+    stats: { hp: 990, walkF: 3700 },
+    mech: {
+      mechanic: 'graft_sets',
+      config: {
+        poolMax: 100, poolStart: 100, absorbHeal: 20, armorDamagePermille: 280,
+        power: { dmgPermille: 1000, walkPermille: 1000 }, finesse: { walkPermille: 1150, throwStartupMinus: 1, longArmExtend: 0 },
+        labels: { power: 'BRIGHT', finesse: 'DARK' }
+      }
+    },
+    palette: { primary: '#8a7a5c', secondary: '#1c1a20', accent: '#d4af37', blood: '#ff2135' },
+    names: { s_fp: 'Discipline', s_bp: 'Old Form', c_bp: 'Rally', c_bk: 'Sweep the Leg', velvet_2: 'Oath (2)', velvet_3: 'Oath (ender)' },
+    specials: [
+      Object.assign(T.parry('oath', 'Oath'), { requiresSet: 'power' }),
+      Object.assign(T.antiair('rally', 'Rally', { input: 'dp+FP', patch: { damage: 76 } }), { requiresSet: 'power' }),
+      Object.assign(T.fireball('recant', 'Recant', { patch: { damage: 58, chip: 11, projectile: { speed: 11000, life: 100, w: 30, h: 30, y: 150, durability: 1 } } }), { requiresSet: 'finesse' }),
+      Object.assign(T.rush('attrition', 'Attrition', { patch: { damage: 66, movement: [{ frames: [1, 12], vx: 16000, passThrough: true }] } }), { requiresSet: 'finesse' }),
+      Object.assign(T.grab('answer', 'Answer', { patch: { damage: 145 } }), { requiresSet: 'finesse' }),
+      T.odSwarm('conviction', 'CONVICTION', { patch: { damage: 248 } })
+    ],
+    sunders: [
+      sunder('ARMS', 'two_degrees', { type: 'parry_vs_uses', uses: 'ARMS' }, 'parry with Oath', 'A textbook disarm, taken two degrees past textbook.'),
+      sunder('LEGS', 'from_behind', { type: 'move_hits', move: 'attrition', count: 2 }, 'cross under, then hit', 'Attrition, through the knee, from behind.'),
+      sunder('BODY', 'medical_hold', { type: 'hit_while_bleeding' }, 'strike a Bleeding opponent', 'The Vanguard medical hold — the one taught for saving somebody — and she does not let go.')
+    ],
+    fins: finFile('halflight',
+      ['the_call', 'The Call', 'She restages it: she puts them exactly where her people were, gives them the same defensible, arithmetic, correct choice — and then makes the decision the Vanguard made, out loud, in their voice.'],
+      ['honourably', 'Honourably', 'She kills them the right way. Clean, fast, respectful, by the book — the book she still knows by heart. She closes their eyes. Then she takes the medal.'],
+      ['recanted', 'Recanted', 'S-rank Recant', 'The thrown medal does not knock them down, it goes through; the freeze-frame is the medal spinning on the floor and her already walking.'],
+      ['conviction', 'CONVICTION', 'Both halves at once for four seconds, alternating hero and villain technique. BRIGHT ends with her catching them. DARK ends with her not.'])
+  },
+  {
+    id: 'chorus', name: 'CHORUS', title: 'The Many-Mouthed', faction: 'apex',
+    archetype: 'telepath-debuffer', difficulty: 4, base: 'zenith', dmgMul: 0.9,
+    stats: { hp: 940, walkF: 3400 },
+    mech: { mechanic: 'audit', config: { perStack: 16, auditCd: 190 } },
+    palette: { primary: '#20202c', secondary: '#101018', accent: '#b8a0d8', blood: '#ff2135' },
+    names: { s_fp: 'Grace Note', s_bp: 'Descant', s_bk: 'Crescendo', c_bp: 'Fermata', c_bk: 'Rest', duty_2: 'Round (2)', duty_3: 'Round (ender)' },
+    specials: [
+      Object.assign(T.fireball('descant', 'Descant', { patch: { damage: 52, chip: 10, projectile: { speed: 8800, life: 120, w: 34, h: 34, y: 150, durability: 1 } } }), { incision: true, whisper: true }),
+      Object.assign(T.rush('round_phrase', 'Round', { input: 'qcb+FK', patch: { trigger: { type: 'motion', motion: 'qcb', button: 'FK', pos: 'stand' }, guard: 'low', limb_tag: 'LEGS', damage: 54, hitboxes: [{ frames: [1, 3], x: 30, y: 26, w: 104, h: 46 }] } }), { incision: true }),
+      Object.assign(T.antiair('fermata', 'Fermata', { input: 'dp+BP', patch: { trigger: { type: 'motion', motion: 'dp', button: 'BP', pos: 'stand' }, damage: 70 } }), { whisper: true }),
+      Object.assign(T.grab('cue', 'Cue', { patch: { damage: 128 } }), { incision: true, whisper: true }),
+      T.odSwarm('tutti', 'TUTTI', { patch: { damage: 244 } })
+    ],
+    sunders: [
+      sunder('ARMS', 'it_agrees', { type: 'move_hits', move: 'descant', count: 4 }, 'land the fourth Descant', 'She asks the arm to stop belonging to them, and it agrees.'),
+      sunder('LEGS', 'which_leg', { type: 'move_hits', move: 'round_phrase', count: 3 }, 'land the third Round', 'Mid-stride she changes which leg they think is forward — the bone-cam shows the disagreement.'),
+      sunder('BODY', 'resonance', { type: 'move_hits', move: 'cue', count: 2 }, 'land the second Cue', 'Four hundred voices at once, at range, and the ribcage resonates apart.')
+    ],
+    fins: finFile('chorus',
+      ['encore', 'Encore', 'She asks them to sing. They do — beautifully, in a voice that is not theirs and never was — and they keep going after they should have stopped, and after they should have been able to.'],
+      ['four_hundred', 'Four Hundred', 'She lets the others have a turn. The camera stays on her face, pleasant and attentive, occasionally correcting a tempo, while behind her the sound does something the visuals never show.'],
+      ['perfect_pitch', 'Perfect Pitch', 'S-rank Descant', "The note lands and the opponent's HUD portrait joins the choir; the freeze-frame is the portrait singing."],
+      ['tutti', 'TUTTI', 'The arena fills with four hundred half-there figures in concert dress, and they sing the opponent’s name, and the opponent’s own body performs the piece. She conducts.'])
+  },
+  {
+    id: 'kestrel', name: 'KESTREL', title: 'The Fee', faction: 'apex',
+    archetype: 'mercenary-rushdown', difficulty: 2, base: 'strigoi', dmgMul: 0.98,
+    stats: { hp: 960, walkF: 4000, walkB: 3600 },
+    mech: { mechanic: 'rift_special', config: {} },
+    palette: { primary: '#4a4a52', secondary: '#22222a', accent: '#d4af37', blood: '#ff2135' },
+    names: { s_fp: 'Quick Cut', s_bp: 'Retainer', s_bk: 'Kickback', c_bp: 'Uplift', c_bk: 'Low Bid', velvet_2: 'Collections (2)', velvet_3: 'Collections (ender)' },
+    specials: [
+      T.fireball('invoice', 'Invoice', { input: 'qcf+FK', patch: { trigger: { type: 'motion', motion: 'qcf', button: 'FK', pos: 'stand' }, damage: 50, chip: 10, projectile: { speed: 12000, life: 90, w: 30, h: 12, y: 140, durability: 1 } } }),
+      T.rush('collections', 'Collections', { input: 'b,f+FP', patch: { trigger: { type: 'motion', motion: 'bf', button: 'FP', pos: 'stand' }, guard: 'low', limb_tag: 'LEGS', damage: 58, hitboxes: [{ frames: [1, 3], x: 30, y: 28, w: 100, h: 44 }] } }),
+      T.grab('severance', 'Severance', { patch: { damage: 152, grab: { range: 54, cinematicFrames: 40, mashReduce: 3, damageFloor: 116, airOk: false } } }),
+      T.teleport('kite', 'Kite', { input: 'qcb+BP', trigger: { motion: 'qcb', button: 'BP' }, dist: -34000 }),
+      {
+        id: 'terms_reroll', name: 'Terms', input: 'RF', kind: 'special',
+        trigger: { type: 'rift_press' }, cooldown: 260,
+        limb_tag: 'BODY', uses: 'ARMS', guard: 'mid',
+        // base = (active-1)+recovery = 19, so hitstun/blockstun must be 22/14 for these
+        frames: { startup: 7, active: 2, recovery: 18, hitstun: 22, blockstun: 14, hitstop: 5 },
+        onHit: 3, onBlock: -5,
+        damage: 34, chip: 6, meterGain: { hit: 12, block: 4 }, knock: { type: 'none' },
+        selfBuff: { meterRegen: 4, dur: 260 },
+        hitboxes: [{ frames: [1, 2], x: 24, y: 120, w: 96, h: 70 }],
+        tags: ['contract']
+      },
+      T.odSwarm('paid_in_full', 'PAID IN FULL', { patch: { damage: 246 } })
+    ],
+    sunders: [
+      sunder('ARMS', 'guide_cut', { type: 'move_hits', move: 'severance', count: 2 }, 'land the second Severance', 'Monofilament takes the arm at a joint she picked earlier — the bone-cam shows the guide cut she left.'),
+      sunder('LEGS', 'from_a_whiff', { type: 'punish_blocked_low' }, 'block a low, then punish', 'Collections at the ankle, from behind, on a whiff.'),
+      sunder('BODY', 'businesslike', { type: 'hit_while_bleeding', move: 'severance' }, 'Severance a Bleeding opponent', 'She gets inside the guard and the camera stays close and businesslike.')
+    ],
+    fins: finFile('kestrel',
+      ['invoiced', 'Invoiced', 'She kills them efficiently and without cruelty — then goes through their effects, takes exactly what she is owed, counts it, and leaves the rest. She has never once taken more.'],
+      ['kited', 'Kited', 'The monofilament goes around them and around the nearest architecture, and she walks away holding the other end, and the arena does the rest as she takes up the slack. She does not look back.'],
+      ['overdue', 'Overdue', 'S-rank Invoice', 'The thrown knife lands and keeps collecting past the bell; the freeze-frame is a receipt.'],
+      ['paid_in_full', 'PAID IN FULL', 'She produces an itemised bill and collects it, once per line, at a speed the camera has to slow down to explain. The last line is always the same, and the camera lets you read it.'])
+  },
+  // ---------------------------------------------------------------- the original three
   {
     id: 'centurion', name: 'CENTURION IX', title: 'The Ninth Bearer', faction: 'vanguard',
     archetype: 'stance-loadout', difficulty: 3, base: 'zenith', dmgMul: 1.05,
@@ -146,7 +302,8 @@ const CHARS = [
     archetype: 'zoner-crafter', difficulty: 2, base: 'zenith', dmgMul: 0.95,
     stats: { hp: 960 },
     mech: { mechanic: 'rift_special', config: {} },
-    palette: { primary: '#ded6c4', secondary: '#6a6152', accent: '#b8434e', blood: '#ff2135' },
+    // bone, but not blown out — a lighter primary blooms into a white blob (D-019)
+    palette: { primary: '#a89e8c', secondary: '#6a6152', accent: '#b8434e', blood: '#ff2135' },
     names: { s_fp: 'Knuckle Spur', s_bp: 'Ulna Edge', c_bp: 'Crest Rise', c_bk: 'Femur Sweep', duty_2: 'Ossuary (2)', duty_3: 'Ossuary (ender)' },
     specials: [
       Object.assign(T.fireball('spina', 'Spina', { patch: { damage: 60, chip: 12, projectile: { speed: 9000, life: 120, w: 40, h: 16, y: 140, durability: 1 } } }), { cost: { hp: 8 } }),

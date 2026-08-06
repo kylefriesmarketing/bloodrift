@@ -1,0 +1,29 @@
+{
+  "character": "terminus",
+  "note": "P3 content — the FEED THE RIFT window names executions[0].",
+  "executions": [
+    {
+      "id": "long_hour",
+      "name": "Long Hour",
+      "cinematic": "TODO",
+      "script": "It sets them down, sits facing them, and waits. The round timer appears and runs. It does nothing. The loser tries to crawl. The timer hits zero and so do they — the only Execution where the winner never touches the loser at all."
+    },
+    {
+      "id": "overpressure_x",
+      "name": "Overpressure",
+      "cinematic": "TODO",
+      "script": "It embraces them and opens every vent inward. One frame of a person becoming a pressure vessel, and then the arena is very bright and very quiet, and there is a shadow on the wall behind where it stood."
+    }
+  ],
+  "desecration": {
+    "id": "still_standing",
+    "name": "Still Standing",
+    "unlock": "S-rank Grind",
+    "script": "The advance continues past the bell; the freeze-frame is the far arena wall."
+  },
+  "overdrive": {
+    "id": "terminal_velocity",
+    "name": "TERMINAL VELOCITY",
+    "script": "Every vent opens at once. It walks — just walks — through the entire arena, and the camera stays behind it, and whatever was in the way is behind it too."
+  }
+}

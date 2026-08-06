@@ -1,0 +1,51 @@
+{
+  "character": "halflight",
+  "note": "P3 live — roster triggers adapted onto the generic `when` types (D-018 wave build).",
+  "sunders": [
+    {
+      "region": "ARMS",
+      "id": "two_degrees",
+      "when": {
+        "type": "parry_vs_uses",
+        "uses": "ARMS"
+      },
+      "trigger": {
+        "desc": "parry with Oath"
+      },
+      "cinematic": "TODO",
+      "flavor": "A textbook disarm, taken two degrees past textbook."
+    },
+    {
+      "region": "LEGS",
+      "id": "from_behind",
+      "when": {
+        "type": "move_hits",
+        "move": "attrition",
+        "count": 2
+      },
+      "trigger": {
+        "desc": "cross under, then hit"
+      },
+      "cinematic": "TODO",
+      "flavor": "Attrition, through the knee, from behind."
+    },
+    {
+      "region": "BODY",
+      "id": "medical_hold",
+      "when": {
+        "type": "hit_while_bleeding"
+      },
+      "trigger": {
+        "desc": "strike a Bleeding opponent"
+      },
+      "cinematic": "TODO",
+      "flavor": "The Vanguard medical hold — the one taught for saving somebody — and she does not let go."
+    }
+  ],
+  "debuffs_reference": {
+    "ARMS": "victim punch damage -20%, their throws tech twice as easily",
+    "LEGS": "victim loses dashes, move speed -15%",
+    "BODY": "victim meter gain -30%, Bleeding applied",
+    "HEAD": "victim inputs ghost briefly after every hit taken"
+  }
+}

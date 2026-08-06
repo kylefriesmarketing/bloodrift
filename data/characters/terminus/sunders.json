@@ -1,0 +1,53 @@
+{
+  "character": "terminus",
+  "note": "P3 live — roster triggers adapted onto the generic `when` types (D-018 wave build).",
+  "sunders": [
+    {
+      "region": "ARMS",
+      "id": "and_waits",
+      "when": {
+        "type": "absorb_punish",
+        "absorbs": 3
+      },
+      "trigger": {
+        "desc": "absorb three, then punish"
+      },
+      "cinematic": "TODO",
+      "flavor": "It closes a hand around the forearm and waits."
+    },
+    {
+      "region": "LEGS",
+      "id": "did_not_stop",
+      "when": {
+        "type": "move_hits",
+        "move": "grind",
+        "count": 2
+      },
+      "trigger": {
+        "desc": "land the second Grind"
+      },
+      "cinematic": "TODO",
+      "flavor": "The walking shoulder does not stop at the leg."
+    },
+    {
+      "region": "BODY",
+      "id": "pressure_vessel",
+      "when": {
+        "type": "move_hits",
+        "move": "press",
+        "count": 2
+      },
+      "trigger": {
+        "desc": "land the second Press"
+      },
+      "cinematic": "TODO",
+      "flavor": "Press, held, while the escalation ticks over on-screen."
+    }
+  ],
+  "debuffs_reference": {
+    "ARMS": "victim punch damage -20%, their throws tech twice as easily",
+    "LEGS": "victim loses dashes, move speed -15%",
+    "BODY": "victim meter gain -30%, Bleeding applied",
+    "HEAD": "victim inputs ghost briefly after every hit taken"
+  }
+}

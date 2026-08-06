@@ -10,9 +10,13 @@ in blood. Design docs in `docs/` are the spec ([GDD](docs/BLOODRIFT_01_GAME_DESI
 
 ## Status (2026-08-05) — P0–P4 ✅ · **FULL 15-FIGHTER ROSTER** ✅ · Gauntlet core ✅ (tower UI pending)
 
-All three factions playable: **Vanguard** ZENITH · TRIAGE · CENTURION IX · JOULE · MARROW —
-**Court** STRIGOI · LYCAON · GRAFT · KHET · HARROW — **Dominion** FLUX · VESPRA · ORDNANCE ·
-NULL · VYRM. The back ten were composed by `tools/gen-roster.mjs` from lint-proven frame
+**FOUR factions, 20 fighters** — heroes, villains, monsters, aliens, all meeting at the
+Rift-scars: **THE VANGUARD** (heroes) ZENITH · TRIAGE · CENTURION IX · JOULE · MARROW —
+**THE APEX** (villains, [design doc](docs/BLOODRIFT_04_THE_APEX.md)) SOVEREIGN · TERMINUS ·
+HALFLIGHT · CHORUS · KESTREL — **THE MIDNIGHT COURT** (monsters) STRIGOI · LYCAON · GRAFT ·
+KHET · HARROW — **THE SPIRAL DOMINION** (aliens) FLUX · VESPRA · ORDNANCE · NULL · VYRM.
+Four mutually exclusive win conditions over one wound. Press **C** for the codex; every one
+of the 400 pairings has a pre-fight exchange. The back ten were composed by `tools/gen-roster.mjs` from lint-proven frame
 blocks + hand-specced signature specials (v1 kits — deepen per wave; the six full custom
 subsystems from BUILD_PLAN §4.3 are still owed and their identities currently run on the
 generic mechanics: sets/audit/rift-specials/drain). KHET's curses = Audit detonation,
