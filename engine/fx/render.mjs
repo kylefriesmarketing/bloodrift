@@ -8,14 +8,25 @@
 // burning ruins; ash falls; the camera punches on the big beats. All view-only.
 
 import { SCALE, resolveMove } from '../sim/sim.mjs';
+import { drawFigure } from './body.mjs';
+import { Post } from './post.mjs';
+import { shade, shadeCss, withAlpha, rr, rrs, limb } from './draw2d.mjs';
 
 const VW = 1280, VH = 720, FLOOR_Y = 596;
-const FCW = 480, FCH = 500, FOOT_X = 240, FOOT_Y = 462; // offscreen body canvas metrics
+const FCW = 520, FCH = 560, FOOT_X = 260, FOOT_Y = 500; // offscreen body canvas metrics
 
 export class Renderer {
-  constructor(canvas, arena) {
+  constructor(canvas, arena, looks) {
     this.cv = canvas;
-    this.cx = canvas.getContext('2d');
+    this.vcx = canvas.getContext('2d');
+    this.cx = this.vcx;
+    this.looksData = looks || { default: { build: { shoulder: 1, waist: 0.7, limb: 1, head: 1, neck: 1 }, skin: '#d8c2a8', parts: [] }, looks: {} };
+    // the world renders into a scene buffer so post can bloom/grade/split it
+    this.scene = document.createElement('canvas');
+    this.scene.width = VW;
+    this.scene.height = VH;
+    this.scx = this.scene.getContext('2d');
+    this.post = new Post(VW, VH);
     this.arena = arena;
     this.camX = arena.width / 2;
     this.camS = 0.9;
@@ -56,6 +67,20 @@ export class Renderer {
     }
     g.putImageData(im, 0, 0);
     this.displayHp = [1, 1];
+    this.abT = 0;
+  }
+
+  lookFor(f) {
+    const id = f.char.character.id;
+    const d = this.looksData;
+    const base = d.default || {};
+    const l = (d.looks || {})[id] || {};
+    return {
+      build: Object.assign({}, base.build, l.build),
+      skin: l.skin || base.skin || '#d8c2a8',
+      parts: l.parts || base.parts || [],
+      beastBuild: l.beastBuild
+    };
   }
 
   reset() {
@@ -166,7 +191,10 @@ export class Renderer {
 
   shake(amp) { this.shakeT = 14; this.shakeAmp = Math.max(this.shakeAmp, amp); }
   flash(col, t) { this.flashT = Math.max(this.flashT, t); this.flashCol = col; }
-  punch(k) { this.camPunch = Math.max(this.camPunch, k); }
+  punch(k) {
+    this.camPunch = Math.max(this.camPunch, k);
+    if (k >= 0.09) this.abT = Math.max(this.abT, 11); // sunders, overdrives, executions
+  }
 
   spark(wx, wy, col, r, soft) {
     this.parts.push({ type: 'spark', x: wx, y: wy, col, r, life: soft ? 8 : 10, max: soft ? 8 : 10 });
@@ -194,12 +222,13 @@ export class Renderer {
   // ---- frame
   draw(sim) {
     this.t++;
+    this.cx = this.scx;          // the world paints into the scene buffer
     const cx = this.cx;
     const [a, b] = sim.fighters;
     // camera
     const mid = (a.x + b.x) / 2 / SCALE;
     const dist = Math.abs(a.x - b.x) / SCALE;
-    const targS = Math.max(0.62, Math.min(0.95, 1150 / (dist + 560)));
+    const targS = Math.max(0.68, Math.min(1.16, 1320 / (dist + 520)));
     this.camS += (targS - this.camS) * 0.06;
     this.camPunch *= 0.88;
     if (this.camPunch < 0.003) this.camPunch = 0;
@@ -308,7 +337,24 @@ export class Renderer {
           if ((i + bi) % 2 === 0) cx.fillRect(fx + 16, fy + 22, 5, 8);
         }
       }
+      // atmospheric haze between layers — the classic depth cue, kept light
+      const hz = cx.createLinearGradient(0, FLOOR_Y - 420, 0, FLOOR_Y + 30);
+      hz.addColorStop(0, `rgba(64,54,74,${0.05 + bi * 0.01})`);
+      hz.addColorStop(1, `rgba(44,34,50,${0.11 + bi * 0.02})`);
+      cx.fillStyle = hz;
+      cx.fillRect(0, FLOOR_Y - 420, VW, 452);
     });
+
+    // drifting fog banks across the mid-ground
+    for (let fg = 0; fg < 3; fg++) {
+      const fx2 = ((this.t * (0.14 + fg * 0.06) + fg * 520) % (VW + 700)) - 350 - this.camX * 0.18 * S % 400;
+      const fy2 = FLOOR_Y - 60 - fg * 42;
+      const fgr = cx.createRadialGradient(fx2, fy2, 10, fx2, fy2, 260);
+      fgr.addColorStop(0, `rgba(120,100,120,${0.055 - fg * 0.012})`);
+      fgr.addColorStop(1, 'rgba(120,100,120,0)');
+      cx.fillStyle = fgr;
+      cx.fillRect(fx2 - 270, fy2 - 130, 540, 260);
+    }
 
     // ---------- the Rift-scar — pulse swells with the blood banked near it
     const scarX = W2S(this.arena.scarX);
@@ -469,10 +515,12 @@ export class Renderer {
         }
         cx.fillStyle = p.col;
         // motion-stretched droplet
-        const st = Math.min(3, Math.abs(p.vy) * 0.4 + 0.8);
+        const st = Math.min(2.1, Math.abs(p.vy) * 0.32 + 0.8);
+        cx.globalAlpha = 0.9;
         cx.beginPath();
-        cx.ellipse(W2S(p.x), Y2S(p.y), p.size * S, p.size * st * S, 0, 0, Math.PI * 2);
+        cx.ellipse(W2S(p.x), Y2S(p.y), p.size * 0.7 * S, p.size * 0.7 * st * S, 0, 0, Math.PI * 2);
         cx.fill();
+        cx.globalAlpha = 1;
       } else if (p.type === 'ember') {
         p.x += p.vx; p.y -= p.vy;
         cx.globalAlpha = Math.min(1, p.life / 60) * 0.8;
@@ -512,7 +560,7 @@ export class Renderer {
         cx.globalAlpha = k;
         cx.lineWidth = 2.5;
         cx.beginPath();
-        cx.arc(W2S(p.x), Y2S(p.y), p.r * (1.6 - k) * 2.2 * S, 0, Math.PI * 2);
+        cx.arc(W2S(p.x), Y2S(p.y), p.r * (1.6 - k) * 1.25 * S, 0, Math.PI * 2);
         cx.stroke();
         cx.globalAlpha = 1;
       } else if (p.type === 'slash') {
@@ -638,15 +686,25 @@ export class Renderer {
       cx.globalAlpha = 1;
     }
 
-    // film grain — shifting each frame
-    cx.globalAlpha = 0.5;
+    // ---------- composite: bloom, grade, chromatic split
+    this.cx = this.vcx;
+    const out = this.vcx;
+    if (this.abT > 0) this.abT--;
+    this.post.apply(this.scene, out, {
+      bloom: 0.42,
+      // only the heaviest beats split the channels, and only for a few frames
+      aberration: this.abT > 6 ? (this.abT - 6) * 0.62 : 0
+    });
+
+    // film grain — after post so it stays crisp instead of blooming
+    out.globalAlpha = 0.42;
     const gx = (Math.random() * 256) | 0, gy = (Math.random() * 256) | 0;
     for (let ty = -gy; ty < VH; ty += 256) {
       for (let tx = -gx; tx < VW; tx += 256) {
-        cx.drawImage(this.grain, tx, ty);
+        out.drawImage(this.grain, tx, ty);
       }
     }
-    cx.globalAlpha = 1;
+    out.globalAlpha = 1;
   }
 
   // ---------- fighter compositing: body offscreen → ghosts + reflection + main
@@ -703,7 +761,7 @@ export class Renderer {
 
     // floor reflection — the arena is polished with old blood
     cx.save();
-    cx.globalAlpha = 0.11;
+    cx.globalAlpha = 0.08;
     cx.translate(x, this.Y2S(0) + 12);
     cx.scale(S, -S * 0.5);
     cx.rotate(lying ? Math.PI / 2 * f.facing * 0.94 : -lean * 0.6);
@@ -712,6 +770,22 @@ export class Renderer {
 
     // the body itself
     blit(x, yFeet, lying ? -Math.PI / 2 * f.facing * 0.94 : lean, 1);
+
+    // rift rim-light: the wound in reality paints one edge of everything
+    const scarSide = Math.sign(this.arena.scarX * SCALE - f.x) || 1;
+    const rot = lying ? -Math.PI / 2 * f.facing * 0.94 : lean;
+    cx.save();
+    cx.globalCompositeOperation = 'lighter';
+    cx.globalAlpha = 0.2;
+    cx.filter = 'sepia(1) saturate(7) hue-rotate(-38deg) brightness(0.85)';
+    cx.translate(x + scarSide * 2.5, yFeet - 1);
+    cx.rotate(rot);
+    cx.scale(S, S);
+    cx.drawImage(this.fcv, -FOOT_X, -FOOT_Y);
+    cx.restore();
+    cx.filter = 'none';
+    cx.globalCompositeOperation = 'source-over';
+    cx.globalAlpha = 1;
   }
 
   leanOf(f) {
@@ -764,428 +838,25 @@ export class Renderer {
   }
 
   // ---------- one fighter body, drawn at scale 1 into the offscreen canvas
+  // ---------- one fighter, drawn at scale 1 into the offscreen canvas.
+  // The figure itself lives in body.mjs and is driven entirely by data/looks.json.
   renderBody(sim, f) {
     const cx = this.fcx;
     cx.clearRect(0, 0, FCW, FCH);
     cx.save();
     cx.translate(FOOT_X, FOOT_Y);
-
-    const pal = f.char.character.palette;
-    const st = f.stats;
-    const H = st.height;
-    const W = st.width * 0.86;
-    const face = f.facing;
-    const t = this.t;
-    const cid = f.char.character.id;
-
-    let crouchK = 0, bob = Math.sin(t * 0.07 + f.id * 3) * 1.5;
-    let guard = false;
-    let mv = null, activeK = 0, useLimb = 'ARMS';
-    switch (f.state) {
-      case 'crouch': crouchK = 0.38; break;
-      case 'prejump': crouchK = 0.3; break;
-      case 'dashF': case 'dashB': bob = 0; break;
-      case 'hitstun': bob = 0; break;
-      case 'blockstun': guard = true; break;
-      case 'wakeup': crouchK = 0.5 * (1 - f.stateT / Math.max(1, f.stateDur)); break;
-      case 'stance': crouchK = 0.22; guard = true; break;
-      case 'move': {
-        mv = resolveMove(f.char, f.moveId, f.moveVar);
-        const fr = mv.frames;
-        useLimb = mv.uses || 'ARMS';
-        if (f.moveF <= fr.startup) activeK = 0.55 * (f.moveF / Math.max(1, fr.startup));
-        else if (f.moveF <= fr.startup + fr.active) activeK = 1;
-        else activeK = Math.max(0, 0.7 * (1 - (f.moveF - fr.startup - fr.active) / Math.max(1, fr.recovery)));
-        break;
-      }
-    }
-    if (!mv && (f.state === 'idle' || f.state === 'walkB' || f.state === 'crouch')) {
-      const tr = sim.trackers[f.id];
-      if (tr.cur & 512) guard = true;
-    }
-
-    cx.translate(0, bob);
-    const breath = Math.sin(t * 0.045 + f.id * 2) * (f.state === 'idle' ? 2.2 : 0.8);
-
-    const justHit = f.state === 'hitstun' && f.stateT < 3;
-    const bodyH = H * (1 - crouchK * 0.42) + breath * 0.4;
-    const torsoW = W * (cid === 'graft' ? 1.28 : cid === 'strigoi' ? 0.92 : 1);
-    const outline = '#070507';
-    const torsoY = -bodyH * 0.52;
-    const headR = W * 0.34;
-
-    const totalTrauma = f.trauma.ARMS + f.trauma.BODY + f.trauma.LEGS + f.trauma.HEAD;
-    const gore = Math.min(0.38, totalTrauma / 1400);
-
-    // strigoi greatcoat behind everything, breathing at the hem
-    if (cid === 'strigoi') {
-      cx.fillStyle = shade(pal.secondary, 6);
-      cx.beginPath();
-      cx.moveTo(-torsoW * 0.5, torsoY - 4);
-      cx.lineTo(torsoW * 0.5, torsoY - 4);
-      cx.lineTo(torsoW * 0.95 + Math.sin(t * 0.09) * 4, -4);
-      cx.lineTo(-torsoW * 0.95 - Math.sin(t * 0.09 + 1) * 4, -4);
-      cx.closePath();
-      cx.fill();
-      cx.strokeStyle = shade(pal.accent, -30);
-      cx.lineWidth = 1.5;
-      cx.stroke();
-    }
-
-    // legs — two-segment, jointed. Hips at the torso base; knees bend for real.
-    const legW = W * 0.22, legH = bodyH * 0.4;
-    const hipY = -legH - 4;
-    const walking = f.state === 'walkF' || f.state === 'walkB';
-    const airborne = f.state === 'air' || f.state === 'launched' || f.state === 'prejump';
-    const legCol = shade(pal.secondary, 14);
-    const bootCol = shade(pal.secondary, -10);
-    const drawLeg = (hx, footX, footYy, lift, tone = 0) => {
-      // knee: midpoint pushed toward facing, more when lifted/bent
-      const mx2 = (hx + footX) / 2 + face * (5 + lift * 0.6 + crouchK * 14);
-      const my2 = (hipY + footYy) / 2 - lift * 0.25;
-      limb(cx, hx, hipY, mx2, my2, footX, footYy - lift, legW, shadeCss(legCol, tone), outline);
-      // boot
-      cx.fillStyle = shadeCss(bootCol, tone);
-      cx.strokeStyle = outline;
-      cx.lineWidth = 2;
-      rrs(cx, footX - legW * 0.55 + face * 3, footYy - lift - legW * 0.42, legW * 1.35, legW * 0.62, 3);
-    };
-    if (mv && useLimb === 'LEGS' && activeK > 0.2) {
-      // kick: back leg plants, front leg extends toward the foe
-      drawLeg(-face * W * 0.28, -face * W * 0.42, 0, 0, -20);
-      const kl = W * 0.7 + activeK * W * 1.5;
-      const kh = mv.guard === 'low' ? -legW * 0.6 : -legH * (0.7 + activeK * 0.5);
-      const kneeX = face * kl * 0.45, kneeY = hipY * 0.55 + kh * 0.3 - 8 * (1 - activeK);
-      limb(cx, face * W * 0.1, hipY, kneeX, kneeY, face * kl, kh, legW, shade(pal.secondary, 22), outline);
-      cx.fillStyle = bootCol;
-      rrs(cx, face * kl - legW * 0.6, kh - legW * 0.4, legW * 1.4, legW * 0.7, 3);
-    } else if (airborne) {
-      // tucked
-      drawLeg(-W * 0.28, -W * 0.34 - face * 8, -legH * 0.42, 0, -26);
-      drawLeg(W * 0.28, W * 0.2 - face * 8, -legH * 0.3, 0, 8);
-    } else if (walking) {
-      const ph = t * 0.23;
-      const sA = Math.sin(ph), sB = Math.sin(ph + Math.PI);
-      drawLeg(-W * 0.28, -W * 0.28 + sA * 22, 0, Math.max(0, sA) * 11, -26);
-      drawLeg(W * 0.28, W * 0.28 + sB * 22, 0, Math.max(0, sB) * 11, 8);
-    } else {
-      drawLeg(-W * 0.28, -W * 0.44, 0, 0, -26);
-      drawLeg(W * 0.28, W * 0.44, 0, 0, 8);
-    }
-
-    // torso — lit like a cylinder (MK 2.5D read): bright core toward the moon,
-    // falloff to a dark far edge, hot rim line on top
-    const baseTone = shade(pal.primary, cid === 'zenith' ? -4 : 16);
-    cx.strokeStyle = outline;
-    cx.lineWidth = 3;
-    if (justHit) {
-      cx.fillStyle = '#ff5a64';
-    } else {
-      const tg = cx.createLinearGradient(-torsoW / 2, 0, torsoW / 2, 0);
-      tg.addColorStop(0, shade(pal.primary, cid === 'zenith' ? 20 : 40));
-      tg.addColorStop(0.42, baseTone);
-      tg.addColorStop(1, shade(pal.primary, cid === 'zenith' ? -34 : -14));
-      cx.fillStyle = tg;
-    }
-    rrs(cx, -torsoW / 2, torsoY - bodyH * 0.06 - breath * 0.5, torsoW, bodyH * 0.5 + breath * 0.5, 8);
-    // chest plate with its own curve
-    {
-      const pg2 = cx.createLinearGradient(-torsoW / 2, 0, torsoW / 2, 0);
-      pg2.addColorStop(0, shade(pal.primary, cid === 'zenith' ? 34 : 54));
-      pg2.addColorStop(0.5, shade(pal.primary, cid === 'zenith' ? 14 : 34));
-      pg2.addColorStop(1, shade(pal.primary, cid === 'zenith' ? -12 : 6));
-      cx.fillStyle = pg2;
-      rr(cx, -torsoW / 2 + 3, torsoY - bodyH * 0.04 - breath * 0.5, torsoW - 6, bodyH * 0.2, 6);
-    }
-    cx.strokeStyle = 'rgba(255,240,220,0.34)';
-    cx.lineWidth = 1.8;
-    cx.beginPath();
-    cx.moveTo(-torsoW / 2 + 6, torsoY - bodyH * 0.05 - breath * 0.5);
-    cx.lineTo(torsoW / 2 - 6, torsoY - bodyH * 0.05 - breath * 0.5);
-    cx.stroke();
-    // belly shadow grounds the torso over the hips
-    cx.fillStyle = 'rgba(0,0,0,0.18)';
-    cx.beginPath();
-    cx.ellipse(0, torsoY + bodyH * 0.42, torsoW * 0.44, bodyH * 0.05, 0, 0, Math.PI * 2);
-    cx.fill();
-
-    // per-character flourish
-    if (cid === 'strigoi') {
-      cx.fillStyle = shade(pal.secondary, 22);
-      cx.beginPath();
-      cx.moveTo(-torsoW * 0.34, torsoY - bodyH * 0.05);
-      cx.lineTo(-torsoW * 0.5, torsoY - bodyH * 0.2);
-      cx.lineTo(-torsoW * 0.16, torsoY - bodyH * 0.06);
-      cx.closePath(); cx.fill();
-      cx.beginPath();
-      cx.moveTo(torsoW * 0.34, torsoY - bodyH * 0.05);
-      cx.lineTo(torsoW * 0.5, torsoY - bodyH * 0.2);
-      cx.lineTo(torsoW * 0.16, torsoY - bodyH * 0.06);
-      cx.closePath(); cx.fill();
-      cx.strokeStyle = pal.accent;
-      cx.lineWidth = 1.6;
-      cx.beginPath();
-      cx.moveTo(0, torsoY - bodyH * 0.04);
-      cx.lineTo(0, torsoY + bodyH * 0.4);
-      cx.stroke();
-    } else if (cid === 'graft') {
-      cx.strokeStyle = '#1c0d12';
-      cx.lineWidth = 1.5;
-      for (let k = 0; k < 3; k++) {
-        cx.beginPath();
-        cx.moveTo(-torsoW / 2 + 4, torsoY + k * bodyH * 0.13 + 6);
-        cx.lineTo(torsoW / 2 - 4, torsoY + k * bodyH * 0.13 + 2);
-        cx.stroke();
-      }
-      cx.fillStyle = shade(pal.secondary, 18);
-      cx.beginPath();
-      cx.arc(-face * torsoW * 0.42, torsoY, W * 0.34, 0, Math.PI * 2);
-      cx.fill();
-    } else if (cid === 'joule') {
-      // I-beam chest plate + the capacitor scarring, glowing with the Bank
-      cx.fillStyle = shade(pal.secondary, 8);
-      rr(cx, -torsoW * 0.36, torsoY + bodyH * 0.06, torsoW * 0.72, bodyH * 0.1, 3);
-      const bankK = Math.min(1, (f.joules || 0) / 300);
-      if (bankK > 0.02) {
-        cx.strokeStyle = `rgba(255,207,106,${0.25 + bankK * 0.6 + 0.1 * Math.sin(t * (0.1 + bankK * 0.25))})`;
-        cx.lineWidth = 2 + bankK * 2.5;
-        cx.beginPath();
-        cx.arc(-face * torsoW * 0.3, torsoY + bodyH * 0.12, W * 0.5 + bankK * 8, -2.4, 0.6);
-        cx.stroke();
-        if (bankK > 0.6) {
-          cx.strokeStyle = `rgba(255,255,220,${(bankK - 0.6) * 0.8})`;
-          cx.lineWidth = 1.2;
-          for (let k2 = 0; k2 < 3; k2++) {
-            const ja = t * 0.3 + k2 * 2.1;
-            cx.beginPath();
-            cx.moveTo(Math.cos(ja) * torsoW * 0.3, torsoY + Math.sin(ja) * bodyH * 0.15);
-            cx.lineTo(Math.cos(ja) * torsoW * 0.45 + 4, torsoY + Math.sin(ja) * bodyH * 0.24 - 4);
-            cx.stroke();
-          }
-        }
-      }
-    } else if (cid === 'triage') {
-      // the defaced red cross
-      cx.strokeStyle = pal.accent;
-      cx.lineWidth = 4;
-      cx.beginPath();
-      cx.moveTo(-torsoW * 0.16, torsoY + bodyH * 0.02);
-      cx.lineTo(torsoW * 0.16, torsoY + bodyH * 0.26);
-      cx.moveTo(torsoW * 0.16, torsoY + bodyH * 0.02);
-      cx.lineTo(-torsoW * 0.16, torsoY + bodyH * 0.26);
-      cx.stroke();
-      // instrument webbing
-      cx.strokeStyle = shade(pal.secondary, 30);
-      cx.lineWidth = 2;
-      cx.beginPath();
-      cx.moveTo(-torsoW * 0.4, torsoY);
-      cx.lineTo(torsoW * 0.32, torsoY + bodyH * 0.34);
-      cx.stroke();
-    } else {
-      // zenith's ragged mantle, breathing in the arena draft
-      cx.fillStyle = 'rgba(120,30,30,0.55)';
-      cx.beginPath();
-      cx.moveTo(-face * torsoW * 0.4, torsoY - 4);
-      cx.lineTo(-face * (torsoW * 0.75 + Math.sin(t * 0.1) * 6), torsoY + bodyH * 0.34 + Math.sin(t * 0.07) * 4);
-      cx.lineTo(-face * torsoW * 0.28, torsoY + bodyH * 0.3);
-      cx.closePath();
-      cx.fill();
-      if (f.debt > 0) {
-        cx.strokeStyle = `rgba(255,217,122,${0.25 + 0.65 * (f.debt / 100)})`;
-        cx.lineWidth = 1.3;
-        cx.beginPath();
-        cx.moveTo(0, torsoY - headR * 0.6);
-        cx.lineTo(4 * face, torsoY + bodyH * 0.1);
-        cx.lineTo(-2 * face, torsoY + bodyH * 0.24);
-        cx.stroke();
-      }
-    }
-
-    // arms — two-segment with elbows; punches genuinely extend from the shoulder
-    const armW = W * 0.19;
-    const shY = torsoY + bodyH * 0.03;
-    const armCol = shade(pal.primary, -12);
-    const fistCol = shade(pal.accent, 0);
-    const fist = (fx2, fy2, r2) => {
-      cx.fillStyle = fistCol;
-      cx.strokeStyle = outline;
-      cx.lineWidth = 2;
-      cx.beginPath(); cx.arc(fx2, fy2, r2, 0, Math.PI * 2); cx.fill(); cx.stroke();
-    };
-    if (guard) {
-      // both forearms up in front
-      limb(cx, -face * torsoW * 0.1, shY, face * torsoW * 0.34, shY + bodyH * 0.16, face * torsoW * 0.4, shY - bodyH * 0.08, armW, armCol, outline);
-      limb(cx, face * torsoW * 0.3, shY + 4, face * torsoW * 0.52, shY + bodyH * 0.18, face * torsoW * 0.56, shY - bodyH * 0.02, armW, armCol, outline);
-      fist(face * torsoW * 0.4, shY - bodyH * 0.08, armW * 0.55);
-      fist(face * torsoW * 0.56, shY - bodyH * 0.02, armW * 0.55);
-      cx.strokeStyle = 'rgba(143,168,200,0.5)';
-      cx.lineWidth = 2;
-      cx.beginPath();
-      cx.arc(face * torsoW * 0.5, torsoY + bodyH * 0.12, W * 0.5, -1.1, 1.1);
-      cx.stroke();
-    } else if (mv && (useLimb === 'ARMS' || useLimb === 'BODY') && activeK > 0.1) {
-      // rear arm chambers at the hip
-      limb(cx, -face * torsoW * 0.34, shY, -face * (torsoW * 0.5), shY + bodyH * 0.14, -face * torsoW * 0.3, shY + bodyH * 0.2, armW, armCol, outline);
-      fist(-face * torsoW * 0.3, shY + bodyH * 0.2, armW * 0.5);
-      // lead arm: shoulder → elbow → fist, straightening with activeK
-      const reach = W * 0.55 + activeK * W * 1.55;
-      const fy = shY + bodyH * 0.06 - activeK * 4;
-      const ex2 = face * reach * (0.45 + 0.15 * activeK);
-      const ey2 = fy + (1 - activeK) * 16;
-      limb(cx, face * torsoW * 0.3, shY, ex2, ey2, face * reach, fy, armW, shade(pal.primary, 6), outline);
-      fist(face * reach, fy, armW * 0.66);
-      if (activeK === 1) {
-        // crescent swipe with a hot edge
-        const cxr = W * 1.5;
-        const a0 = face > 0 ? -0.7 : Math.PI - 0.7, a1 = face > 0 ? 0.55 : Math.PI + 0.55;
-        cx.strokeStyle = 'rgba(255,255,255,0.55)';
-        cx.lineWidth = 4;
-        cx.beginPath(); cx.arc(face * torsoW * 0.3, shY, cxr, a0, a1); cx.stroke();
-        cx.strokeStyle = 'rgba(255,120,90,0.3)';
-        cx.lineWidth = 9;
-        cx.beginPath(); cx.arc(face * torsoW * 0.3, shY, cxr - 5, a0 + 0.1, a1 - 0.05); cx.stroke();
-      }
-    } else {
-      const armSwing = walking ? Math.sin(t * 0.23 + Math.PI) * 8 : Math.sin(t * 0.05 + f.id) * 1.5;
-      // far arm darker, near arm lit — the depth cue that sells 2.5D
-      limb(cx, -torsoW * 0.42, shY, -torsoW * 0.5 - armSwing * 0.4, shY + bodyH * 0.17, -torsoW * 0.44 - armSwing, shY + bodyH * 0.32, armW, shadeCss(armCol, -28), outline);
-      fist(-torsoW * 0.44 - armSwing, shY + bodyH * 0.32, armW * 0.5);
-      limb(cx, torsoW * 0.42, shY, torsoW * 0.5 + armSwing * 0.4, shY + bodyH * 0.17, torsoW * 0.44 + armSwing, shY + bodyH * 0.32, armW, shadeCss(armCol, 8), outline);
-      fist(torsoW * 0.44 + armSwing, shY + bodyH * 0.32, armW * 0.5);
-    }
-
-    // head — a lit sphere, not a disc
-    const headY = torsoY - headR * 0.8 - breath * 0.6;
-    const isGraft = cid === 'graft';
-    const headBase = justHit ? '#ff6a72' : (isGraft ? '#9a8890' : cid === 'strigoi' ? '#ded6d8' : cid === 'triage' ? '#d8c2a8' : '#e5d5a8');
-    cx.strokeStyle = outline;
-    cx.lineWidth = 3;
-    {
-      const hg = cx.createRadialGradient(
-        face * W * 0.06 - headR * 0.35, headY - headR * 0.4, headR * 0.1,
-        face * W * 0.06, headY, headR * 1.15);
-      hg.addColorStop(0, shade(headBase, 34));
-      hg.addColorStop(0.55, headBase);
-      hg.addColorStop(1, shade(headBase, -46));
-      cx.fillStyle = hg;
-    }
-    cx.beginPath();
-    cx.arc(face * W * 0.06, headY, headR, 0, Math.PI * 2);
-    cx.fill();
-    cx.stroke();
-    // specular
-    cx.fillStyle = 'rgba(255,255,255,0.35)';
-    cx.beginPath();
-    cx.ellipse(face * W * 0.06 - headR * 0.4, headY - headR * 0.45, headR * 0.16, headR * 0.1, -0.6, 0, Math.PI * 2);
-    cx.fill();
-    if (cid === 'strigoi') {
-      cx.fillStyle = '#c22a3a';
-      cx.beginPath(); cx.arc(face * (W * 0.06 + headR * 0.35), headY - headR * 0.12, headR * 0.12, 0, Math.PI * 2); cx.fill();
-      cx.beginPath(); cx.arc(face * (W * 0.06 + headR * 0.02), headY - headR * 0.14, headR * 0.1, 0, Math.PI * 2); cx.fill();
-      cx.strokeStyle = 'rgba(143,15,34,0.5)';
-      cx.lineWidth = 1;
-      cx.beginPath();
-      cx.moveTo(face * W * 0.06 - headR * 0.4, headY + headR * 0.5);
-      cx.lineTo(face * W * 0.06 - headR * 0.15, headY + headR * 0.1);
-      cx.stroke();
-    } else if (isGraft) {
-      cx.strokeStyle = '#2a1218';
-      cx.lineWidth = 1.4;
-      cx.beginPath();
-      cx.moveTo(face * W * 0.06 - headR * 0.7, headY - headR * 0.3);
-      cx.lineTo(face * W * 0.06 + headR * 0.5, headY - headR * 0.55);
-      cx.stroke();
-      cx.fillStyle = '#d8c95a';
-      cx.beginPath(); cx.arc(face * (W * 0.06 + headR * 0.42), headY - headR * 0.1, headR * 0.15, 0, Math.PI * 2); cx.fill();
-      cx.fillStyle = '#4a3f45';
-      cx.beginPath(); cx.arc(face * (W * 0.06 + headR * 0.05), headY - headR * 0.12, headR * 0.11, 0, Math.PI * 2); cx.fill();
-    } else if (cid === 'joule') {
-      // hard hat, worn honestly
-      cx.fillStyle = '#e8b23a';
-      cx.strokeStyle = outline;
-      cx.lineWidth = 2.4;
-      cx.beginPath();
-      cx.arc(face * W * 0.06, headY - headR * 0.18, headR * 0.95, Math.PI, 0);
-      cx.closePath();
-      cx.fill(); cx.stroke();
-      cx.fillStyle = '#c89a2e';
-      rr(cx, face * W * 0.06 - headR * 1.1, headY - headR * 0.2, headR * 2.2, headR * 0.22, 3);
-      // soft eyes — the gentlest man on the roster
-      cx.fillStyle = '#3a3430';
-      cx.beginPath(); cx.arc(face * (W * 0.06 + headR * 0.32), headY + headR * 0.08, headR * 0.09, 0, Math.PI * 2); cx.fill();
-    } else if (cid === 'triage') {
-      // headlamp — it flicks on for the work
-      const on = mv || f.state === 'grabbing';
-      cx.fillStyle = on ? '#fff7d8' : '#8a8478';
-      cx.strokeStyle = outline;
-      cx.lineWidth = 1.6;
-      cx.beginPath();
-      cx.arc(face * (W * 0.06 + headR * 0.1), headY - headR * 0.55, headR * 0.22, 0, Math.PI * 2);
-      cx.fill(); cx.stroke();
-      if (on) {
-        cx.fillStyle = 'rgba(255,247,216,0.12)';
-        cx.beginPath();
-        cx.moveTo(face * (W * 0.06 + headR * 0.2), headY - headR * 0.55);
-        cx.lineTo(face * (W * 0.06 + headR * 3.2), headY - headR * 1.4);
-        cx.lineTo(face * (W * 0.06 + headR * 3.2), headY + headR * 0.6);
-        cx.closePath();
-        cx.fill();
-      }
-      cx.fillStyle = '#2a2e36';
-      cx.fillRect(face * W * 0.06 + (face > 0 ? headR * 0.02 : -headR * 0.62), headY - headR * 0.16, headR * 0.6, headR * 0.16);
-    } else {
-      cx.fillStyle = '#3a2f1a';
-      cx.fillRect(face * W * 0.06 + (face > 0 ? headR * 0.05 : -headR * 0.65), headY - headR * 0.22, headR * 0.6, headR * 0.2);
-      cx.fillStyle = f.debt >= 60 ? '#ffd97a' : '#fff1c8';
-      cx.fillRect(face * W * 0.06 + (face > 0 ? headR * 0.12 : -headR * 0.58), headY - headR * 0.18, headR * 0.46, headR * 0.12);
-    }
-
-    // meat wall aura
-    if (f.state === 'stance' && f.stancePhase === 'hold') {
-      cx.strokeStyle = `rgba(201,138,74,${0.4 + 0.2 * Math.sin(t * 0.3)})`;
-      cx.lineWidth = 3;
-      cx.beginPath();
-      cx.arc(0, torsoY, W * 1.15, 0, Math.PI * 2);
-      cx.stroke();
-    }
-    // parry shimmer
-    if (mv && mv.parry) {
-      cx.strokeStyle = `rgba(255,217,122,${0.5 + 0.3 * Math.sin(t * 0.5)})`;
-      cx.lineWidth = 2.5;
-      cx.beginPath();
-      cx.arc(face * torsoW * 0.4, torsoY + bodyH * 0.08, W * 0.7, 0, Math.PI * 2);
-      cx.stroke();
-    }
-
-    // wound overlays
-    this.wounds(cx, f, { torsoW, bodyH, torsoY, headR, headY, W, s: 1, face, legH, legW });
-
-    // gore paint
-    if (gore > 0.02) {
-      cx.globalAlpha = gore;
-      cx.fillStyle = pal.blood;
-      rr(cx, -torsoW / 2, torsoY - bodyH * 0.06, torsoW, bodyH * 0.5, 8);
-      cx.globalAlpha = 1;
-    }
-
-    // drain flush
-    if (this.healFx[f.id] > 0) {
-      this.healFx[f.id]--;
-      cx.globalAlpha = 0.3 * (this.healFx[f.id] / 22);
-      cx.fillStyle = pal.accent || '#b03040';
-      rr(cx, -torsoW / 2, torsoY - bodyH * 0.06, torsoW, bodyH * 0.5, 8);
-      cx.beginPath();
-      cx.arc(face * W * 0.06, headY, headR, 0, Math.PI * 2);
-      cx.fill();
-      cx.globalAlpha = 1;
-    }
-
+    const look = this.lookFor(f);
+    // LYCAON (and any future shifter) carries a second build for its beast set
+    const useLook = (look.beastBuild && f.gset === 'finesse')
+      ? { ...look, build: { ...look.build, ...look.beastBuild } }
+      : look;
+    drawFigure(cx, sim, f, useLook, this.t, this.healFx);
     cx.restore();
 
     // bleeding drips into the world
     if (f.bleedRegions.length > 0 && this.t % 6 === 0 && f.state !== 'ko') {
       this.parts.push({
-        type: 'drop', col: pal.blood,
+        type: 'drop', col: f.char.character.palette.blood,
         x: f.x / SCALE + (Math.random() - 0.5) * 30,
         y: 60 + Math.random() * 120,
         vx: (Math.random() - 0.5) * 0.6, vy: -0.5, g: 0.3,
@@ -1193,99 +864,4 @@ export class Renderer {
       });
     }
   }
-
-  wounds(cx, f, m) {
-    const woundCol = ws => ws >= 3 ? '#ff2135' : ws === 2 ? '#b3202e' : '#7a1622';
-    const mark = (wx, wy, w, h, ws) => {
-      if (ws <= 0) return;
-      cx.strokeStyle = woundCol(ws);
-      cx.lineWidth = (ws >= 2 ? 2.2 : 1.4) * m.s;
-      cx.globalAlpha = 0.85;
-      for (let k = 0; k < ws; k++) {
-        cx.beginPath();
-        cx.moveTo(wx + (k * 7 - 4) * m.s, wy);
-        cx.lineTo(wx + (k * 7 + 3) * m.s, wy + h);
-        cx.stroke();
-      }
-      cx.globalAlpha = 1;
-    };
-    const th = f.balanceRef.trauma.thresholds;
-    const wsOf = r => f.trauma[r] >= th[2] ? 3 : f.trauma[r] >= th[1] ? 2 : f.trauma[r] >= th[0] ? 1 : 0;
-    mark(-m.torsoW * 0.1, m.torsoY + m.bodyH * 0.05, 0, m.bodyH * 0.22, wsOf('BODY'));
-    mark(m.face * m.torsoW * 0.42, m.torsoY + m.bodyH * 0.02, 0, m.bodyH * 0.18, wsOf('ARMS'));
-    mark(-m.W * 0.2, -m.legH * 0.8, 0, m.legH * 0.5, wsOf('LEGS'));
-    mark(m.face * m.W * 0.06, m.headY - m.headR * 0.4, 0, m.headR * 0.7, wsOf('HEAD'));
-  }
-}
-
-// two-segment limb rendered as a lit cylinder: outline → base tube → bright core →
-// shaded underside. The core highlight is what sells the roundness.
-function limb(cx, x1, y1, x2, y2, x3, y3, w, col, outlineCol) {
-  cx.lineCap = 'round';
-  cx.lineJoin = 'round';
-  cx.strokeStyle = outlineCol;
-  cx.lineWidth = w + 4;
-  cx.beginPath(); cx.moveTo(x1, y1); cx.lineTo(x2, y2); cx.lineTo(x3, y3); cx.stroke();
-  cx.strokeStyle = col;
-  cx.lineWidth = w;
-  cx.beginPath(); cx.moveTo(x1, y1); cx.lineTo(x2, y2); cx.lineTo(x3, y3); cx.stroke();
-  cx.strokeStyle = shadeCss(col, 26);
-  cx.lineWidth = Math.max(2, w * 0.42);
-  cx.beginPath();
-  cx.moveTo(x1 - w * 0.16, y1 - w * 0.18);
-  cx.lineTo(x2 - w * 0.16, y2 - w * 0.18);
-  cx.lineTo(x3 - w * 0.16, y3 - w * 0.18);
-  cx.stroke();
-  cx.strokeStyle = 'rgba(0,0,0,0.22)';
-  cx.lineWidth = Math.max(1.5, w * 0.3);
-  cx.beginPath();
-  cx.moveTo(x1 + w * 0.22, y1 + w * 0.2);
-  cx.lineTo(x2 + w * 0.22, y2 + w * 0.2);
-  cx.lineTo(x3 + w * 0.22, y3 + w * 0.2);
-  cx.stroke();
-  cx.lineCap = 'butt';
-  cx.lineJoin = 'miter';
-}
-
-// shade an rgb()/#hex css color by amt (helper for limb cores)
-function shadeCss(col, amt) {
-  if (col.startsWith('#')) return shade(col, amt);
-  const m = /rgb\((\d+),(\d+),(\d+)\)/.exec(col.replace(/\s/g, ''));
-  if (!m) return col;
-  const c = v => Math.max(0, Math.min(255, +v + amt));
-  return `rgb(${c(m[1])},${c(m[2])},${c(m[3])})`;
-}
-
-// rounded rect (fill)
-function rr(cx, x, y, w, h, r) {
-  if (w <= 0 || h <= 0) return;
-  cx.beginPath();
-  cx.moveTo(x + r, y);
-  cx.arcTo(x + w, y, x + w, y + h, r);
-  cx.arcTo(x + w, y + h, x, y + h, r);
-  cx.arcTo(x, y + h, x, y, r);
-  cx.arcTo(x, y, x + w, y, r);
-  cx.closePath();
-  cx.fill();
-}
-
-// rounded rect (fill + outline stroke)
-function rrs(cx, x, y, w, h, r) {
-  if (w <= 0 || h <= 0) return;
-  cx.beginPath();
-  cx.moveTo(x + r, y);
-  cx.arcTo(x + w, y, x + w, y + h, r);
-  cx.arcTo(x + w, y + h, x, y + h, r);
-  cx.arcTo(x, y + h, x, y, r);
-  cx.arcTo(x, y, x + w, y, r);
-  cx.closePath();
-  cx.fill();
-  cx.stroke();
-}
-
-function shade(hex, amt) {
-  const n = parseInt(hex.slice(1), 16);
-  let r = (n >> 16) + amt, g = ((n >> 8) & 0xff) + amt, b = (n & 0xff) + amt;
-  r = Math.max(0, Math.min(255, r)); g = Math.max(0, Math.min(255, g)); b = Math.max(0, Math.min(255, b));
-  return `rgb(${r},${g},${b})`;
 }

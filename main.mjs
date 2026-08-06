@@ -36,6 +36,7 @@ async function loadData() {
   DATA.balance = await j('data/balance/core.json');
   DATA.gmut = await j('data/gauntlet/mutators.json');
   DATA.gboon = await j('data/gauntlet/boons.json');
+  DATA.looks = await j('data/looks.json');
 }
 // ---------------- profile (P4 v1 — Riftborn hydration, Tempered strips it)
 let profile = freshProfile();
@@ -425,7 +426,7 @@ function renderPickers() {
 
 async function boot() {
   await loadData();
-  ren = new Renderer($('cv'), DATA.arena);
+  ren = new Renderer($('cv'), DATA.arena, DATA.looks);
   renderPickers();
   $('m-cpu').onclick = () => startMode('cpu');
   $('m-2p').onclick = () => startMode('2p');

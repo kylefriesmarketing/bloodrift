@@ -66,8 +66,11 @@ scripted replay, full match conclusion).
   `sim.mjs` (FSM, hits, grabs, parry/armor, juggles, rounds, pools, trauma, sunders,
   finish window), `input.mjs` (bitmask + motion parser), `cpu.mjs` (in-sim CPU seat),
   `rng.mjs`.
-- `engine/fx/render.mjs` — Canvas2D view (fighters, blood particles → persistent decals,
-  pools, Rift-scar, bone-cam, shake/flash). `engine/fx/sfx.mjs` — WebAudio synth.
+- `engine/fx/` — the view. `render.mjs` (world, arena, blood, decals, pools, bone-cam,
+  camera) · `body.mjs` (anatomical figures, depth-ordered limbs, ~30 character parts) ·
+  `draw2d.mjs` (lit primitives) · `post.mjs` (bloom / grade / chromatic split) ·
+  `sfx.mjs` (WebAudio synth). Per-fighter silhouettes live in **`data/looks.json`** —
+  a new fighter's look is a data entry, not code (D-019).
 - `engine/ui/hud.mjs` — vitals bars, blood-bag pints, wound figure, signature gauges,
   announcer.
 - `data/` — **the whole game design.** Schemas are FROZEN v1 (changes = migration ticket

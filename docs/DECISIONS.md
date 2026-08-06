@@ -78,6 +78,25 @@ Bleeding; HEAD = inputs ghost (25f zero-buffer window after every hit taken). On
 per match; they persist across rounds. HEAD sunders exist in engine but no launch-pair
 character has one authored (matches the roster sheets).
 
+**D-019 · The art layer is data + three view modules.** `data/looks.json` (schema-free by
+design — it is pure presentation, and the sim never reads it) holds each fighter's `build`
+proportions and an ordered `parts` list; `engine/fx/body.mjs` interprets them into an
+anatomical figure; `engine/fx/draw2d.mjs` holds the shared primitives (lit cylinder limbs,
+shaded spheres); `engine/fx/post.mjs` is the composite chain. A new fighter's LOOK is a
+data entry, not code — same rule as their kit.
+- **Depth order is the rule that makes 2D read as 3D**: far arm → far leg → torso →
+  near leg → near arm → head. Far limbs are tone −26 to −30, near limbs +6 to +8.
+- Torso is a tapered path (shoulders → waist) with pectoral/ab modelling and a rim light,
+  not a rounded rect. Heads are lit spheres with a specular and, when no mask/visor part
+  covers them, default eye sockets + brow + jaw so faces aren't blank eggs.
+- **Post**: the world renders into a scene buffer, then bright-pass (self-multiply ×2 =
+  value⁴, so only genuinely hot pixels bloom) → blur → additive, a soft-light grade, and
+  RGB-split chromatic aberration on the heaviest beats only (`punch(k) >= 0.09`: sunders,
+  overdrives, executions). Grain is applied AFTER post so it stays crisp.
+- ⚠️ Tuning traps found the hard way: bloom above ~0.5 washes the fighters to pale mush;
+  aberration on every hit makes the whole frame permanently ghosted; haze layers above
+  ~0.1 alpha turn the ruins to mud. All three were captured, diagnosed, and dialled back.
+
 **D-017 · P6 opens with THE GAUNTLET (build plan: "do first").** v1 scope: 7-floor seeded
 towers (weekly seed = ISO week, or random), opponents drawn from the roster, CPU level
 ramps 1→3, ONE new stacking mutator revealed per floor from floor 2, a draft of 1-of-3
