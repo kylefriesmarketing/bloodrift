@@ -882,6 +882,50 @@ t('gauntlet: a mutated + booned fight replays bit-identical', () => {
   assertEq(play(), play(), 'gauntlet fight determinism');
 });
 
+// ---------------------------------------------------------------- 4f. airborne invariants
+
+t('regression: an air attack keeps falling (no fighters stuck on a different plane)', () => {
+  const sim = makeSim();
+  run(sim, null, null, 70);
+  const [m0, m1] = masks(240);
+  hold(m0, 0, 6, B.U);     // jump
+  press(m0, 22, B.FP);     // attack at the apex — used to freeze gravity outright
+  const f = sim.fighters[0];
+  let peak = 0;
+  for (let k = 0; k < 200; k++) {
+    sim.step(m0[k] || 0, 0);
+    peak = Math.max(peak, f.y);
+  }
+  assert(peak > 100000, 'the jump should actually leave the ground');
+  assertEq(f.y, 0, 'must come back down');
+  assert(['idle', 'walkF', 'walkB', 'crouch', 'land'].includes(f.state), `grounded state, got ${f.state}`);
+});
+
+t('regression: nobody holds a grounded state at altitude, roster-wide', () => {
+  const GROUNDED = ['idle', 'walkF', 'walkB', 'crouch', 'land', 'dashF', 'dashB', 'stance', 'prejump'];
+  let violations = 0, longestAir = 0, worst = '';
+  for (let i = 0; i < ROSTER.length; i++) {
+    const sim = makeSim({
+      p1: ROSTER[i], p2: ROSTER[(i + 7) % ROSTER.length],
+      seed: 900 + i, cpu: [{ level: 3 }, { level: 3 }]
+    });
+    const airT = [0, 0];
+    for (let k = 0; k < 2500; k++) {
+      sim.step(0, 0);
+      for (const f of sim.fighters) {
+        if (f.y > 0 && GROUNDED.includes(f.state)) {
+          violations++;
+          worst = `${f.char.character.id} ${f.state} y=${f.y / 1000}`;
+        }
+        if (f.y > 0) { airT[f.id]++; longestAir = Math.max(longestAir, airT[f.id]); }
+        else airT[f.id] = 0;
+      }
+    }
+  }
+  assertEq(violations, 0, `floating fighters: ${worst}`);
+  assert(longestAir < 150, `airborne for ${longestAir} frames — someone is stuck`);
+});
+
 // ---------------------------------------------------------------- 5. determinism
 
 t('determinism: CPU vs CPU, 3600 frames, bit-identical hashes', () => {

@@ -808,8 +808,9 @@ export class Sim {
     }
 
     if (f.moveF >= total) {
-      const wasParry = !!mv.parry;
-      this.setState(f, wasParry ? 'idle' : 'idle', 0);
+      // a move that ends while still off the ground drops back into the air state —
+      // never into a grounded state at altitude
+      this.setState(f, f.y > 0 ? 'air' : 'idle', 0);
       f.counterable = false;
       f.passThrough = false;
       return;
@@ -901,7 +902,12 @@ export class Sim {
     // air physics — the single integration point (y positive-up, vy negative = rising).
     // Falls are 25% heavier than rises (the classic anti-float trick), and juggled
     // bodies bleed horizontal speed so arcs look thrown, not slid.
-    if (f.state === 'air' || f.state === 'launched') {
+    //
+    // ⚠️ Gravity keys off HEIGHT, not just the 'air' state: an air attack puts the
+    // fighter in 'move', and gating on state alone froze them mid-air forever
+    // (the "stuck on a different plane" bug). Only grabs and knockdowns own their y.
+    const yLocked = ['kd', 'grabbed', 'thrown', 'grabbing', 'ko'].includes(f.state);
+    if (!yLocked && (f.state === 'air' || f.state === 'launched' || f.y > 0)) {
       const gBase = f.state === 'launched' ? this.balance.juggle.reGravity : st.gravity;
       const g = f.vy > 0 ? trunc(gBase * 125, 100) : gBase;
       f.x += f.vx;
@@ -918,7 +924,9 @@ export class Sim {
           this.resetCombo(f);
           this.other(i).counterable = false;
         } else {
+          // touching down cancels an air attack into landing recovery
           this.setState(f, 'land', 4);
+          this.emit({ t: 'land', who: i, hard: false });
         }
       }
     }
